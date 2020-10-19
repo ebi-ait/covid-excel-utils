@@ -131,3 +131,7 @@ dmypy.json
 # IDEs
 /.idea
 /.vscode
+
+# Ignore non-blank example Files
+examples/*
+!examples/blank*
