@@ -1,0 +1,55 @@
+{
+  "id": "covid_data_uploader-study_schema",
+  "$async": true,
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Submissions Study Schema",
+  "description": "A base validation study schema",
+  "version": "1.0.0",
+  "author": "phoenix",
+  "type": "object",
+  "required": [
+    "study_alias",
+    "email_address",
+    "center_name",
+    "study_name",
+    "short_description",
+    "abstract",
+    "release_date"
+  ],
+  "properties": {
+    "study_accession": {
+      "description": "An unique identifier for this study in ENA archive.",
+      "type": "string"
+    },  
+    "study_alias": {
+      "description": "An unique identifier in a submission.",
+      "type": "string",
+      "minLength": 1
+    },
+    "email_address": {
+      "description": "The email address of the submitter.",
+      "type": "string"
+    },
+    "center_name": {
+      "description": "Identifying the sequencing center, core facility, consortium, or laboratory responsible for the study.",
+      "type": "string"
+    },
+    "study_name": {
+      "description": "Name of the study.",
+      "type": "string"
+    },
+    "short_description": {
+      "description": "More extensive free-form description of the study.",
+      "type": "string",
+    },
+    "abstract": {
+      "description": "Briefly describes the goals, purpose, and scope of the Study.",
+      "type": "string",
+    },
+    "release_date": {
+      "description": "The release date defines the date the study would be available publicly.",
+      "type": "string",
+      "format": "date"
+    }
+  }
+}
