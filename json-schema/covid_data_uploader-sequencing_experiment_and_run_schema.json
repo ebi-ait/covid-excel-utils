@@ -1,0 +1,245 @@
+{
+  "id": "covid_data_uploader-sequencing_experiment_and_run_schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$async": true,
+  "title": "Submissions Schema for sequencing run/experiment",
+  "description": "Validation schema for ENA sequencing run and experiment submission",
+  "version": "1.0.0",
+  "author": "phoenix",
+  "type": "object",
+  "required": [
+    "experiment_name",
+    "sequencing_platform",
+    "sequencing_instrument",
+    "library_source",
+    "library_selection",
+    "library_strategy",
+    "uploaded file 1"
+  ],
+  "properties": {
+    "experiment_name": {
+      "description": "The name of this experiment.",
+      "type": "string"
+    },
+    "sequencing_platform": {
+      "maxItems": 1,
+      "description": "Define the type of the sequencing platform and platform-specific runtime parameters. This will be determined by the contributor/consumer.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "enum": [
+              "LS454",
+              "ILLUMINA",
+              "HELICOS",
+              "ABI_SOLID",
+              "COMPLETE_GENOMICS",
+              "BGISEQ",
+              "OXFORD_NANOPORE",
+              "PACBIO_SMRT",
+              "ION_TORRENT",
+              "CAPILLARY",
+              "DNBSEQ"
+            ]
+          }
+        }
+      }
+    },
+    "sequencing_instrument": {
+      "maxItems": 1,
+      "description": "Define the type of the sequencing instrument. This will be determined by the contributor/consumer.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "enum": [
+              "454 GS",
+              "454 GS 20",
+              "454 GS FLX",
+              "454 GS FLX+",
+              "454 GS FLX Titanium",
+              "454 GS Junior",
+              "HiSeq X Five",
+              "HiSeq X Ten",
+              "Illumina Genome Analyzer",
+              "Illumina Genome Analyzer II",
+              "Illumina Genome Analyzer IIx",
+              "Illumina HiScanSQ",
+              "Illumina HiSeq 1000",
+              "Illumina HiSeq 1500",
+              "Illumina HiSeq 2000",
+              "Illumina HiSeq 2500",
+              "Illumina HiSeq 3000",
+              "Illumina HiSeq 4000",
+              "Illumina iSeq 100",
+              "Illumina MiSeq",
+              "Illumina MiniSeq",
+              "Illumina NovaSeq 6000",
+              "NextSeq 500",
+              "NextSeq 550",
+              "PacBio RS",
+              "PacBio RS II",
+              "Sequel",
+              "Ion Torrent PGM",
+              "Ion Torrent Proton",
+              "Ion Torrent S5",
+              "Ion Torrent S5 XL",
+              "AB 3730xL Genetic Analyzer",
+              "AB 3730 Genetic Analyzer",
+              "AB 3500xL Genetic Analyzer",
+              "AB 3500 Genetic Analyzer",
+              "AB 3130xL Genetic Analyzer",
+              "AB 3130 Genetic Analyzer",
+              "AB 310 Genetic Analyzer",
+              "MinION",
+              "GridION",
+              "PromethION",
+              "BGISEQ-500",
+              "unspecified"
+            ]
+          }
+        }
+      }
+    },
+    "library_name": {
+      "description": "The submitter's name for this library.",
+      "type": "string"
+    },
+    "library_source": {
+      "maxItems": 1,
+      "description": "Specifies the type of source material that is being sequenced.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "enum": [
+              "GENOMIC SINGLE CELL",
+              "GENOMIC",
+              "METAGENOMIC",
+              "METATRANSCRIPTOMIC",
+              "OTHER",
+              "SYNTHETIC",
+              "TRANSCRIPTOMIC SINGLE CELL",
+              "TRANSCRIPTOMIC",
+              "VIRAL RNA"
+            ]
+          }
+        }
+      }
+    },
+    "library_selection": {
+      "maxItems": 1,
+      "description": "Define the method used to enrich the target in the sequence library preparation.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "enum": [
+              "5-methylcytidine antibody",
+              "CAGE",
+              "cDNA",
+              "cDNA_oligo_dT",
+              "cDNA_randomPriming",
+              "ChIP",
+              "ChIP-Seq",
+              "DNase",
+              "HMPR",
+              "Hybrid Selection",
+              "Inverse rRNA selection",
+              "Inverse rRNA",
+              "MBD2 protein methyl-CpG binding domain",
+              "MDA",
+              "MF",
+              "MNase",
+              "MSLL",
+              "Oligo-dT",
+              "other",
+              "padlock probes capture method",
+              "PCR",
+              "PolyA",
+              "RACE",
+              "RANDOM PCR",
+              "RANDOM",
+              "Reduced Representation",
+              "repeat fractionation",
+              "Restriction Digest",
+              "RT-PCR",
+              "size fractionation",
+              "unspecified"
+            ]
+          }
+        }
+      }
+    },
+    "library_strategy": {
+      "maxItems": 1,
+      "description": "Define the sequencing technique intended for this library.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "enum": [
+              "AMPLICON",
+              "ATAC-seq",
+              "Bisulfite-Seq",
+              "ChIA-PET",
+              "ChIP-Seq",
+              "CLONE",
+              "CLONEEND",
+              "CTS",
+              "DNase-Hypersensitivity",
+              "EST",
+              "FAIRE-seq",
+              "FINISHING",
+              "FL-cDNA",
+              "Hi-C",
+              "MBD-Seq",
+              "MeDIP-Seq",
+              "miRNA-Seq",
+              "MNase-Seq",
+              "MRE-Seq",
+              "ncRNA-Seq",
+              "OTHER",
+              "POOLCLONE",
+              "RAD-Seq",
+              "RIP-Seq",
+              "RNA-Seq",
+              "SELEX",
+              "ssRNA-seq",
+              "Synthetic-Long-Read",
+              "Targeted-Capture",
+              "Tethered Chromatin Conformation Capture",
+              "Tn-Seq",
+              "VALIDATION",
+              "WCS",
+              "WGA",
+              "WGS",
+              "WXS"
+            ]
+          }
+        }
+      }
+    },
+    "library_description": {
+      "description": "Specifies the origin of the material being sequenced and any treatments that the material might have undergone that affect the sequencing result.",
+      "type": "string"
+    },
+    "insert_size": {
+      "description": "Specifies the length of the insert.",
+      "type": "string"
+    },
+    "uploaded file 1": {
+      "description": "Specifies the uploaded file name for single fastq or R1 for paired fastq file.",
+      "type": "string"
+    },
+    "uploaded file 2": {
+      "description": "Specifies the uploaded file name (R2) for PAIRED fastq file.",
+      "type": "string"
+    }
+  },
+  "dependencies": {
+    "uploaded file 2": {
+      "required": ["insert_size"]
+    }
+  }
+}
