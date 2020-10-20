@@ -1,27 +1,64 @@
 from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.datavalidation import DataValidationList
+from datetime import date
 from excel.clean import clean_object, clean_name
+
+
+def valid_date(value: str) -> bool:
+    try:
+        fromiso = date.fromisoformat(value)
+        return True
+    except Exception:
+        return False
+
+
+def object_has_attribute(object_data: dict, attribute: str) -> bool:
+    return attribute in object_data and object_data[attribute].strip() not in ['NP', 'NA', 'NC']
+
+
+def object_has_accession(object_data: dict):
+    return object_has_attribute(object_data, 'study_accession') or object_has_attribute(object_data, 'sample_accession')
 
 
 def validate_object(object_validation: dict, object_data: dict):
     errors = []
-    # ToDo: Validate object
+    for attribute_name in object_validation.keys():
+        attribute_info = object_validation[attribute_name]
+        if not object_has_attribute(object_data, attribute_name):
+            if 'mandatory' in attribute_info and not object_has_accession(object_data):
+                mandatory = attribute_info['mandatory'].strip()
+                if mandatory == 'M':
+                    errors.append('Error: Mandatory Atrribute {} is missing.'.format(attribute_name))
+                elif mandatory == 'R':
+                    errors.append('Warning: Reccomended Atrribute {} is missing.'.format(attribute_name))
+                elif mandatory != 'O':
+                    errors.append('Info: Atrribute {} may be required. {}'.format(attribute_name, mandatory))
+        else:
+            value = object_data[attribute_name]
+            if 'format' in attribute_info and attribute_info['format'] == 'YYYY-MM-DD' and not valid_date(value):
+                errors.append('Error: {} has value {}, which is not in date format YYYY-MM-DD.'.format(attribute_name, value))
+            if 'accepted_values' in attribute_info and value.lower() not in attribute_info['accepted_values']:
+                errors.append('Error: {} has value {} which is not in list of accepted values. {}'.format(attribute_name, value, attribute_info['accepted_values']))
+    if errors:
+        object_data['errors'] = errors
     return errors
 
 
 def validate_data_row(validation_map: dict, data_row):
     object_errors = []
     other_errors = []
+    all_errors = []
     for object_name in validation_map.keys():
         if object_name not in data_row:
-            object_errors.append('Error: Object "{}" is missing.'.format(object_name))
+            object_errors.append('Error: Object {} is missing.'.format(object_name))
         else:
             other_errors.extend(validate_object(validation_map[object_name], data_row[object_name]))
     if object_errors:
         data_row['errors'] = object_errors
-    object_errors.extend(other_errors)
-    return object_errors
+    all_errors.extend(object_errors)
+    all_errors.extend(other_errors)
+    return all_errors
 
 def validate_data_list(validation_map: dict, data):
     validation_report = []
@@ -40,7 +77,9 @@ def get_excel_validations(validations: DataValidationList):
         if validation.validation_type == 'list':
             for cell_range in validation.ranges:
                 if cell_range.min_col == cell_range.max_col and cell_range.min_row == 4 and cell_range.max_row == 4:
-                    validation_list[cell_range.coord] = validation.formula1.replace('"', '').split(',')
+                    # Accepted values encoded directly into validation formula
+                    validation_list[cell_range.coord] = validation.formula1.replace('"', '').lower().split(',')
+                    # ToDo: Support validation that refereces a table of values on sheet "Accepted_Values"
     return validation_list
 
 
@@ -70,7 +109,7 @@ def get_validation_map(worksheet: Worksheet, excel_validations: dict = None) -> 
                     column_object['mandatory'] = mandatory_cell.value   
 
                 if validation and format_cell.coordinate in excel_validations:
-                    column_object['format'] = excel_validations[format_cell.coordinate]
+                    column_object['accepted_values'] = excel_validations[format_cell.coordinate]
                 elif format_cell.value is not None:
                     column_object['format'] = format_cell.value
         
