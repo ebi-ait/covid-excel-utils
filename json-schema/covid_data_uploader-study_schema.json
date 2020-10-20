@@ -1,6 +1,4 @@
 {
-  "id": "covid_data_uploader-study_schema",
-  "$async": true,
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Submissions Study Schema",
   "description": "A base validation study schema",
@@ -40,11 +38,11 @@
     },
     "short_description": {
       "description": "More extensive free-form description of the study.",
-      "type": "string",
+      "type": "string"
     },
     "abstract": {
       "description": "Briefly describes the goals, purpose, and scope of the Study.",
-      "type": "string",
+      "type": "string"
     },
     "release_date": {
       "description": "The release date defines the date the study would be available publicly.",

@@ -14,7 +14,7 @@
     "library_source",
     "library_selection",
     "library_strategy",
-    "uploaded file 1"
+    "uploaded_file_1"
   ],
   "properties": {
     "experiment_name": {
@@ -228,17 +228,17 @@
       "description": "Specifies the length of the insert.",
       "type": "string"
     },
-    "uploaded file 1": {
+    "uploaded_file_1": {
       "description": "Specifies the uploaded file name for single fastq or R1 for paired fastq file.",
       "type": "string"
     },
-    "uploaded file 2": {
+    "uploaded_file_2": {
       "description": "Specifies the uploaded file name (R2) for PAIRED fastq file.",
       "type": "string"
     }
   },
   "dependencies": {
-    "uploaded file 2": {
+    "uploaded_file_2": {
       "required": ["insert_size"]
     }
   }

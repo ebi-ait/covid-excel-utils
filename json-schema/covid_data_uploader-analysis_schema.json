@@ -13,7 +13,7 @@
     "coverage",
     "program",
     "platform",
-    "fasta/flatfile name"
+    "fasta_flatfile_name"
   ],
   "properties": {
     "assemblyname": {
@@ -62,7 +62,7 @@
       "description": "A label associating the run with run references in data files.",
       "type": "string"
     },
-    "fasta/flatfile name": {
+    "fasta_flatfile_name": {
       "description": "The name of the fasta/flatfile file.",
       "type": "string"
     }
