@@ -1,7 +1,7 @@
+from datetime import date
 from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.datavalidation import DataValidationList
-from datetime import date
 from excel.clean import clean_object, clean_name
 
 
