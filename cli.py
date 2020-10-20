@@ -1,7 +1,7 @@
 import argparse
 import json
 import os
-from load_excel import get_dict_from_excel
+from excel.load import get_dict_from_excel
 
 
 def write_dict(file_path, data_dict):
