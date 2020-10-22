@@ -116,9 +116,7 @@ def get_validation_map(worksheet: Worksheet, excel_validations: dict = None) -> 
                 if units_cell.value is not None:
                     column_object['units'] = units_cell.value
 
-                if name not in validation:
-                    validation[name] = {}
-                validation[name][attribute] = column_object
+                validation.setdefault(name, {})[attribute] = column_object
     return validation
 
 
