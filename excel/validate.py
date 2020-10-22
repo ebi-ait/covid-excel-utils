@@ -131,13 +131,13 @@ def get_validation_map(worksheet: Worksheet, excel_validations: dict = None) -> 
                 column_object = {}
 
                 if mandatory_cell.value is not None:
-                    column_object['mandatory'] = mandatory_cell.value   
+                    column_object['mandatory'] = mandatory_cell.value
 
                 if validation and format_cell.coordinate in excel_validations:
                     column_object['accepted_values'] = excel_validations[format_cell.coordinate]
                 elif format_cell.value is not None:
                     column_object['format'] = format_cell.value
-        
+
                 if units_cell.value is not None:
                     column_object['units'] = units_cell.value
 

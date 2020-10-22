@@ -40,7 +40,7 @@ def get_data(worksheet, column_map: dict):
                     value = str(cell.value).strip()
                 object_name = column_map[cell.column_letter]['object']
                 attribute_name = column_map[cell.column_letter]['attribute']
-                
+
                 row_data.setdefault(object_name, {})[attribute_name] = value
         if len(row_data) > 0:
             row_data['row'] = row_index
