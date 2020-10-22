@@ -34,10 +34,14 @@ def get_data(worksheet, column_map: dict):
         row_data = {}
         for cell in row:
             if cell.value is not None:
-                column_info = column_map[cell.column_letter]
-                if column_info['object'] not in row_data:
-                    row_data[column_info['object']] = {}
-                row_data[column_info['object']][column_info['attribute']] = str(cell.value)
+                if cell.is_date:
+                    value = cell.value.date().isoformat()
+                else:
+                    value = str(cell.value).strip()
+                object_name = column_map[cell.column_letter]['object']
+                attribute_name = column_map[cell.column_letter]['attribute']
+
+                row_data.setdefault(object_name, {})[attribute_name] = value
         if len(row_data) > 0:
             row_data['row'] = row_index
             data.append(row_data)
