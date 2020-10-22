@@ -1,8 +1,8 @@
 from datetime import date
 from openpyxl import load_workbook
-from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.datavalidation import DataValidationList
-from excel.clean import clean_object, clean_name
+from openpyxl.worksheet.worksheet import Worksheet
+from excel.clean import *
 
 
 def valid_date(value: str) -> bool:
@@ -23,8 +23,7 @@ def object_has_accession(object_data: dict):
 
 def validate_object(object_validation: dict, object_data: dict):
     errors = []
-    for attribute_name in object_validation.keys():
-        attribute_info = object_validation[attribute_name]
+    for attribute_name, attribute_info in object_validation.items():
         if not object_has_attribute(object_data, attribute_name):
             if 'mandatory' in attribute_info and not object_has_accession(object_data):
                 mandatory = attribute_info['mandatory'].strip()
@@ -38,7 +37,7 @@ def validate_object(object_validation: dict, object_data: dict):
             value = object_data[attribute_name]
             if 'format' in attribute_info and attribute_info['format'] == 'YYYY-MM-DD' and not valid_date(value):
                 errors.append('Error: {} has value {}, which is not in date format YYYY-MM-DD.'.format(attribute_name, value))
-            if 'accepted_values' in attribute_info and value.lower() not in attribute_info['accepted_values']:
+            if 'accepted_values' in attribute_info and clean_validation(value) not in attribute_info['accepted_values']:
                 errors.append('Error: {} has value {} which is not in list of accepted values. {}'.format(attribute_name, value, attribute_info['accepted_values']))
     if errors:
         object_data['errors'] = errors
@@ -49,11 +48,11 @@ def validate_data_row(validation_map: dict, data_row):
     object_errors = []
     other_errors = []
     all_errors = []
-    for object_name in validation_map.keys():
+    for object_name, validation_info in validation_map.items():
         if object_name not in data_row:
             object_errors.append('Error: Object {} is missing.'.format(object_name))
         else:
-            other_errors.extend(validate_object(validation_map[object_name], data_row[object_name]))
+            other_errors.extend(validate_object(validation_info, data_row[object_name]))
     if object_errors:
         data_row['errors'] = object_errors
     all_errors.extend(object_errors)
@@ -77,10 +76,36 @@ def get_excel_validations(validations: DataValidationList):
         if validation.validation_type == 'list':
             for cell_range in validation.ranges:
                 if cell_range.min_col == cell_range.max_col and cell_range.min_row == 4 and cell_range.max_row == 4:
-                    # Accepted values encoded directly into validation formula
-                    validation_list[cell_range.coord] = validation.formula1.replace('"', '').lower().split(',')
-                    # ToDo: Support validation that refereces a table of values on sheet "Accepted_Values"
+                    if ',' in validation.formula1:
+                        # Accepted values encoded directly into validation formula
+                        value = clean_formula_list(validation.formula1)
+                    else:
+                        value = [clean_key(validation.formula1)]
+                    validation_list[cell_range.coord] = value
     return validation_list
+
+
+def get_accepted_lists(worksheet: Worksheet) -> dict:
+    defined_lists = {}
+    for column in worksheet.columns:
+        values = []
+        for cell in column:
+            if cell.value is not None:
+                values.append(cell.value)
+        if len(values) > 1:
+            key = clean_key(values.pop(0))
+            defined_lists[key] = clean_validation_list(values)
+    return defined_lists
+
+
+def merge_accepted_lists(excel_validations: dict, accepted_lists: dict):
+    update = {}
+    for coord, values in excel_validations.items():
+        list_name = clean_key(values[0])
+        if len(values) == 1 and list_name in accepted_lists:
+            update[coord] = accepted_lists[list_name]
+    excel_validations.update(update)
+    return excel_validations
 
 
 def get_validation_map(worksheet: Worksheet, excel_validations: dict = None) -> dict:
@@ -125,6 +150,9 @@ def get_validation_dict_from_excel(file_path, sheet_index=0):
     worksheet = workbook.worksheets[sheet_index]
     try:
         validations = get_excel_validations(worksheet.data_validations.dataValidation)
+        if 'Accepted_Values' in workbook.sheetnames:
+            accepted_lists = get_accepted_lists(workbook['Accepted_Values'])
+            merge_accepted_lists(validations, accepted_lists)
         return get_validation_map(worksheet, validations)
     finally:
         workbook.close()
