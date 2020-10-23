@@ -59,6 +59,7 @@ def validate_data_row(validation_map: dict, data_row):
     all_errors.extend(other_errors)
     return all_errors
 
+
 def validate_data_list(validation_map: dict, data):
     validation_report = []
     for item in data:
