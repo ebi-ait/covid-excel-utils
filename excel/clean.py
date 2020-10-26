@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List
 
 def clean_object(name: str) -> str:
@@ -30,3 +31,15 @@ def clean_validation_list(validation_list: List[str]) -> List[str]:
 def clean_validation(value: str) -> str:
     # Validation is case-insensitive
     return value.lower()
+
+
+def object_has_attribute(object_data: dict, attribute: str) -> bool:
+    return attribute in object_data and object_data[attribute].strip() not in ['NP', 'NA', 'NC']
+
+
+def valid_date(value: str) -> bool:
+    try:
+        date.fromisoformat(value)
+        return True
+    except Exception:
+        return False
