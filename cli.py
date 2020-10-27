@@ -5,6 +5,7 @@ import sys
 
 from excel.load import get_dict_from_excel
 from excel.validate import validate_dict_from_excel
+from services.biosamples import BioSamples
 
 
 def write_dict(file_path, data_dict):
@@ -64,5 +65,22 @@ if __name__ == '__main__':
             sys.exit(2)
 
         print(f'Attempting to Submit to BioSamples: {biosamples_url}, AAP: {aap_url}')
+        biosamples = BioSamples(biosamples_url, aap_url, aap_username, aap_password)
+        bio_samples = []
+        for row in data:
+            if 'sample' in row:
+                bio_samples.append(biosamples.encode_sample(row['sample']))
+        if bio_samples:
+            biosamples_requests_path = file_name + '_BioSamples_requests.json'
+            write_dict(biosamples_requests_path, bio_samples)
+            print(f'{len(bio_samples)} BioSamples objects written to: {biosamples_requests_path}')
+
+        biosamples_responses = []
+        for sample in bio_samples:
+            biosamples_responses.append(biosamples.send_sample(sample))
+        if biosamples_responses:
+            biosamples_responses_path = file_name + '_BioSamples_responses.json'
+            write_dict(biosamples_responses_path, biosamples_responses)
+            print(f'{len(biosamples_responses)} BioSamples responses written to: {biosamples_responses_path}')
 
     sys.exit(0)
