@@ -1,5 +1,5 @@
 from openpyxl import load_workbook
-from excel.clean import clean_object, clean_name
+from .clean import clean_object, clean_name
 
 
 def get_column_map(worksheet) -> dict:

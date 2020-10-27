@@ -1,7 +1,7 @@
 from openpyxl import load_workbook
 from openpyxl.worksheet.datavalidation import DataValidationList
 from openpyxl.worksheet.worksheet import Worksheet
-from excel.clean import object_has_attribute, clean_validation, clean_object, clean_key, clean_name, clean_formula_list, clean_validation_list, valid_date
+from .clean import object_has_attribute, clean_validation, clean_object, clean_key, clean_name, clean_formula_list, clean_validation_list, valid_date
 
 
 def object_has_accession(object_data: dict):
