@@ -5,7 +5,7 @@ import sys
 
 from excel.load import get_dict_from_excel
 from excel.validate import validate_dict_from_excel
-from services.biosamples import BioSamples
+from services.biosamples import AapClient, BioSamples
 
 
 def write_dict(file_path, data_dict):
@@ -21,7 +21,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parse, Validate and Submit excel files to EBI Resources')
     parser.add_argument('file_path', type=str, help='path of excel file to load')
     parser.add_argument('--biosamples', action='store_true', help='Submit to BioSamples, requires environment variables AAP_USERNAME and AAP_PASSWORD')
-
+    
+    parser.add_argument('--biosamples_domain', type=str, help='Override the BioSamples domain rather than detect the domain from the excel file.')
     parser.add_argument('--biosamples_url', type=str, default='https://www.ebi.ac.uk/biosamples', help='Override the default URL for BioSamples API.')
     parser.add_argument('--aap_url', type=str, default='https://api.aai.ebi.ac.uk', help='Override the default URL for AAP API.')
 
@@ -49,8 +50,9 @@ if __name__ == '__main__':
         # ToDo: if issues: Ask user if they want to proceed with detected issues.
         # This may have to wait until we can classify issues into Errors (that will block submission), Warnings and Info
 
-        biosamples_url = args['biosamples_url']
         aap_url = args['aap_url']
+        url = args['biosamples_url']
+        domain = args['biosamples_domain']
 
         if 'AAP_USERNAME' in os.environ:
             aap_username = os.environ['AAP_USERNAME']
@@ -64,8 +66,9 @@ if __name__ == '__main__':
             print('No AAP_PASSWORD detected in os environment variables.')
             sys.exit(2)
 
-        print(f'Attempting to Submit to BioSamples: {biosamples_url}, AAP: {aap_url}')
-        biosamples = BioSamples(biosamples_url, aap_url, aap_username, aap_password)
+        print(f'Attempting to Submit to BioSamples: {url}, AAP: {aap_url}')
+        aap_client = AapClient(url=aap_url, username=aap_username, password=aap_password)
+        biosamples = BioSamples(aap_client, url, domain)
         bio_samples = []
         for row in data:
             if 'sample' in row:

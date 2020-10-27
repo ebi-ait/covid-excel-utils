@@ -23,7 +23,7 @@ def make_attributes(sample: dict) -> List[Attribute]:
 
 
 def fixup_sample(sample: dict):
-    remove_keys = ['sample_accession', 'sample_alias', 'sample_title', 'sample_description', 'tax_id',
+    remove_keys = ['errors', 'sample_accession', 'sample_alias', 'sample_title', 'sample_description', 'tax_id',
                    'scientific_name', 'domain']
     for key in remove_keys:
         if key in sample:
@@ -36,6 +36,7 @@ def fixup_sample(sample: dict):
 def map_sample(input_sample: dict) -> Sample:
     accession = optional_attribute(input_sample, 'sample_accession')
     name = optional_attribute(input_sample, 'sample_title')
+    domain = optional_attribute(input_sample, 'domain')
     ncbi_taxon_id = optional_attribute(input_sample, 'tax_id')
     species = optional_attribute(input_sample, 'scientific_name')
     fixup_sample(input_sample)
@@ -43,6 +44,7 @@ def map_sample(input_sample: dict) -> Sample:
     sample = Sample(
         accession=accession,
         name=name,
+        domain=domain,
         ncbi_taxon_id=ncbi_taxon_id,
         species=species
     )
@@ -52,13 +54,10 @@ def map_sample(input_sample: dict) -> Sample:
 
 
 class BioSamples:
-    def __init__(self, biosamples_url, aap_url, aap_username, aap_password):
-        self.aap = AapClient(
-            url=aap_url,
-            username=aap_username,
-            password=aap_password
-        )
-        self.biosamples = BioSamplesClient(biosamples_url)
+    def __init__(self, aap_client: AapClient, url, domain):
+        self.aap = aap_client
+        self.biosamples = BioSamplesClient(url)
+        self.domain = domain
         self.encoder = SampleEncoder()
 
     def encode_sample(self, input_sample: dict) -> dict:
@@ -66,6 +65,7 @@ class BioSamples:
         return self.encoder.default(sample)
 
     def send_sample(self, sample: dict):
-        if 'accession' in sample:
+        sample['domain'] = self.domain
+        if 'accession' in sample and sample['accession']:
             return self.biosamples.update_sample(sample=sample, jwt=self.aap.get_token())
         return self.biosamples.persist_sample(sample=sample, jwt=self.aap.get_token())
