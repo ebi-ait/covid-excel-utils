@@ -1,6 +1,7 @@
 from datetime import date
 from typing import List
 
+
 def clean_object(name: str) -> str:
     # Objects may include a postfix which can be discarded
     return clean_name(name.partition('-')[0])
@@ -34,12 +35,16 @@ def clean_validation(value: str) -> str:
 
 
 def object_has_attribute(object_data: dict, attribute: str) -> bool:
-    return attribute in object_data and object_data[attribute].strip() not in ['NP', 'NA', 'NC']
+    return attribute in object_data and value_populated(object_data[attribute].strip())
+
+
+def value_populated(value: str) -> bool:
+    return value not in ['NP', 'NA', 'NC']
 
 
 def valid_date(value: str) -> bool:
     try:
         date.fromisoformat(value)
         return True
-    except Exception:
+    except (TypeError, ValueError):
         return False

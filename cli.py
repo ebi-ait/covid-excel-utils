@@ -26,19 +26,19 @@ if __name__ == '__main__':
 
     args = vars(parser.parse_args())
     excel_file_path = args['file_path']
+    file_name = os.path.splitext(excel_file_path)[0]
 
     data = get_dict_from_excel(excel_file_path)
-    issues = validate_dict_from_excel(excel_file_path, data)
-
     if data:
-        json_file_path = os.path.splitext(excel_file_path)[0] + '.json'
+        json_file_path = file_name + '.json'
         write_dict(json_file_path, data)
-        print(f'Data written to: {json_file_path}')
+        print(f'Data from {len(data)} rows written to: {json_file_path}')
 
+    issues = validate_dict_from_excel(excel_file_path, data)
     if issues:
-        issues_file_path = os.path.splitext(excel_file_path)[0] + '_issues.json'
+        issues_file_path = file_name + '_issues.json'
         write_dict(issues_file_path, issues)
-        print(f'Issues written to: {issues_file_path}')
+        print(f'Issues from {len(issues)} rows written to: {issues_file_path}')
 
     if args['biosamples']:
         if not data:
