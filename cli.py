@@ -41,14 +41,17 @@ if __name__ == '__main__':
         issues_file_path = file_name + '_issues.json'
         write_dict(issues_file_path, issues)
         print(f'Issues from {len(issues)} rows written to: {issues_file_path}')
-
+    
     if args['biosamples']:
         if not data:
             print('No Data to Submit to BioSamples')
             sys.exit(2)
 
-        # ToDo: if issues: Ask user if they want to proceed with detected issues.
-        # This may have to wait until we can classify issues into Errors (that will block submission), Warnings and Info
+        if issues:
+            user_text = input('Continue with BioSamples Submission? (y/N):')
+            if not user_text.lower().startswith('y'):
+                print('Exiting')
+                sys.exit(0)
 
         aap_url = args['aap_url']
         url = args['biosamples_url']
