@@ -14,11 +14,24 @@ def optional_attribute(sample: dict, attribute: str):
     return sample[attribute] if object_has_attribute(sample, attribute) else None
 
 
+# Only Suitable for COVID uses, will need to externalise to make package suitable for other purposes
+def make_attribute(name, value) -> Attribute:
+    iri = None
+    units = None
+    if name in ['host_common_name', 'host_scientific_name'] and value.lower() in ['human', 'homo sapiens']:
+        iri = 'http://purl.obolibrary.org/obo/NCBITaxon_9606'
+    elif name.startswith('isolation') and value.lower() == 'nasopharyngeal swab':
+        iri = 'http://purl.obolibrary.org/obo/NCIT_C155831'
+    elif name == 'geographic_location_(latitude)' or name == 'geographic_location_(longitude)':
+        units = 'DD'
+    return Attribute(name=attribute_name(name), value=value, iris=iri, unit=units)
+
+
 def make_attributes(sample: dict) -> List[Attribute]:
     attributes = []
-    for attribute, value in sample.items():
+    for name, value in sample.items():
         if value_populated(value):
-            attributes.append(Attribute(name=attribute_name(attribute), value=value))
+            attributes.append(make_attribute(name, value))
     return attributes
 
 
@@ -34,21 +47,15 @@ def fixup_sample(sample: dict):
 
 
 def map_sample(input_sample: dict) -> Sample:
-    accession = optional_attribute(input_sample, 'sample_accession')
-    name = optional_attribute(input_sample, 'sample_title')
-    domain = optional_attribute(input_sample, 'domain')
-    ncbi_taxon_id = optional_attribute(input_sample, 'tax_id')
-    species = optional_attribute(input_sample, 'scientific_name')
-    fixup_sample(input_sample)
-
     sample = Sample(
-        accession=accession,
-        name=name,
-        domain=domain,
-        ncbi_taxon_id=ncbi_taxon_id,
-        species=species
+        accession=optional_attribute(input_sample, 'sample_accession'),
+        name=optional_attribute(input_sample, 'sample_title'),
+        domain=optional_attribute(input_sample, 'domain'),
+        ncbi_taxon_id=optional_attribute(input_sample, 'tax_id'),
+        species=optional_attribute(input_sample, 'scientific_name')
     )
     sample._append_organism_attribute()
+    fixup_sample(input_sample)
     sample.attributes.extend(make_attributes(input_sample))
     return sample
 
