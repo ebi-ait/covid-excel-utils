@@ -30,15 +30,17 @@ def make_attributes(sample: dict) -> List[Attribute]:
     return attributes
 
 
-def fixup_sample(sample: dict):
+def fixup_sample(sample: dict) -> dict:
+    fixed_sample = sample.copy()
     remove_keys = ['errors', 'schema_erros', 'sample_accession', 'sample_alias', 'sample_title', 'sample_description', 'tax_id',
                    'scientific_name', 'domain']
     for key in remove_keys:
-        if key in sample:
-            sample.pop(key)
+        if key in fixed_sample:
+            fixed_sample.pop(key)
 
-    if 'collecting_institution' not in sample and 'collecting_institute' in sample:
-        sample['collecting_institution'] = sample.pop('collecting_institute')
+    if 'collecting_institution' not in fixed_sample and 'collecting_institute' in fixed_sample:
+        fixed_sample['collecting_institution'] = fixed_sample.pop('collecting_institute')
+    return fixed_sample
 
 
 def map_sample(input_sample: dict) -> Sample:
@@ -50,8 +52,7 @@ def map_sample(input_sample: dict) -> Sample:
         species=optional_attribute(input_sample, 'scientific_name')
     )
     sample._append_organism_attribute()
-    fixup_sample(input_sample)
-    sample.attributes.extend(make_attributes(input_sample))
+    sample.attributes.extend(make_attributes(fixup_sample(input_sample)))
     return sample
 
 

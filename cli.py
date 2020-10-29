@@ -29,18 +29,20 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
     excel_file_path = args['file_path']
     file_name = os.path.splitext(excel_file_path)[0]
-
+    json_file_path = file_name + '.json'
+        
     data = get_dict_from_excel(excel_file_path)
     if data:
-        json_file_path = file_name + '.json'
         write_dict(json_file_path, data)
         print(f'Data from {len(data)} rows written to: {json_file_path}')
 
     issues = validate_dict_from_excel(excel_file_path, data)
-    if issues:
-        issues_file_path = file_name + '_issues.json'
-        write_dict(issues_file_path, issues)
-        print(f'Issues from {len(issues)} rows written to: {issues_file_path}')
+    # ToDo: Return issues as a dictionary of row_index: List[row_errors]
+    # This will allow issues object to be appended by row_index in following validation and submission code
+    # if issues:
+    #     issues_file_path = file_name + '_issues.json'
+    #     write_dict(issues_file_path, issues)
+    #     print(f'Issues from {len(issues)} rows written to: {issues_file_path}')
     
     if args['biosamples']:
         if not data:
@@ -48,7 +50,7 @@ if __name__ == '__main__':
             sys.exit(2)
 
         if issues:
-            user_text = input('Continue with BioSamples Submission? (y/N)?:')
+            user_text = input(f'{len(issues)} issues detected. Continue with BioSamples Submission? (y/N)?:')
             if not user_text.lower().startswith('y'):
                 print('Exiting')
                 sys.exit(0)
@@ -72,21 +74,39 @@ if __name__ == '__main__':
         print(f'Attempting to Submit to BioSamples: {url}, AAP: {aap_url}')
         aap_client = AapClient(url=aap_url, username=aap_username, password=aap_password)
         biosamples = BioSamples(aap_client, url, domain)
-        bio_samples = []
+        sample_count = 0
+        error_count = 0
         for row in data:
             if 'sample' in row:
-                bio_samples.append(biosamples.encode_sample(row['sample']))
-        if bio_samples:
-            biosamples_requests_path = file_name + '_BioSamples_requests.json'
-            write_dict(biosamples_requests_path, bio_samples)
-            print(f'{len(bio_samples)} BioSamples objects written to: {biosamples_requests_path}')
+                try:
+                    # ToDo: Maybe store this in row['sample']['request']
+                    row['sample_request'] = biosamples.encode_sample(row['sample'])
+                    sample_count = sample_count + 1
+                except Exception as error:
+                    # ToDo: Also write to issues
+                    # ToDo: Maybe append this to row['sample']['errors']
+                    # row['sample'].setdefault('errors', []).append()
+                    row.setdefault('sample_request', {})['error'] = f'Encoding Error: {error}'
+                    error_count = error_count + 1
+        write_dict(json_file_path, data)
+        print(f'Data from {sample_count} BioSamples conversions and {error_count} errors written to: {json_file_path}')
 
-        biosamples_responses = []
-        for sample in bio_samples:
-            biosamples_responses.append(biosamples.send_sample(sample))
-        if biosamples_responses:
-            biosamples_responses_path = file_name + '_BioSamples_responses.json'
-            write_dict(biosamples_responses_path, biosamples_responses)
-            print(f'{len(biosamples_responses)} BioSamples responses written to: {biosamples_responses_path}')
+        biosample_count = 0
+        error_count = 0
+        for row in data:
+            if 'sample_request' in row and 'error' not in row['sample_request']:
+                try:
+                    # ToDo: Maybe store this in row['sample']['response']
+                    row['sample_response'] = biosamples.send_sample(row['sample_request'])
+                    biosample_count = biosample_count + 1
+                except Exception as error:
+                    # ToDo: Also write to issues
+                    # ToDo: Maybe append this to row['sample']['errors']
+                    # row['sample'].setdefault('errors', []).append()
+                    row.setdefault('sample_response', {})['error'] = f'BioSamples Error: {error}'
+                    error_count = error_count + 1
+        write_dict(json_file_path, data)
+        print(f'Data from {biosample_count} BioSamples responses and {error_count} errors written to: {json_file_path}')
+
 
     sys.exit(0)
