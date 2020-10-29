@@ -14,17 +14,12 @@ def optional_attribute(sample: dict, attribute: str):
     return sample[attribute] if object_has_attribute(sample, attribute) else None
 
 
-# Only Suitable for COVID uses, will need to externalise to make package suitable for other purposes
 def make_attribute(name, value) -> Attribute:
-    iri = None
     units = None
-    if name in ['host_common_name', 'host_scientific_name'] and value.lower() in ['human', 'homo sapiens']:
-        iri = 'http://purl.obolibrary.org/obo/NCBITaxon_9606'
-    elif name.startswith('isolation') and value.lower() == 'nasopharyngeal swab':
-        iri = 'http://purl.obolibrary.org/obo/NCIT_C155831'
-    elif name == 'geographic_location_(latitude)' or name == 'geographic_location_(longitude)':
+    # ToDo: Refactor to create the Sample at validation-time so the units are accessible from validation_map
+    if name in ['geographic_location_(latitude)', 'geographic_location_(longitude)']:
         units = 'DD'
-    return Attribute(name=attribute_name(name), value=value, iris=iri, unit=units)
+    return Attribute(name=attribute_name(name), value=value, unit=units)
 
 
 def make_attributes(sample: dict) -> List[Attribute]:
@@ -36,7 +31,7 @@ def make_attributes(sample: dict) -> List[Attribute]:
 
 
 def fixup_sample(sample: dict):
-    remove_keys = ['errors', 'sample_accession', 'sample_alias', 'sample_title', 'sample_description', 'tax_id',
+    remove_keys = ['errors', 'schema_erros', 'sample_accession', 'sample_alias', 'sample_title', 'sample_description', 'tax_id',
                    'scientific_name', 'domain']
     for key in remove_keys:
         if key in sample:

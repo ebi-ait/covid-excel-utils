@@ -48,7 +48,7 @@ if __name__ == '__main__':
             sys.exit(2)
 
         if issues:
-            user_text = input('Continue with BioSamples Submission? (y/N):')
+            user_text = input('Continue with BioSamples Submission? (y/N)?:')
             if not user_text.lower().startswith('y'):
                 print('Exiting')
                 sys.exit(0)
