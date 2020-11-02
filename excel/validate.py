@@ -1,20 +1,8 @@
-from datetime import date
 from openpyxl import load_workbook
 from openpyxl.worksheet.datavalidation import DataValidationList
 from openpyxl.worksheet.worksheet import Worksheet
-from excel.clean import *
-
-
-def valid_date(value: str) -> bool:
-    try:
-        fromiso = date.fromisoformat(value)
-        return True
-    except Exception:
-        return False
-
-
-def object_has_attribute(object_data: dict, attribute: str) -> bool:
-    return attribute in object_data and object_data[attribute].strip() not in ['NP', 'NA', 'NC']
+from .clean import (object_has_attribute, clean_validation, clean_object, clean_key, clean_name, clean_formula_list,
+                    clean_validation_list, valid_date)
 
 
 def object_has_accession(object_data: dict):
@@ -28,17 +16,20 @@ def validate_object(object_validation: dict, object_data: dict):
             if 'mandatory' in attribute_info and not object_has_accession(object_data):
                 mandatory = attribute_info['mandatory'].strip()
                 if mandatory == 'M':
-                    errors.append('Error: Mandatory Atrribute {} is missing.'.format(attribute_name))
+                    errors.append(f'Error: Mandatory Attribute {attribute_name} is missing.')
                 elif mandatory == 'R':
-                    errors.append('Warning: Reccomended Atrribute {} is missing.'.format(attribute_name))
+                    errors.append(f'Warning: Recommended Attribute {attribute_name} is missing.')
                 elif mandatory != 'O':
-                    errors.append('Info: Atrribute {} may be required. {}'.format(attribute_name, mandatory))
+                    errors.append(f'Info: Attribute {attribute_name} may be required. {mandatory}')
         else:
             value = object_data[attribute_name]
             if 'format' in attribute_info and attribute_info['format'] == 'YYYY-MM-DD' and not valid_date(value):
-                errors.append('Error: {} has value {}, which is not in date format YYYY-MM-DD.'.format(attribute_name, value))
+                errors.append(f'Error: {attribute_name} has value {value}, which is not in date format YYYY-MM-DD.')
             if 'accepted_values' in attribute_info and clean_validation(value) not in attribute_info['accepted_values']:
-                errors.append('Error: {} has value {} which is not in list of accepted values. {}'.format(attribute_name, value, attribute_info['accepted_values']))
+                accepted = attribute_info['accepted_values']
+                errors.append(
+                    f'Error: {attribute_name} has value {value}, which is not in list of accepted values. {accepted}'
+                )
     if errors:
         object_data['errors'] = errors
     return errors
@@ -61,17 +52,18 @@ def validate_data_row(validation_map: dict, data_row):
 
 
 def validate_data_list(validation_map: dict, data):
+    # ToDo: Return validation report as a dictionary of row_index: List[row_errors]
     validation_report = []
     for item in data:
         row_errors = validate_data_row(validation_map, item)
         if row_errors:
-            validation_report.append({ item['row']: row_errors })
+            validation_report.append({item['row']: row_errors})
     return validation_report
 
 
 def get_excel_validations(validations: DataValidationList):
     validation_list = {}
-    # If Excel's data vaidation is used for displaying accepted values on header row,
+    # If Excel's data validation is used for displaying accepted values on header row,
     # Replace single selected value with all accepted values
     for validation in validations:
         if validation.validation_type == 'list':
