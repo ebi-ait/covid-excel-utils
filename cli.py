@@ -37,12 +37,12 @@ if __name__ == '__main__':
         print(f'Data from {len(data)} rows written to: {json_file_path}')
 
     issues = validate_dict_from_excel(excel_file_path, data)
-    # ToDo: Return issues as a dictionary of row_index: List[row_errors]
+    # Return issues as a dictionary of row_index: List[row_errors]
     # This will allow issues object to be appended by row_index in following validation and submission code
-    # if issues:
-    #     issues_file_path = file_name + '_issues.json'
-    #     write_dict(issues_file_path, issues)
-    #     print(f'Issues from {len(issues)} rows written to: {issues_file_path}')
+    if issues:
+        issues_file_path = file_name + '_issues.json'
+        write_dict(issues_file_path, issues)
+        print(f'Issues from {len(issues)} rows written to: {issues_file_path}')
     
     if args['biosamples']:
         if not data:

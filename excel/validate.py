@@ -53,11 +53,11 @@ def validate_data_row(validation_map: dict, data_row):
 
 def validate_data_list(validation_map: dict, data):
     # ToDo: Return validation report as a dictionary of row_index: List[row_errors]
-    validation_report = []
+    validation_report = {}
     for item in data:
         row_errors = validate_data_row(validation_map, item)
         if row_errors:
-            validation_report.append({item['row']: row_errors})
+            validation_report[item['row']] = row_errors
     return validation_report
 
 
