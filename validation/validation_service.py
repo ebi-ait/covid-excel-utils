@@ -1,3 +1,4 @@
+import copy
 import requests
 import json
 import os
@@ -5,6 +6,13 @@ import os
 from .not_known_entity_exception import NotKnownEntityException
 from .validation_state import ValidationState
 
+def translate_json_schema_error_to_human(object_name: str, schema_errors: dict):
+    translated_messages = []
+    for schema_error in schema_errors:
+        path = schema_error['dataPath']
+        for error in schema_error['errors']:
+            translated_messages.append(f'Error: {object_name}{path} {error}')
+    return translated_messages
 
 class ValidationService:
     SCHEMA_FILENAME_PREFIX = "covid_data_uploader-"
@@ -16,32 +24,23 @@ class ValidationService:
         self.validator_url = validator_url
         self.current_folder = os.path.dirname(__file__)
 
-    def validate_spreadsheet_json(self, valid_json_from_spreadsheet):
-        validation_results = {'errors': [], 'state': ValidationState.PASS}
-
-        errors_by_entities = {}
-        for entities in valid_json_from_spreadsheet:
-            row_nb = entities.get("row")
-            for entity_type in entities:
-                entity = entities[entity_type]
-
-                if entity_type == "row":
+    def validate_data(self, data):
+        issues = {}
+        for entities in data:
+            for entity_type, entity in entities.items():
+                if entity_type == 'row':
                     continue
-
-                schema_file_name = f"{self.SCHEMA_FILENAME_PREFIX}{self.get_schema_by_entity_type(entity_type)}{self.SCHEMA_FILENAME_EXTENSION}"
-                with open(os.path.join(self.current_folder, f"{self.SCHEMA_FILES_FOLDER}{schema_file_name}")) as schema_file:
-                    schema_by_entity_type = json.load(schema_file)
-                validation_result = \
-                    self.validate_by_schema(schema_by_entity_type, entity).json()
-
-                if len(validation_result) != 0:
-                    errors_by_entities[entity_type] = validation_result
-            if len(errors_by_entities) != 0:
-                validation_results['errors'].append({row_nb: errors_by_entities})
-                validation_results['state'] = ValidationState.FAIL
-            errors_by_entities = {}
-
-        return validation_results
+                # ToDo: These schema files never change and yet we load them from disk during every row of the excel spreadsheet!
+                schema_file_name = f'{self.SCHEMA_FILENAME_PREFIX}{self.get_schema_by_entity_type(entity_type)}{self.SCHEMA_FILENAME_EXTENSION}'
+                with open(os.path.join(self.current_folder, f'{self.SCHEMA_FILES_FOLDER}{schema_file_name}')) as schema_file:
+                    schema = json.load(schema_file)
+                
+                validation_result = self.validate_by_schema(schema, entity).json()
+                human_errors = translate_json_schema_error_to_human(entity_type, validation_result)
+                if human_errors:
+                    entity.setdefault('errors', []).extend(human_errors)
+                    issues.setdefault(str(entities['row']), []).extend(human_errors)
+        return issues
 
     def validate_by_schema(self, schema, object_to_validate):
         schema.pop('id', None)

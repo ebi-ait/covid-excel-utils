@@ -1,5 +1,4 @@
 import argparse
-import copy
 import json
 import os
 import sys
@@ -32,37 +31,31 @@ if __name__ == '__main__':
     excel_file_path = args['file_path']
     file_name = os.path.splitext(excel_file_path)[0]
     json_file_path = file_name + '.json'
+    issues_file_path = file_name + '_issues.json'
 
     data = get_dict_from_excel(excel_file_path)
-    orig_json = json.loads(json.dumps(copy.deepcopy(data)).lower())
+    if not data:
+        print(f'No Data imported from: {excel_file_path}')
+        sys.exit(0)
 
-    if data:
-        write_dict(json_file_path, data)
-        print(f'Data from {len(data)} rows written to: {json_file_path}')
+    write_dict(json_file_path, data)
+    print(f'Data from {len(data)} rows written to: {json_file_path}')
 
-    validation_service = ValidationService("http://localhost:3020/validate")
-    validation_result = validation_service.validate_spreadsheet_json(orig_json)
-
-    for item in data:
-        for val_item in validation_result['errors']:
-            if item["row"] in val_item.keys():
-                error_msgs = list(val_item.values())[0]
-                for entity_type in error_msgs:
-                    item[entity_type]["schema_errors"] = error_msgs[entity_type]
-    issues = validate_dict_from_excel(excel_file_path, data)
-
+    try:
+        validation_service = ValidationService("http://localhost:3020/validate")
+        issues = validation_service.validate_data(data)
+    except Exception as error:
+        print(f'Error validating schema, using best guess validation.')
+        issues = validate_dict_from_excel(excel_file_path, data)
+    
     if issues:
-        issues_file_path = file_name + '_issues.json'
+        write_dict(json_file_path, data)
         write_dict(issues_file_path, issues)
-        print(f'Issues from {len(issues)} rows written to: {issues_file_path}')
+        print(f'Issues from {len(issues)} rows written to: {issues_file_path} and into: {json_file_path}')
 
     if args['biosamples']:
-        if not data:
-            print('No Data to Submit to BioSamples')
-            sys.exit(2)
-
         if issues:
-            user_text = input(f'{len(issues)} issues detected. Continue with BioSamples Submission? (y/N)?:')
+            user_text = input(f'Issues from {len(issues)} rows detected. Continue with BioSamples Submission? (y/N)?:')
             if not user_text.lower().startswith('y'):
                 print('Exiting')
                 sys.exit(0)
@@ -91,33 +84,36 @@ if __name__ == '__main__':
         for row in data:
             if 'sample' in row:
                 try:
-                    # ToDo: Maybe store this in row['sample']['request']
-                    row['sample_request'] = biosamples.encode_sample(row['sample'])
+                    row['sample']['request'] = biosamples.encode_sample(row['sample'])
                     sample_count = sample_count + 1
                 except Exception as error:
-                    # ToDo: Also write to issues
-                    # ToDo: Maybe append this to row['sample']['errors']
-                    # row['sample'].setdefault('errors', []).append()
-                    row.setdefault('sample_request', {})['error'] = f'Encoding Error: {error}'
+                    error_msg = f'Encoding Error: {error}'
+                    issues.setdefault(str(row['row']), []).append(error_msg)
+                    row['sample'].setdefault('errors', []).append(error_msg)
                     error_count = error_count + 1
+        if error_count:
+            write_dict(issues_file_path, issues)
+            print(f'Data from {error_count} errors written to: {issues_file_path}')
         write_dict(json_file_path, data)
-        print(f'Data from {sample_count} BioSamples conversions and {error_count} errors written to: {json_file_path}')
+        print(f'Data from {sample_count} BioSamples conversions written to: {json_file_path}')
 
         biosample_count = 0
         error_count = 0
         for row in data:
-            if 'sample_request' in row and 'error' not in row['sample_request']:
+            if 'sample' in row and 'request' in row['sample']:
                 try:
-                    # ToDo: Maybe store this in row['sample']['response']
-                    row['sample_response'] = biosamples.send_sample(row['sample_request'])
+                    row['sample']['biosample'] = biosamples.send_sample(row['sample']['request'])
+                    row['sample'].pop('request')
                     biosample_count = biosample_count + 1
                 except Exception as error:
-                    # ToDo: Also write to issues
-                    # ToDo: Maybe append this to row['sample']['errors']
-                    # row['sample'].setdefault('errors', []).append()
-                    row.setdefault('sample_response', {})['error'] = f'BioSamples Error: {error}'
+                    error_msg = f'BioSamples Error: {error}'
+                    issues.setdefault(str(row['row']), []).append(error_msg)
+                    row['sample'].setdefault('errors', []).append(error_msg)
                     error_count = error_count + 1
+        if error_count:
+            write_dict(issues_file_path, issues)
+            print(f'Data from {error_count} errors written to: {issues_file_path}')
         write_dict(json_file_path, data)
-        print(f'Data from {biosample_count} BioSamples responses and {error_count} errors written to: {json_file_path}')
+        print(f'Data from {biosample_count} BioSamples responses written to: {json_file_path}')
 
     sys.exit(0)
