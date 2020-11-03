@@ -2,8 +2,8 @@ import requests
 import json
 import os
 
-from validation.not_known_entity_exception import NotKnownEntityException
-from validation.validation_state import ValidationState
+from .not_known_entity_exception import NotKnownEntityException
+from .validation_state import ValidationState
 
 
 class ValidationService:
