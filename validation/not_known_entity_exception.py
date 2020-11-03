@@ -1,5 +1,4 @@
 class NotKnownEntityException(Exception):
-
     def __init__(self, entity_name):
         self.entity_name = entity_name
 

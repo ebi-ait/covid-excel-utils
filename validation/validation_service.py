@@ -1,6 +1,5 @@
 import requests
 import json
-
 import os
 
 from validation.not_known_entity_exception import NotKnownEntityException
@@ -8,7 +7,6 @@ from validation.validation_state import ValidationState
 
 
 class ValidationService:
-
     SCHEMA_FILENAME_PREFIX = "covid_data_uploader-"
     SCHEMA_FILENAME_EXTENSION = ".json"
     SCHEMA_FILES_FOLDER = "../json-schema/"
