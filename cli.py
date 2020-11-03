@@ -23,17 +23,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parse, Validate and Submit excel files to EBI Resources')
     parser.add_argument('file_path', type=str, help='path of excel file to load')
     parser.add_argument('--biosamples', action='store_true', help='Submit to BioSamples, requires environment variables AAP_USERNAME and AAP_PASSWORD')
-    
+
     parser.add_argument('--biosamples_domain', type=str, help='Override the BioSamples domain rather than detect the domain from the excel file.')
     parser.add_argument('--biosamples_url', type=str, default='https://www.ebi.ac.uk/biosamples', help='Override the default URL for BioSamples API.')
     parser.add_argument('--aap_url', type=str, default='https://api.aai.ebi.ac.uk', help='Override the default URL for AAP API.')
-    parser.add_argument('-v', '--validate', action='store_true', help='print haho')
 
     args = vars(parser.parse_args())
     excel_file_path = args['file_path']
     file_name = os.path.splitext(excel_file_path)[0]
     json_file_path = file_name + '.json'
-        
+
     data = get_dict_from_excel(excel_file_path)
     orig_json = json.loads(json.dumps(copy.deepcopy(data)).lower())
 
@@ -41,26 +40,22 @@ if __name__ == '__main__':
         write_dict(json_file_path, data)
         print(f'Data from {len(data)} rows written to: {json_file_path}')
 
-    if args['validate']:
-        validation_service = ValidationService("http://localhost:3020/validate")
-        validation_result = validation_service.validate_spreadsheet_json(orig_json)
+    validation_service = ValidationService("http://localhost:3020/validate")
+    validation_result = validation_service.validate_spreadsheet_json(orig_json)
 
-        for item in data:
-            for val_item in validation_result['errors']:
-                if item["row"] in val_item.keys():
-                    error_msgs = list(val_item.values())[0]
-                    for entity_type in error_msgs:
-                        item[entity_type]["schema_errors"] = error_msgs[entity_type]
-
+    for item in data:
+        for val_item in validation_result['errors']:
+            if item["row"] in val_item.keys():
+                error_msgs = list(val_item.values())[0]
+                for entity_type in error_msgs:
+                    item[entity_type]["schema_errors"] = error_msgs[entity_type]
     issues = validate_dict_from_excel(excel_file_path, data)
 
-    # Return issues as a dictionary of row_index: List[row_errors]
-    # This will allow issues object to be appended by row_index in following validation and submission code
     if issues:
         issues_file_path = file_name + '_issues.json'
         write_dict(issues_file_path, issues)
         print(f'Issues from {len(issues)} rows written to: {issues_file_path}')
-    
+
     if args['biosamples']:
         if not data:
             print('No Data to Submit to BioSamples')
@@ -124,6 +119,5 @@ if __name__ == '__main__':
                     error_count = error_count + 1
         write_dict(json_file_path, data)
         print(f'Data from {biosample_count} BioSamples responses and {error_count} errors written to: {json_file_path}')
-
 
     sys.exit(0)
