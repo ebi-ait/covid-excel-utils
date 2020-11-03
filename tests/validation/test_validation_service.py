@@ -4,7 +4,7 @@ import os
 import requests
 import unittest
 
-from mock import Mock, patch
+from mock import patch
 
 from validation.not_known_entity_exception import NotKnownEntityException
 from validation.validation_service import ValidationService

@@ -1,11 +1,13 @@
 import argparse
+import copy
 import json
 import os
 import sys
 
+from services.biosamples import AapClient, BioSamples
 from excel.load import get_dict_from_excel
 from excel.validate import validate_dict_from_excel
-from services.biosamples import AapClient, BioSamples
+from validation.validation_service import ValidationService
 
 
 def write_dict(file_path, data_dict):
@@ -25,6 +27,7 @@ if __name__ == '__main__':
     parser.add_argument('--biosamples_domain', type=str, help='Override the BioSamples domain rather than detect the domain from the excel file.')
     parser.add_argument('--biosamples_url', type=str, default='https://www.ebi.ac.uk/biosamples', help='Override the default URL for BioSamples API.')
     parser.add_argument('--aap_url', type=str, default='https://api.aai.ebi.ac.uk', help='Override the default URL for AAP API.')
+    parser.add_argument('-v', '--validate', action='store_true', help='print haho')
 
     args = vars(parser.parse_args())
     excel_file_path = args['file_path']
@@ -32,11 +35,25 @@ if __name__ == '__main__':
     json_file_path = file_name + '.json'
         
     data = get_dict_from_excel(excel_file_path)
+    orig_json = json.loads(json.dumps(copy.deepcopy(data)).lower())
+
     if data:
         write_dict(json_file_path, data)
         print(f'Data from {len(data)} rows written to: {json_file_path}')
 
+    if args['validate']:
+        validation_service = ValidationService("http://localhost:3020/validate")
+        validation_result = validation_service.validate_spreadsheet_json(orig_json)
+
+        for item in data:
+            for val_item in validation_result['errors']:
+                if item["row"] in val_item.keys():
+                    error_msgs = list(val_item.values())[0]
+                    for entity_type in error_msgs:
+                        item[entity_type]["schema_errors"] = error_msgs[entity_type]
+
     issues = validate_dict_from_excel(excel_file_path, data)
+
     # Return issues as a dictionary of row_index: List[row_errors]
     # This will allow issues object to be appended by row_index in following validation and submission code
     if issues:

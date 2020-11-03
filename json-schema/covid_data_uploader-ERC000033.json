@@ -77,7 +77,7 @@
       "type": "string"
     },
     "receipt_date": {
-      "description": "Date on which the sample was received. Format:YYYY-MM-DD. Please provide the highest precision possible. If the sample was received by the institution and not collected, the 'receipt date' must be provided instead. Either the 'collection date' or 'receipt date' must be provided. If available, provide both dates.",
+      "description": "Date on which the sample was received. Format:YYYY-MM-DD. Please provide the highest precision possible. If the sample was received by the institution and not collected, the receipt date must be provided instead. Either the collection date or receipt date must be provided. If available, provide both dates.",
       "type": "string",
       "format": "date"
     },
@@ -127,7 +127,7 @@
       "type": "string"
     },
     "type_exposure": {
-      "description": "Setting within which the subject is exposed to animals, such as farm, slaughterhouse, food preparation. If multiple exposures are applicable, please state their type in the same order in which you reported the exposure in the field 'subject exposure'. Example: backyard flock; confined animal feeding operation",
+      "description": "Setting within which the subject is exposed to animals, such as farm, slaughterhouse, food preparation. If multiple exposures are applicable, please state their type in the same order in which you reported the exposure in the field subject exposure. Example: backyard flock; confined animal feeding operation",
       "type": "string"
     },
     "host_age": {
@@ -163,7 +163,7 @@
       "type": "string"
     },
     "subject_exposure_duration": {
-      "description": "Duration of the exposure of the subject to an infected human or animal. If multiple exposures are applicable, please state their duration in the same order in which you reported the exposure in the field 'subject exposure'. Example: 1 day; 0.33 days",
+      "description": "Duration of the exposure of the subject to an infected human or animal. If multiple exposures are applicable, please state their duration in the same order in which you reported the exposure in the field subject exposure. Example: 1 day; 0.33 days",
       "type": "string"
     },
     "host_scientific_name": {

@@ -54,7 +54,7 @@
     "run_experiment": {
       "experiment_name": "ERX4331406",
       "sequencing_platform": "Illumina ",
-      "sequencing_instrument": " MiSeq",
+      "sequencing_instrument": "MiSeq",
       "library_name": "P17157_1007",
       "library_source": "Metagenomic",
       "library_selection": "Random PCR",

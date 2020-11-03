@@ -39,16 +39,29 @@ def validate_data_row(validation_map: dict, data_row):
     object_errors = []
     other_errors = []
     all_errors = []
+    schema_errors = []
     for object_name, validation_info in validation_map.items():
         if object_name not in data_row:
             object_errors.append('Error: Object {} is missing.'.format(object_name))
         else:
             other_errors.extend(validate_object(validation_info, data_row[object_name]))
+
+        schema_error = data_row[object_name].pop('schema_errors', None)
+        if schema_error:
+            schema_errors.extend(translate_json_schema_error_to_human(object_name, schema_error))
     if object_errors:
         data_row['errors'] = object_errors
     all_errors.extend(object_errors)
     all_errors.extend(other_errors)
+    all_errors.extend(schema_errors)
     return all_errors
+
+
+def translate_json_schema_error_to_human(object_name: str, schema_errors: dict):
+    translated_messages = []
+    for schema_error in schema_errors:
+        translated_messages.append(f"Error: {object_name}{schema_error['dataPath']} {schema_error['errors'][0]}")
+    return translated_messages
 
 
 def validate_data_list(validation_map: dict, data):
@@ -57,7 +70,7 @@ def validate_data_list(validation_map: dict, data):
     for item in data:
         row_errors = validate_data_row(validation_map, item)
         if row_errors:
-            validation_report[item['row']] = row_errors
+            validation_report[str(item['row'])] = row_errors
     return validation_report
 
 

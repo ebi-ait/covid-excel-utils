@@ -23,8 +23,13 @@ class ValidationService:
 
         errors_by_entities = {}
         for entities in valid_json_from_spreadsheet:
+            row_nb = entities.get("row")
             for entity_type in entities:
                 entity = entities[entity_type]
+
+                if entity_type == "row":
+                    continue
+
                 schema_file_name = f"{self.SCHEMA_FILENAME_PREFIX}{self.get_schema_by_entity_type(entity_type)}{self.SCHEMA_FILENAME_EXTENSION}"
                 with open(os.path.join(self.current_folder, f"{self.SCHEMA_FILES_FOLDER}{schema_file_name}")) as schema_file:
                     schema_by_entity_type = json.load(schema_file)
@@ -34,13 +39,14 @@ class ValidationService:
                 if len(validation_result) != 0:
                     errors_by_entities[entity_type] = validation_result
             if len(errors_by_entities) != 0:
-                validation_results['errors'].append(errors_by_entities)
+                validation_results['errors'].append({row_nb: errors_by_entities})
                 validation_results['state'] = ValidationState.FAIL
             errors_by_entities = {}
 
         return validation_results
 
     def validate_by_schema(self, schema, object_to_validate):
+        schema.pop('id', None)
         payload = self.__create_validator_payload(schema, object_to_validate)
         validation_response = requests.post(self.validator_url, json=payload)
 
