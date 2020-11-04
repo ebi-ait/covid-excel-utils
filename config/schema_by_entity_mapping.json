@@ -1,0 +1,6 @@
+{
+  "study": "study_schema",
+  "sample": "ERC000033",
+  "run_experiment": "sequencing_experiment_and_run_schema",
+  "isolate_genome_assembly_information": "isolate_genome_assembly_information_schema"
+}

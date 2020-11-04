@@ -41,23 +41,22 @@ def validate_data_row(validation_map: dict, data_row):
     all_errors = []
     for object_name, validation_info in validation_map.items():
         if object_name not in data_row:
-            object_errors.append('Error: Object {} is missing.'.format(object_name))
+            object_errors.append(f'Error: Object {object_name} is missing.')
         else:
             other_errors.extend(validate_object(validation_info, data_row[object_name]))
     if object_errors:
-        data_row['errors'] = object_errors
+        data_row.setdefault('errors', []).extend(object_errors)
     all_errors.extend(object_errors)
     all_errors.extend(other_errors)
     return all_errors
 
 
 def validate_data_list(validation_map: dict, data):
-    # ToDo: Return validation report as a dictionary of row_index: List[row_errors]
-    validation_report = []
+    validation_report = {}
     for item in data:
         row_errors = validate_data_row(validation_map, item)
         if row_errors:
-            validation_report.append({item['row']: row_errors})
+            validation_report[str(item['row'])] = row_errors
     return validation_report
 
 

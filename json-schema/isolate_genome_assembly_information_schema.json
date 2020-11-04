@@ -3,7 +3,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$async": true,
   "title": "Submissions Schema for isolate genome assembly information.",
-  "description": "Validation schema for ENA's isolate genome assembly information.",
+  "description": "Validation schema for ENA isolate genome assembly information.",
   "version": "1.0.0",
   "author": "phoenix",
   "type": "object",
@@ -21,18 +21,11 @@
       "type": "string"
     },
     "assembly_type": {
-      "maxItems": 1,
+      "type": "string",
       "description": "The type of this assembly. Tha value of this field is always: COVID-19 outbreak",
-      "items": {
-        "type": "object",
-        "properties": {
-          "value": {
-            "enum": [
-              "COVID-19 outbreak"
-            ]
-          }
-        }
-      }
+      "enum": [
+        "covid-19 outbreak"
+      ]
     },
     "coverage": {
       "description": "The coverage of this assembly.",
