@@ -16,7 +16,7 @@ class TestIssuesGeneration(unittest.TestCase):
 
     @patch('validation.validation_service.requests.post')
     def test_when_validate_invalid_entity_with_valid_schema_should_return_errors(self, mock_post):
-        mock_post.return_value.json.return_value = ([
+        mock_post.return_value.json.side_effect = ([
                 {
                     'dataPath': '.assembly_type',
                     'errors': [
@@ -37,7 +37,9 @@ class TestIssuesGeneration(unittest.TestCase):
                         "should have required property 'email_address'"
                     ]
                 }
-            ]
+            ],
+            [],
+            []
         )
         mock_post.return_value.status = requests.codes.ok
 
@@ -47,7 +49,6 @@ class TestIssuesGeneration(unittest.TestCase):
         with open(os.path.join(current_folder, "../resources/test_issues.json")) as test_issues_file:
             expected_test_issues = json.load(test_issues_file)
 
-        excel_file_path = os.path.join(os.path.dirname(__file__), '../../examples/genome_assemblies.xlsx')
-        actual_issues = validate_dict_from_excel(excel_file_path, test_data)
+        actual_issues = self.validation_service.validate_data(test_data)
 
         self.assertEqual(expected_test_issues, actual_issues)

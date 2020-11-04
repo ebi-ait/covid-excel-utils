@@ -8,7 +8,6 @@ from mock import patch
 
 from validation.not_known_entity_exception import NotKnownEntityException
 from validation.validation_service import ValidationService
-from validation.validation_state import ValidationState
 
 
 class TestValidationService(unittest.TestCase):
@@ -74,10 +73,9 @@ class TestValidationService(unittest.TestCase):
         with open(os.path.join(current_folder, "../resources/valid_spreadsheet.json")) as valid_spreadsheet_file:
             valid_json_from_spreadsheet = json.load(valid_spreadsheet_file)
 
-        validation_result = self.validation_service.validate_spreadsheet_json(valid_json_from_spreadsheet)
+        validation_result = self.validation_service.validate_data(valid_json_from_spreadsheet)
 
-        self.assertEqual(0, len(validation_result['errors']))
-        self.assertEqual(ValidationState.PASS, validation_result['state'])
+        self.assertEqual(0, len(validation_result))
 
     @patch('validation.validation_service.requests.post')
     def test_when_some_entities_invalid_returns_error_result(self, mock_post):
@@ -115,10 +113,9 @@ class TestValidationService(unittest.TestCase):
         with open(os.path.join(current_folder, "../resources/invalid_spreadsheet.json")) as valid_spreadsheet_file:
             valid_json_from_spreadsheet = json.load(valid_spreadsheet_file)
 
-        validation_result = self.validation_service.validate_spreadsheet_json(valid_json_from_spreadsheet)
+        validation_result = self.validation_service.validate_data(valid_json_from_spreadsheet)
 
-        self.assertEqual(1, len(validation_result['errors'][0]))
-        self.assertEqual(ValidationState.FAIL, validation_result['state'])
+        self.assertEqual(1, len(validation_result))
 
 
 if __name__ == '__main__':

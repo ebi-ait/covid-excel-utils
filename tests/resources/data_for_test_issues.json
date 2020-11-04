@@ -7,21 +7,7 @@
       "platform": "Illumina MiSeq",
       "moleculetype": "genomic DNA",
       "run_ref": "ERR4387385",
-      "fasta_flatfile_name": "P17157_1007_contigs.txt",
-      "schema_errors": [
-        {
-          "dataPath": ".assembly_type",
-          "errors": [
-            "should be equal to one of the allowed values: [\"covid-19 outbreak\"]"
-          ]
-        },
-        {
-          "dataPath": ".coverage",
-          "errors": [
-            "should have required property \"coverage\""
-          ]
-        }
-      ]
+      "fasta_flatfile_name": "P17157_1007_contigs.txt"
     },
     "study": {
       "study_accession": "PRJEB39632",
@@ -30,15 +16,7 @@
       "study_name": "SARS-CoV-2 genomes from late April in Stockholm, Sweden",
       "short_description": "we report SARS-CoV-2 genome sequences obtained from patients confirmed to have the disease in Stockholm, Sweden, in late April.",
       "abstract": "Large research efforts are going into characterizing, mapping the spread, and studying biology and clinical features of the severe acute respiratory syndrome coronavirus 2 (SARS-CoV-2). Here, we report SARS-CoV-2 genome sequences obtained from patients confirmed to have the disease in Stockholm, Sweden, in late April.",
-      "release_date": "2020-08-31",
-      "schema_errors": [
-        {
-          "dataPath": ".email_address",
-          "errors": [
-            "should have required property \"email_address\""
-          ]
-        }
-      ]
+      "release_date": "2020-08-31"
     },
     "sample": {
       "sample_accession": "ERS4858671",
