@@ -20,7 +20,7 @@ class TestIssuesGeneration(unittest.TestCase):
                 {
                     'dataPath': '.assembly_type',
                     'errors': [
-                        'should be equal to one of the allowed values: ["covid-19 outbreak"]'
+                        'should be equal to one of the allowed values: [\'covid-19 outbreak\']'
                     ]
                 },
                 {

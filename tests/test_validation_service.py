@@ -16,11 +16,10 @@ class TestValidationService(unittest.TestCase):
         mock_post.return_value.json.return_value = []
         mock_post.return_value.status = requests.codes['ok']
 
-        schema = {}
-        object_to_validate = {}
+        entity_type = ''
+        entity = {}
 
-        validation_response = self.validation_service.validate_by_schema(schema, object_to_validate)
-        validation_errors = validation_response.json()
+        validation_errors = self.validation_service.validate(entity_type, entity)
 
         self.assertEqual(0, len(validation_errors))
 
@@ -36,11 +35,10 @@ class TestValidationService(unittest.TestCase):
         ]
         mock_post.return_value.status = requests.codes['ok']
 
-        schema = {}
-        object_to_validate = {}
+        entity_type = ''
+        entity = {}
 
-        validation_response = self.validation_service.validate_by_schema(schema, object_to_validate)
-        validation_errors = validation_response.json()
+        validation_errors = self.validation_service.validate(entity_type, entity)
 
         self.assertEqual(len(validation_errors), 1)
 
