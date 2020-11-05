@@ -18,7 +18,7 @@ class TestValidationService(unittest.TestCase):
     @patch('validation.validation_service.requests.post')
     def test_when_validate_valid_entity_with_valid_schema_should_return_no_errors(self, mock_post):
         mock_post.return_value.json.return_value = []
-        mock_post.return_value.status = requests.codes.ok
+        mock_post.return_value.status = requests.codes['ok']
 
         schema = {}
         object_to_validate = {}
@@ -38,7 +38,7 @@ class TestValidationService(unittest.TestCase):
                 ]
             }
         ]
-        mock_post.return_value.status = requests.codes.ok
+        mock_post.return_value.status = requests.codes['ok']
 
         schema = {}
         object_to_validate = {}
@@ -67,10 +67,10 @@ class TestValidationService(unittest.TestCase):
     @patch('validation.validation_service.requests.post')
     def test_when_all_entities_valid_returns_empty_error_result(self, mock_post):
         mock_post.return_value.json.return_value = []
-        mock_post.return_value.status = requests.codes.ok
+        mock_post.return_value.status = requests.codes['ok']
 
         current_folder = os.path.dirname(__file__)
-        with open(os.path.join(current_folder, "../resources/valid_spreadsheet.json")) as valid_spreadsheet_file:
+        with open(os.path.join(current_folder, "resources/valid_spreadsheet.json")) as valid_spreadsheet_file:
             valid_json_from_spreadsheet = json.load(valid_spreadsheet_file)
 
         validation_result = self.validation_service.validate_data(valid_json_from_spreadsheet)
@@ -107,10 +107,10 @@ class TestValidationService(unittest.TestCase):
             [],
             []
         )
-        mock_post.return_value.status = requests.codes.ok
+        mock_post.return_value.status = requests.codes['ok']
 
         current_folder = os.path.dirname(__file__)
-        with open(os.path.join(current_folder, "../resources/invalid_spreadsheet.json")) as valid_spreadsheet_file:
+        with open(os.path.join(current_folder, "resources/invalid_spreadsheet.json")) as valid_spreadsheet_file:
             valid_json_from_spreadsheet = json.load(valid_spreadsheet_file)
 
         validation_result = self.validation_service.validate_data(valid_json_from_spreadsheet)
