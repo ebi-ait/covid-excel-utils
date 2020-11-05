@@ -1,12 +1,8 @@
 import json
 import os
-
-import requests
 import unittest
-
+import requests
 from mock import patch
-
-from validation.not_known_entity_exception import NotKnownEntityException
 from validation.validation_service import ValidationService
 
 
@@ -47,22 +43,6 @@ class TestValidationService(unittest.TestCase):
         validation_errors = validation_response.json()
 
         self.assertEqual(len(validation_errors), 1)
-
-    def test_when_passing_valid_entity_type_returns_schema_name(self):
-        entity_type = "study"
-        expected_schema_name = "study_schema"
-
-        self.assertEqual(expected_schema_name, self.validation_service.get_schema_by_entity_type(entity_type))
-
-    def test_when_passing_invalid_entity_type_returns_error_message(self):
-        entity_type = "not_valid_entity_name"
-
-        with self.assertRaises(NotKnownEntityException) as context:
-            self.validation_service.get_schema_by_entity_type(entity_type)
-
-        self.assertEqual(NotKnownEntityException, context.exception.__class__)
-        self.assertEqual(entity_type, context.exception.entity_name)
-        self.assertTrue(context.exception.__str__().__contains__(entity_type))
 
     @patch('validation.validation_service.requests.post')
     def test_when_all_entities_valid_returns_empty_error_result(self, mock_post):
