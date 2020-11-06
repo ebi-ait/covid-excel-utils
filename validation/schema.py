@@ -5,7 +5,7 @@ from typing import List
 import requests
 
 
-class ValidationService:
+class SchemaValidation:
     schema_by_type = {}
 
     def __init__(self, validator_url):

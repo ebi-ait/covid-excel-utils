@@ -1,20 +1,19 @@
 import json
 import os
 import unittest
-import requests
 
+import requests
 from mock import patch
 
-from excel.validate import validate_dict_from_excel
-from validation.validation_service import ValidationService
+from validation.schema import SchemaValidation
 
 
 class TestIssuesGeneration(unittest.TestCase):
 
     def setUp(self):
-        self.validation_service = ValidationService("")
+        self.schema_validation = SchemaValidation("")
 
-    @patch('validation.validation_service.requests.post')
+    @patch('validation.schema.requests.post')
     def test_when_validate_invalid_entity_with_valid_schema_should_return_errors(self, mock_post):
         mock_post.return_value.json.side_effect = ([
                 {
@@ -49,6 +48,6 @@ class TestIssuesGeneration(unittest.TestCase):
         with open(os.path.join(current_folder, "resources/test_issues.json")) as test_issues_file:
             expected_test_issues = json.load(test_issues_file)
 
-        actual_issues = self.validation_service.validate_data(test_data)
+        actual_issues = self.schema_validation.validate_data(test_data)
 
         self.assertEqual(expected_test_issues, actual_issues)
