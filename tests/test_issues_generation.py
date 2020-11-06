@@ -43,7 +43,8 @@ class TestIssuesGeneration(unittest.TestCase):
         mock_post.return_value.status = requests.codes['ok']
 
         current_folder = os.path.dirname(__file__)
-        with open(os.path.join(current_folder, "resources/data_for_test_issues.json")) as test_data_file:
+        test_path = os.path.join(current_folder, "resources/data_for_test_issues.json")
+        with open(test_path) as test_data_file:
             test_data = json.load(test_data_file)
         with open(os.path.join(current_folder, "resources/test_issues.json")) as test_issues_file:
             expected_test_issues = json.load(test_issues_file)

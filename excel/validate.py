@@ -1,35 +1,39 @@
 from openpyxl import load_workbook
 from openpyxl.worksheet.datavalidation import DataValidationList
 from openpyxl.worksheet.worksheet import Worksheet
-from .clean import (object_has_attribute, clean_validation, clean_object, clean_key, clean_name, clean_formula_list,
-                    clean_validation_list, valid_date)
+from .clean import (object_has_attribute, clean_validation, clean_object, clean_key, clean_name,
+                    clean_formula_list, clean_validation_list, valid_date)
 
 
 def object_has_accession(object_data: dict):
-    return object_has_attribute(object_data, 'study_accession') or object_has_attribute(object_data, 'sample_accession')
+    return (object_has_attribute(object_data, 'study_accession')
+            or object_has_attribute(object_data, 'sample_accession'))
 
 
 def validate_object(object_validation: dict, object_data: dict):
     errors = []
-    for attribute_name, attribute_info in object_validation.items():
-        if not object_has_attribute(object_data, attribute_name):
-            if 'mandatory' in attribute_info and not object_has_accession(object_data):
-                mandatory = attribute_info['mandatory'].strip()
+    for name, info in object_validation.items():
+        if not object_has_attribute(object_data, name):
+            if 'mandatory' in info and not object_has_accession(object_data):
+                mandatory = info['mandatory'].strip()
                 if mandatory == 'M':
-                    errors.append(f'Error: Mandatory Attribute {attribute_name} is missing.')
+                    errors.append(f'Error: Mandatory Attribute {name} is missing.')
                 elif mandatory == 'R':
-                    errors.append(f'Warning: Recommended Attribute {attribute_name} is missing.')
+                    errors.append(f'Warning: Recommended Attribute {name} is missing.')
                 elif mandatory != 'O':
-                    errors.append(f'Info: Attribute {attribute_name} may be required. {mandatory}')
+                    errors.append(f'Info: Attribute {name} may be required. {mandatory}')
         else:
-            value = object_data[attribute_name]
-            if 'format' in attribute_info and attribute_info['format'] == 'YYYY-MM-DD' and not valid_date(value):
-                errors.append(f'Error: {attribute_name} has value {value}, which is not in date format YYYY-MM-DD.')
-            if 'accepted_values' in attribute_info and clean_validation(value) not in attribute_info['accepted_values']:
-                accepted = attribute_info['accepted_values']
-                errors.append(
-                    f'Error: {attribute_name} has value {value}, which is not in list of accepted values. {accepted}'
-                )
+            value = object_data[name]
+            if ('format' in info
+                    and info['format'] == 'YYYY-MM-DD'
+                    and not valid_date(value)):
+                errors.append(f'Error: {name} has value {value},'
+                              ' which is not in date format YYYY-MM-DD.')
+            if ('accepted_values' in info
+                    and clean_validation(value) not in info['accepted_values']):
+                accepted = info['accepted_values']
+                errors.append(f'Error: {name} has value {value},'
+                              f' which is not in list of accepted values. {accepted}')
     if errors:
         object_data['errors'] = errors
     return errors
@@ -67,7 +71,9 @@ def get_excel_validations(validations: DataValidationList):
     for validation in validations:
         if validation.validation_type == 'list':
             for cell_range in validation.ranges:
-                if cell_range.min_col == cell_range.max_col and cell_range.min_row == 4 and cell_range.max_row == 4:
+                if (cell_range.min_col == cell_range.max_col
+                        and cell_range.min_row == 4
+                        and cell_range.max_row == 4):
                     if ',' in validation.formula1:
                         # Accepted values encoded directly into validation formula
                         value = clean_formula_list(validation.formula1)

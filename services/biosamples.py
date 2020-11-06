@@ -16,7 +16,8 @@ def optional_attribute(sample: dict, attribute: str):
 
 def make_attribute(name, value) -> Attribute:
     units = None
-    # ToDo: Refactor to create the Sample at validation-time so the units are accessible from validation_map
+    # ToDo: Refactor to create the Sample at validation-time
+    # so the units are accessible from validation_map
     if name in ['geographic_location_(latitude)', 'geographic_location_(longitude)']:
         units = 'DD'
     return Attribute(name=attribute_name(name), value=value, unit=units)
@@ -32,8 +33,8 @@ def make_attributes(sample: dict) -> List[Attribute]:
 
 def fixup_sample(sample: dict) -> dict:
     fixed_sample = sample.copy()
-    remove_keys = ['errors', 'schema_errors', 'sample_accession', 'sample_alias', 'sample_title', 'sample_description', 'tax_id',
-                   'scientific_name', 'domain']
+    remove_keys = ['errors', 'schema_errors', 'sample_accession', 'sample_alias', 'sample_title',
+                   'sample_description', 'tax_id', 'scientific_name', 'domain']
     for key in remove_keys:
         if key in fixed_sample:
             fixed_sample.pop(key)

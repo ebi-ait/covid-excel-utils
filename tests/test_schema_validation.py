@@ -48,10 +48,11 @@ class TestSchemaValidation(unittest.TestCase):
         mock_post.return_value.status = requests.codes['ok']
 
         current_folder = os.path.dirname(__file__)
-        with open(os.path.join(current_folder, "resources/valid_spreadsheet.json")) as valid_spreadsheet_file:
-            valid_json_from_spreadsheet = json.load(valid_spreadsheet_file)
+        valid_path = os.path.join(current_folder, "resources/valid_spreadsheet.json")
+        with open(valid_path) as valid_file:
+            valid_json = json.load(valid_file)
 
-        validation_result = self.schema_validation.validate_data(valid_json_from_spreadsheet)
+        validation_result = self.schema_validation.validate_data(valid_json)
 
         self.assertEqual(0, len(validation_result))
 
@@ -88,10 +89,11 @@ class TestSchemaValidation(unittest.TestCase):
         mock_post.return_value.status = requests.codes['ok']
 
         current_folder = os.path.dirname(__file__)
-        with open(os.path.join(current_folder, "resources/invalid_spreadsheet.json")) as valid_spreadsheet_file:
-            valid_json_from_spreadsheet = json.load(valid_spreadsheet_file)
+        invalid_path = os.path.join(current_folder, "resources/invalid_spreadsheet.json")
+        with open(invalid_path) as invalid_file:
+            invalid_json = json.load(invalid_file)
 
-        validation_result = self.schema_validation.validate_data(valid_json_from_spreadsheet)
+        validation_result = self.schema_validation.validate_data(invalid_json)
 
         self.assertEqual(1, len(validation_result))
 
