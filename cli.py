@@ -4,7 +4,7 @@ import os
 import sys
 
 from services.biosamples import AapClient, BioSamples
-from excel.load import get_dict_from_excel
+from excel.load import ExcelLoader
 from excel.validate import validate_dict_from_excel
 from validation.schema import SchemaValidation
 
@@ -49,23 +49,23 @@ if __name__ == '__main__':
     json_file_path = file_name + '.json'
     issues_file_path = file_name + '_issues.json'
 
-    data = get_dict_from_excel(excel_file_path)
-    if not data:
+    excel_file = ExcelLoader(excel_file_path)
+    if not excel_file.rows:
         print(f'No Data imported from: {excel_file_path}')
         sys.exit(0)
 
-    write_dict(json_file_path, data)
-    print(f'Data from {len(data)} rows written to: {json_file_path}')
+    write_dict(json_file_path, excel_file.rows)
+    print(f'Data from {len(excel_file.rows)} rows written to: {json_file_path}')
 
     try:
         schema_validation = SchemaValidation("http://localhost:3020/validate")
-        issues = schema_validation.validate_data(data)
+        issues = schema_validation.validate_data(excel_file.rows)
     except Exception as error:
         print('Error validating schema, using best guess validation.')
-        issues = validate_dict_from_excel(excel_file_path, data)
+        issues = validate_dict_from_excel(excel_file_path, excel_file.rows)
 
     if issues:
-        write_dict(json_file_path, data)
+        write_dict(json_file_path, excel_file.rows)
         write_dict(issues_file_path, issues)
         print(f'Issues from {len(issues)} rows, written to: {issues_file_path} and into: {json_file_path}')
 
@@ -97,7 +97,7 @@ if __name__ == '__main__':
         biosamples = BioSamples(aap_client, url, domain)
         sample_count = 0
         error_count = 0
-        for row in data:
+        for row in excel_file.rows:
             if 'sample' in row:
                 try:
                     row['sample']['request'] = biosamples.encode_sample(row['sample'])
@@ -110,12 +110,12 @@ if __name__ == '__main__':
         if error_count:
             write_dict(issues_file_path, issues)
             print(f'Data from {error_count} errors written to: {issues_file_path}')
-        write_dict(json_file_path, data)
+        write_dict(json_file_path, excel_file.rows)
         print(f'Data from {sample_count} BioSamples conversions written to: {json_file_path}')
 
         biosample_count = 0
         error_count = 0
-        for row in data:
+        for row in excel_file.rows:
             if 'sample' in row and 'request' in row['sample']:
                 try:
                     row['sample']['biosample'] = biosamples.send_sample(row['sample']['request'])
@@ -129,7 +129,7 @@ if __name__ == '__main__':
         if error_count:
             write_dict(issues_file_path, issues)
             print(f'Data from {error_count} errors written to: {issues_file_path}')
-        write_dict(json_file_path, data)
+        write_dict(json_file_path, excel_file.rows)
         print(f'Data from {biosample_count} BioSamples responses written to: {json_file_path}')
 
     sys.exit(0)
