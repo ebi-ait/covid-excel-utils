@@ -1,12 +1,11 @@
 import argparse
 import json
+import logging
 import os
 import sys
-import logging
 
 from services.biosamples import AapClient, BioSamples
-from excel.load import ExcelLoader
-from excel.validate import validate_dict_from_excel
+from excel.markup import ExcelMarkup
 from validation.schema import SchemaValidation
 
 
@@ -62,34 +61,22 @@ if __name__ == '__main__':
     set_logging_level()
 
     excel_file_path = args['file_path']
-    file_name = os.path.splitext(excel_file_path)[0]
-    json_file_path = file_name + '.json'
-    issues_file_path = file_name + '_issues.json'
-
-    excel_file = ExcelLoader(excel_file_path)
+    excel_file = ExcelMarkup(excel_file_path)
     if not excel_file.rows:
         print(f'No Data imported from: {excel_file_path}')
         sys.exit(0)
 
-    write_dict(json_file_path, excel_file.rows)
-    print(f'Data from {len(excel_file.rows)} rows written to: {json_file_path}')
-
+    schema_validation = SchemaValidation("http://localhost:3020/validate")
     try:
-        schema_validation = SchemaValidation("http://localhost:3020/validate")
-        issues = schema_validation.validate_data(excel_file.rows)
+        schema_errors = schema_validation.validate_data(excel_file.rows)
     except Exception as error:
-        print('Error validating schema, using best guess validation.')
+        print('Error validating schema, Exiting.')
         logging.error(error)
-        issues = validate_dict_from_excel(excel_file_path, excel_file.rows)
-
-    if issues:
-        write_dict(json_file_path, excel_file.rows)
-        write_dict(issues_file_path, issues)
-        print(f'Issues from {len(issues)} rows, written to: {issues_file_path} and into: {json_file_path}')
+        sys.exit(2)
 
     if args['biosamples']:
-        if issues:
-            user_text = input(f'Issues from {len(issues)} rows detected. Continue with BioSamples Submission? (y/N)?:')
+        if schema_errors:
+            user_text = input(f'Issues from {len(schema_errors)} rows detected. Continue with BioSamples Submission? (y/N)?:')
             if not user_text.lower().startswith('y'):
                 print('Exiting')
                 sys.exit(0)
@@ -113,41 +100,44 @@ if __name__ == '__main__':
         print(f'Attempting to Submit to BioSamples: {url}, AAP: {aap_url}')
         aap_client = AapClient(url=aap_url, username=aap_username, password=aap_password)
         biosamples = BioSamples(aap_client, url, domain)
-        sample_count = 0
-        error_count = 0
+        # ToDo: Output _biosamples.json while with accessions / errors
+        # sample_count = 0
+        # error_count = 0
         for row in excel_file.rows:
             if 'sample' in row:
                 try:
                     row['sample']['request'] = biosamples.encode_sample(row['sample'])
-                    sample_count = sample_count + 1
+                    # sample_count = sample_count + 1
                 except Exception as error:
                     error_msg = f'Encoding Error: {error}'
-                    issues.setdefault(str(row['row']), []).append(error_msg)
+                    # issues.setdefault(str(row['row']), []).append(error_msg)
                     row['sample'].setdefault('errors', []).append(error_msg)
-                    error_count = error_count + 1
-        if error_count:
-            write_dict(issues_file_path, issues)
-            print(f'Data from {error_count} errors written to: {issues_file_path}')
-        write_dict(json_file_path, excel_file.rows)
-        print(f'Data from {sample_count} BioSamples conversions written to: {json_file_path}')
+                    # error_count = error_count + 1
+        # if error_count:
+        #    write_dict(issues_file_path, issues)
+        #    print(f'Data from {error_count} errors written to: {issues_file_path}')
+        # write_dict(json_file_path, excel_file.rows)
+        # print(f'Data from {sample_count} BioSamples conversions written to: {json_file_path}')
 
-        biosample_count = 0
-        error_count = 0
+        # biosample_count = 0
+        # error_count = 0
         for row in excel_file.rows:
             if 'sample' in row and 'request' in row['sample']:
                 try:
                     row['sample']['biosample'] = biosamples.send_sample(row['sample']['request'])
                     row['sample'].pop('request')
-                    biosample_count = biosample_count + 1
+                    # biosample_count = biosample_count + 1
                 except Exception as error:
                     error_msg = f'BioSamples Error: {error}'
-                    issues.setdefault(str(row['row']), []).append(error_msg)
+                    # issues.setdefault(str(row['row']), []).append(error_msg)
                     row['sample'].setdefault('errors', []).append(error_msg)
-                    error_count = error_count + 1
-        if error_count:
-            write_dict(issues_file_path, issues)
-            print(f'Data from {error_count} errors written to: {issues_file_path}')
-        write_dict(json_file_path, excel_file.rows)
-        print(f'Data from {biosample_count} BioSamples responses written to: {json_file_path}')
+                    # error_count = error_count + 1
+        # if error_count:
+        #    write_dict(issues_file_path, issues)
+        #    print(f'Data from {error_count} errors written to: {issues_file_path}')
+        # write_dict(json_file_path, excel_file.rows)
+        # print(f'Data from {biosample_count} BioSamples responses written to: {json_file_path}')
 
+    excel_file.clear_style()
+    excel_file.style_errors(schema_errors)
     sys.exit(0)
