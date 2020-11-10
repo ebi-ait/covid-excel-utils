@@ -27,13 +27,11 @@ def validate_object(object_validation: dict, object_data: dict):
             if ('format' in info
                     and info['format'] == 'YYYY-MM-DD'
                     and not valid_date(value)):
-                errors.append(f'Error: {name} has value {value},'
-                              ' which is not in date format YYYY-MM-DD.')
+                errors.append(f'Error: {name} has value {value}, which is not in date format YYYY-MM-DD.')
             if ('accepted_values' in info
                     and clean_validation(value) not in info['accepted_values']):
                 accepted = info['accepted_values']
-                errors.append(f'Error: {name} has value {value},'
-                              f' which is not in list of accepted values. {accepted}')
+                errors.append(f'Error: {name} has value {value}, which is not in list of accepted values. {accepted}')
     if errors:
         object_data['errors'] = errors
     return errors

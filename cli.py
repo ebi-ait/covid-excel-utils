@@ -67,14 +67,11 @@ if __name__ == '__main__':
     if issues:
         write_dict(json_file_path, data)
         write_dict(issues_file_path, issues)
-        print(f'Issues from {len(issues)} rows,'
-              f' written to: {issues_file_path}'
-              f' and into: {json_file_path}')
+        print(f'Issues from {len(issues)} rows, written to: {issues_file_path} and into: {json_file_path}')
 
     if args['biosamples']:
         if issues:
-            user_text = input(f'Issues from {len(issues)} rows detected.'
-                              f' Continue with BioSamples Submission? (y/N)?:')
+            user_text = input(f'Issues from {len(issues)} rows detected. Continue with BioSamples Submission? (y/N)?:')
             if not user_text.lower().startswith('y'):
                 print('Exiting')
                 sys.exit(0)

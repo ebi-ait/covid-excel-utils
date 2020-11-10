@@ -16,8 +16,7 @@ def optional_attribute(sample: dict, attribute: str):
 
 def make_attribute(name, value) -> Attribute:
     units = None
-    # ToDo: Refactor to create the Sample at validation-time
-    # so the units are accessible from validation_map
+    # ToDo: Refactor to create the Sample at validation-time so the units are accessible from validation_map
     if name in ['geographic_location_(latitude)', 'geographic_location_(longitude)']:
         units = 'DD'
     return Attribute(name=attribute_name(name), value=value, unit=units)
