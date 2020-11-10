@@ -63,5 +63,9 @@ class SchemaValidation:
             path = schema_error['dataPath']
             for error in schema_error['errors']:
                 error = error.replace('"', '\'')
-                translated_messages.append(f'Error: {object_name}{path} {error}')
+                if error.startswith('should have required property'):
+                    message = f'Error: {object_name} {error}'
+                else:
+                    message = f'Error: {object_name}{path} {error}'
+                translated_messages.append(message)
         return translated_messages
