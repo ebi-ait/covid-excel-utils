@@ -6,7 +6,7 @@ import sys
 from services.biosamples import AapClient, BioSamples
 from excel.load import get_dict_from_excel
 from excel.validate import validate_dict_from_excel
-from validation.validation_service import ValidationService
+from validation.schema import SchemaValidation
 
 
 def write_dict(file_path, data_dict):
@@ -19,13 +19,29 @@ def write_dict(file_path, data_dict):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Parse, Validate and Submit excel files to EBI Resources')
-    parser.add_argument('file_path', type=str, help='path of excel file to load')
-    parser.add_argument('--biosamples', action='store_true', help='Submit to BioSamples, requires environment variables AAP_USERNAME and AAP_PASSWORD')
-
-    parser.add_argument('--biosamples_domain', type=str, help='Override the BioSamples domain rather than detect the domain from the excel file.')
-    parser.add_argument('--biosamples_url', type=str, default='https://www.ebi.ac.uk/biosamples', help='Override the default URL for BioSamples API.')
-    parser.add_argument('--aap_url', type=str, default='https://api.aai.ebi.ac.uk', help='Override the default URL for AAP API.')
+    parser = argparse.ArgumentParser(
+        description='Parse, Validate and Submit excel files to EBI Resources'
+    )
+    parser.add_argument(
+        'file_path', type=str,
+        help='path of excel file to load'
+    )
+    parser.add_argument(
+        '--biosamples', action='store_true',
+        help='Submit to BioSamples, requires environment variables AAP_USERNAME and AAP_PASSWORD'
+    )
+    parser.add_argument(
+        '--biosamples_domain', type=str,
+        help='Override the BioSamples domain rather than detect the domain from the excel file.'
+    )
+    parser.add_argument(
+        '--biosamples_url', type=str, default='https://www.ebi.ac.uk/biosamples',
+        help='Override the default URL for BioSamples API.'
+    )
+    parser.add_argument(
+        '--aap_url', type=str, default='https://api.aai.ebi.ac.uk',
+        help='Override the default URL for AAP API.'
+    )
 
     args = vars(parser.parse_args())
     excel_file_path = args['file_path']
@@ -42,16 +58,16 @@ if __name__ == '__main__':
     print(f'Data from {len(data)} rows written to: {json_file_path}')
 
     try:
-        validation_service = ValidationService("http://localhost:3020/validate")
-        issues = validation_service.validate_data(data)
+        schema_validation = SchemaValidation("http://localhost:3020/validate")
+        issues = schema_validation.validate_data(data)
     except Exception as error:
-        print(f'Error validating schema, using best guess validation.')
+        print('Error validating schema, using best guess validation.')
         issues = validate_dict_from_excel(excel_file_path, data)
-    
+
     if issues:
         write_dict(json_file_path, data)
         write_dict(issues_file_path, issues)
-        print(f'Issues from {len(issues)} rows written to: {issues_file_path} and into: {json_file_path}')
+        print(f'Issues from {len(issues)} rows, written to: {issues_file_path} and into: {json_file_path}')
 
     if args['biosamples']:
         if issues:
