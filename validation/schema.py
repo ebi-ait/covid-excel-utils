@@ -1,5 +1,7 @@
 import json
-import os
+from fnmatch import fnmatch
+from os import listdir
+from os.path import dirname, join, splitext
 from typing import List
 
 import requests
@@ -38,11 +40,13 @@ class SchemaValidation:
         return requests.post(self.validator_url, json=payload).json()
 
     def __load_schema_files(self):
-        types = ['study', 'sample', 'run_experiment', 'isolate_genome_assembly_information']
-        for entity_type in types:
-            schema_path = os.path.join(os.path.dirname(__file__), 'schema', f'{entity_type}.json')
-            with open(os.path.abspath(schema_path)) as schema_file:
-                self.schema_by_type[entity_type] = json.load(schema_file)
+        schema_dir = join(dirname(__file__), 'schema')
+        for file in listdir(schema_dir):
+            if fnmatch(file, '*.json'):
+                entity_type = splitext(file)[0]
+                file_path = join(schema_dir, file)
+                with open(file_path) as schema_file:
+                    self.schema_by_type[entity_type] = json.load(schema_file)
 
     @staticmethod
     def __create_validator_payload(schema, entity):
