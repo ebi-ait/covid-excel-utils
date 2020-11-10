@@ -14,7 +14,7 @@ class SchemaValidation:
         self.validator_url = validator_url
         self.__load_schema_files()
 
-    def validate_data(self, data):
+    def validate_data_for_human(self, data):
         issues = {}
         for entities in data:
             for entity_type, entity in entities.items():
@@ -29,6 +29,21 @@ class SchemaValidation:
     def get_human_errors(self, entity_type, entity):
         validation_result = self.validate(entity_type, entity)
         return self.__translate_to_human(entity_type, validation_result)
+
+    def validate_data(self, data):
+        issues = {}
+        for entities in data:
+            row_issues = {}
+            row_index = 0
+            for entity_type, entity in entities.items():
+                if entity_type == 'row':
+                    row_index = entity
+                entity_issues = self.validate(entity_type, entity)
+                if entity_issues:
+                    row_issues[entity_type] = entity_issues
+            if row_issues and row_index:
+                issues[row_index] = row_issues
+        return issues
 
     def validate(self, entity_type, entity):
         schema = self.schema_by_type.get(entity_type, {})
@@ -57,15 +72,25 @@ class SchemaValidation:
         }
 
     @staticmethod
-    def __translate_to_human(object_name: str, schema_errors: dict) -> List[str]:
+    def __translate_to_human(entity_type: str, schema_errors: dict) -> List[str]:
         translated_messages = []
-        for schema_error in schema_errors:
-            path = schema_error['dataPath']
-            for error in schema_error['errors']:
-                error = error.replace('"', '\'')
-                if error.startswith('should have required property'):
-                    message = f'Error: {object_name} {error}'
-                else:
-                    message = f'Error: {object_name}{path} {error}'
-                translated_messages.append(message)
+        for attribute_error in schema_errors:
+            translated_messages.extend(
+                translate_to_human(
+                    entity_type,
+                    attribute_name=attribute_error['dataPath'].strip('.'),
+                    attribute_errors=attribute_error['errors']
+                )
+            )
         return translated_messages
+
+
+def translate_to_human(entity_type: str, attribute_name: str, attribute_errors: List[str]) -> List[str]:
+    translated = []
+    for error in attribute_errors:
+        if error.startswith('should have required property'):
+            message = f'Error: {entity_type} {error}'.replace('"', '\'')
+        else:
+            message = f'Error: {entity_type}.{attribute_name} {error}'.replace('"', '\'')
+        translated.append(message)
+    return translated
