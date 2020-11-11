@@ -7,6 +7,7 @@ from docker import errors
 
 from requests.exceptions import ChunkedEncodingError
 
+CONTAINER_STARTUP_TIME_IN_SECONDS = 2
 RUNNING_STATE = 'running'
 
 
@@ -58,7 +59,7 @@ class DockerUtils:
         logging.info(f'{image_name} container image is not running. Will try to run it now ...')
         self.client.containers.run(image_name, ports={f'{port}/tcp': port},
                                    name=container_name, detach=True)
-        time.sleep(2)
+        time.sleep(CONTAINER_STARTUP_TIME_IN_SECONDS)
 
     def stop(self, image_name):
         logging.info(f'Stop running {image_name} container image.')
