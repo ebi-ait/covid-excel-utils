@@ -6,6 +6,11 @@ from typing import List
 
 import requests
 
+from docker_helper.docker_utils import DockerUtils
+
+JSON_SCHEMA_VALIDATOR_PORT = 3020
+JSON_SCHEMA_VALIDATOR_IMAGE_NAME = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
+
 
 class SchemaValidation:
     schema_by_type = {}
@@ -13,9 +18,13 @@ class SchemaValidation:
     def __init__(self, validator_url):
         self.validator_url = validator_url
         self.__load_schema_files()
+        self.docker_utils = DockerUtils(3020)
 
     def validate_data(self, data):
         issues = {}
+
+        self.__start_json_schema_validator()
+
         for entities in data:
             for entity_type, entity in entities.items():
                 if entity_type == 'row':
@@ -24,6 +33,9 @@ class SchemaValidation:
                 if human_errors:
                     entity.setdefault('errors', []).extend(human_errors)
                     issues.setdefault(str(entities['row']), []).extend(human_errors)
+
+        self.__stop_json_schema_validator()
+
         return issues
 
     def get_human_errors(self, entity_type, entity):
@@ -47,6 +59,14 @@ class SchemaValidation:
                 file_path = join(schema_dir, file)
                 with open(file_path) as schema_file:
                     self.schema_by_type[entity_type] = json.load(schema_file)
+
+    def __start_json_schema_validator(self):
+        self.docker_utils.launch(JSON_SCHEMA_VALIDATOR_IMAGE_NAME, JSON_SCHEMA_VALIDATOR_PORT)
+
+    def __stop_json_schema_validator(self):
+        self.docker_utils.stop(
+            self.docker_utils.create_container_name(JSON_SCHEMA_VALIDATOR_IMAGE_NAME))
+        self.docker_utils.prune()
 
     @staticmethod
     def __create_validator_payload(schema, entity):

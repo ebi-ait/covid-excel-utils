@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import sys
+import logging
 
 from services.biosamples import AapClient, BioSamples
 from excel.load import get_dict_from_excel
@@ -19,6 +20,7 @@ def write_dict(file_path, data_dict):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(
         description='Parse, Validate and Submit excel files to EBI Resources'
     )
