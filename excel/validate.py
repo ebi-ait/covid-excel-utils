@@ -1,6 +1,9 @@
+from typing import List
+
 from openpyxl import load_workbook
 from openpyxl.worksheet.datavalidation import DataValidationList
 from openpyxl.worksheet.worksheet import Worksheet
+from .load import ExcelLoader
 from .clean import (object_has_attribute, clean_validation, clean_object, clean_key, clean_name,
                     clean_formula_list, clean_validation_list, valid_date)
 
@@ -38,6 +41,7 @@ def validate_object(object_validation: dict, object_data: dict):
 
 
 def validate_data_row(validation_map: dict, data_row):
+    # ToDo: Refactor Best Guess validation to match output of schema_validation
     object_errors = []
     other_errors = []
     all_errors = []
@@ -55,10 +59,10 @@ def validate_data_row(validation_map: dict, data_row):
 
 def validate_data_list(validation_map: dict, data):
     validation_report = {}
-    for item in data:
-        row_errors = validate_data_row(validation_map, item)
+    for row_index, data_row in data.items():
+        row_errors = validate_data_row(validation_map, data_row)
         if row_errors:
-            validation_report[str(item['row'])] = row_errors
+            validation_report[row_index] = row_errors
     return validation_report
 
 
@@ -157,3 +161,28 @@ def get_validation_dict_from_excel(file_path, sheet_index=0):
 def validate_dict_from_excel(file_path, data, sheet_index=0):
     validation_map = get_validation_dict_from_excel(file_path, sheet_index)
     return validate_data_list(validation_map, data)
+
+
+class ValidatedExcel(ExcelLoader):
+    def __init__(self, excel_path: str, sheet_index=0):
+        super().__init__(excel_path, sheet_index)
+        self.errors = {}
+
+    @staticmethod
+    def human_entity_errors(entity_type: str, errors: dict) -> List[str]:
+        translated_messages = []
+        for attribute_name, attribute_errors in errors.items():
+            translated_messages.extend(
+                ValidatedExcel.human_attribute_errors(entity_type, attribute_name, attribute_errors))
+        return translated_messages
+
+    @staticmethod
+    def human_attribute_errors(entity_type: str, attribute_name: str, attribute_errors: List[str]) -> List[str]:
+        translated = []
+        for error in attribute_errors:
+            if error.startswith('should have required property'):
+                message = f'Error: {entity_type} {error}'.replace('"', '\'')
+            else:
+                message = f'Error: {entity_type}.{attribute_name} {error}'.replace('"', '\'')
+            translated.append(message)
+        return translated

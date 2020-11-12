@@ -5,7 +5,6 @@ import sys
 
 from services.biosamples import AapClient, BioSamples
 from excel.markup import ExcelMarkup
-from excel.validate import validate_dict_from_excel
 from validation.schema import SchemaValidation
 
 
@@ -18,6 +17,25 @@ def write_dict(file_path, data_dict):
         open_file.close()
 
 
+def close(message, status=0, xls_file: ExcelMarkup = None, main_args=None):
+    if xls_file and main_args['output'] in ['all', 'excel']:
+        xls_file.markup_with_errors()
+        xls_file.book.close()
+        print(f"Excel file updated: {main_args['file_path']}")
+    if xls_file and main_args['output'] in ['all', 'json']:
+        file_path = main_args['file_path']
+        file_name = os.path.splitext(file_path)[0]
+        json_file_path = file_name + '.json'
+        write_dict(json_file_path, xls_file.rows)
+        print(f'JSON output written to: {json_file_path}')
+
+        issues_file_path = file_name + '_issues.json'
+        write_dict(issues_file_path, xls_file.errors)
+        print(f'JSON issues written to: {issues_file_path}')
+    print(message)
+    sys.exit(status)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Parse, Validate and Submit excel files to EBI Resources'
@@ -25,6 +43,12 @@ if __name__ == '__main__':
     parser.add_argument(
         'file_path', type=str,
         help='path of excel file to load'
+    )
+    parser.add_argument(
+        '--output', type=str,
+        choices=['all', 'excel', 'json'],
+        default='excel',
+        help='Where to save the validation and submission output.'
     )
     parser.add_argument(
         '--biosamples', action='store_true',
@@ -47,22 +71,24 @@ if __name__ == '__main__':
     excel_file_path = args['file_path']
     excel_file = ExcelMarkup(excel_file_path)
     if not excel_file.rows:
-        print(f'No Data imported from: {excel_file_path}')
-        sys.exit(0)
+        close(f'No Data imported from: {excel_file_path}', status=0)
 
     schema_validation = SchemaValidation("http://localhost:3020/validate")
     try:
-        schema_errors = schema_validation.validate_data(excel_file.rows)
+        schema_validation.validate_excel(excel_file)
     except Exception as error:
-        print('Error validating schema, Exiting.')
-        sys.exit(2)
+        # ToDo: Refactor Best Guess validation to match output of schema_validation
+        close('Error validating schema, Exiting.', status=2)
 
     if args['biosamples']:
-        if schema_errors:
-            user_text = input(f'Issues from {len(schema_errors)} rows detected. Continue with BioSamples Submission? (y/N)?:')
+        exit_status = None
+        exit_message = ''
+        if excel_file.errors:
+            user_text = input(
+                f'Issues from {len(excel_file.errors)} rows detected. Continue with BioSamples Submission? (y/N)?:')
             if not user_text.lower().startswith('y'):
-                print('Exiting')
-                sys.exit(0)
+                exit_status = 0
+                exit_message = 'Exiting'
 
         aap_url = args['aap_url']
         url = args['biosamples_url']
@@ -71,56 +97,41 @@ if __name__ == '__main__':
         if 'AAP_USERNAME' in os.environ:
             aap_username = os.environ['AAP_USERNAME']
         else:
-            print('No AAP_USERNAME detected in os environment variables.')
-            sys.exit(2)
+            exit_status = 2
+            exit_message = 'No AAP_USERNAME detected in os environment variables.'
 
         if 'AAP_PASSWORD' in os.environ:
             aap_password = os.environ['AAP_PASSWORD']
         else:
-            print('No AAP_PASSWORD detected in os environment variables.')
-            sys.exit(2)
+            exit_status = 2
+            exit_message = 'No AAP_PASSWORD detected in os environment variables.'
+
+        if exit_status or exit_message:
+            close(exit_message, exit_status, excel_file, args)
 
         print(f'Attempting to Submit to BioSamples: {url}, AAP: {aap_url}')
         aap_client = AapClient(url=aap_url, username=aap_username, password=aap_password)
         biosamples = BioSamples(aap_client, url, domain)
-        # ToDo: Output _biosamples.json while with accessions / errors
-        # sample_count = 0
-        # error_count = 0
-        for row in excel_file.rows:
+        for row_index, row in excel_file.rows.items():
             if 'sample' in row:
                 try:
                     row['sample']['request'] = biosamples.encode_sample(row['sample'])
-                    # sample_count = sample_count + 1
                 except Exception as error:
                     error_msg = f'Encoding Error: {error}'
-                    # issues.setdefault(str(row['row']), []).append(error_msg)
-                    row['sample'].setdefault('errors', []).append(error_msg)
-                    # error_count = error_count + 1
-        # if error_count:
-        #    write_dict(issues_file_path, issues)
-        #    print(f'Data from {error_count} errors written to: {issues_file_path}')
-        # write_dict(json_file_path, excel_file.rows)
-        # print(f'Data from {sample_count} BioSamples conversions written to: {json_file_path}')
+                    row['sample'].setdefault('errors', {}).setdefault('sample_accession', []).append(error_msg)
 
-        # biosample_count = 0
-        # error_count = 0
-        for row in excel_file.rows:
+        biosamples_count = 0
+        for row_index, row in excel_file.rows.items():
             if 'sample' in row and 'request' in row['sample']:
                 try:
                     row['sample']['biosample'] = biosamples.send_sample(row['sample']['request'])
                     row['sample'].pop('request')
-                    # biosample_count = biosample_count + 1
+                    biosamples_count = biosamples_count + 1
                 except Exception as error:
                     error_msg = f'BioSamples Error: {error}'
-                    # issues.setdefault(str(row['row']), []).append(error_msg)
-                    row['sample'].setdefault('errors', []).append(error_msg)
-                    # error_count = error_count + 1
-        # if error_count:
-        #    write_dict(issues_file_path, issues)
-        #    print(f'Data from {error_count} errors written to: {issues_file_path}')
-        # write_dict(json_file_path, excel_file.rows)
-        # print(f'Data from {biosample_count} BioSamples responses written to: {json_file_path}')
+                    row['sample'].setdefault('errors', {}).setdefault('sample_accession', []).append(error_msg)
+        if biosamples_count:
+            excel_file.add_biosample_accessions()
+            print(f'Successfully submitted {biosamples_count} BioSamples')
 
-    excel_file.clear_style()
-    excel_file.style_errors(schema_errors)
-    sys.exit(0)
+    close('Exiting', 0, excel_file, args)

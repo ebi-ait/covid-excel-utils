@@ -39,7 +39,7 @@ class ExcelLoader:
 
     @staticmethod
     def get_data(worksheet, column_map: dict):
-        data = []
+        data = {}
         # Import cell values into data object
         # Uses .iter_rows for faster reads, requires workbook read_only=True
         row_index = 6
@@ -55,7 +55,6 @@ class ExcelLoader:
                     attribute_name = column_map[cell.column_letter]['attribute']
                     row_data.setdefault(object_name, {})[attribute_name] = value
             if len(row_data) > 0:
-                row_data['row'] = row_index
-                data.append(row_data)
+                data[row_index] = row_data
             row_index = row_index + 1
         return data
