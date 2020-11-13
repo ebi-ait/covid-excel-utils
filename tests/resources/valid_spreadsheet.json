@@ -1,5 +1,5 @@
-[
-  {
+{
+  "6": {
     "isolate_genome_assembly_information": {
       "assemblyname": "P17157_1007",
       "assembly_type": "scaffold",
@@ -66,7 +66,7 @@
       "uploaded_file_2": "P17157_1007_S7_L001_R2_001.fastq.gz"
     }
   },
-  {
+  "7": {
     "isolate_genome_assembly_information": {
       "assemblyname": "P17157_1016",
       "assembly_type": "scaffold",
@@ -133,7 +133,7 @@
       "uploaded_file_2": "P17157_1016_S16_L001_R2_001.fastq.gz"
     }
   },
-  {
+  "8": {
     "isolate_genome_assembly_information": {
       "assemblyname": "P17157_1018",
       "assembly_type": "contigs",
@@ -200,7 +200,7 @@
       "uploaded_file_2": "P17157_1018_S18_L001_R2_001.fastq.gz"
     }
   },
-  {
+  "9": {
     "isolate_genome_assembly_information": {
       "assemblyname": "P17157_1020",
       "assembly_type": "scaffold",
@@ -267,7 +267,7 @@
       "uploaded_file_2": "P17157_1020_S20_L001_R2_001.fastq.gz"
     }
   },
-  {
+  "10": {
     "isolate_genome_assembly_information": {
       "assemblyname": "P17157_1021",
       "assembly_type": "scaffold",
@@ -334,4 +334,4 @@
       "uploaded_file_2": "P17157_1021_S21_L001_R2_001.fastq.gz"
     }
   }
-]
+}
