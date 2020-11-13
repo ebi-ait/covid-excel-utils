@@ -19,7 +19,7 @@ class TestSchemaValidation(unittest.TestCase):
         entity_type = ''
         entity = {}
 
-        validation_errors = self.schema_validation.validate(entity_type, entity)
+        validation_errors = self.schema_validation.validate_entity(entity_type, entity)
 
         self.assertEqual(0, len(validation_errors))
 
@@ -38,7 +38,7 @@ class TestSchemaValidation(unittest.TestCase):
         entity_type = ''
         entity = {}
 
-        validation_errors = self.schema_validation.validate(entity_type, entity)
+        validation_errors = self.schema_validation.validate_entity(entity_type, entity)
 
         self.assertEqual(len(validation_errors), 1)
 

@@ -29,7 +29,7 @@ def set_logging_level():
 def close(message, status=0, xls_file: ExcelMarkup = None, main_args=None):
     if xls_file and main_args['output'] in ['all', 'excel']:
         xls_file.markup_with_errors()
-        xls_file.book.close()
+        xls_file.close()
         print(f"Excel file updated: {main_args['file_path']}")
     if xls_file and main_args['output'] in ['all', 'json']:
         file_path = main_args['file_path']
@@ -90,9 +90,8 @@ if __name__ == '__main__':
     if not excel_file.rows:
         close(f'No Data imported from: {excel_file_path}', status=0)
 
-    schema_validation = SchemaValidation("http://localhost:3020/validate")
     try:
-        schema_validation.validate_excel(excel_file)
+        excel_file.validate(SchemaValidation("http://localhost:3020/validate"))
     except Exception as error:
         print('Error validating schema, Exiting.')
         logging.error(error)
