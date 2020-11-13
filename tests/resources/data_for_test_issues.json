@@ -1,5 +1,5 @@
-[
-  {
+{
+  "6": {
     "isolate_genome_assembly_information": {
       "assemblyname": "P17157_1007",
       "assembly_type": "scaffold",
@@ -62,7 +62,6 @@
       "insert_size": "350",
       "uploaded_file_1": "P17157_1007_S7_L001_R1_001.fastq.gz",
       "uploaded_file_2": "P17157_1007_S7_L001_R2_001.fastq.gz"
-    },
-    "row": 6
+    }
   }
-]
+}
