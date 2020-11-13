@@ -1,18 +1,22 @@
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from openpyxl.comments import Comment
-from .validate import ValidatedExcel
+from .validate import ValidatingExcel
 
 
-class ExcelMarkup(ValidatedExcel):
+class ExcelMarkup(ValidatingExcel):
     def __init__(self, excel_path: str, sheet_index=0):
         self.__clear_markup(excel_path, sheet_index)
         super().__init__(excel_path, sheet_index)
         self.__path = excel_path
         self.__sheet_index = sheet_index
-        self.book = load_workbook(filename=excel_path, keep_links=False)
-        self.sheet = self.book.worksheets[self.__sheet_index]
+        self.__book = load_workbook(filename=excel_path, keep_links=False)
+        self.__sheet = self.__book.worksheets[self.__sheet_index]
         self.attribute_map = self.reverse_column_map(self.column_map)
+    
+    def close(self):
+        self.__book.save(self.__path)
+        self.__book.close()
 
     def markup_with_errors(self):
         error_fill = PatternFill(fill_type='solid', start_color='FF0000')
@@ -23,20 +27,19 @@ class ExcelMarkup(ValidatedExcel):
                     error_count = error_count + len(attribute_errors)
                     human_errors = self.human_attribute_errors(entity_type, attribute_name, attribute_errors)
                     cell_index = self.lookup_cell_index(entity_type, attribute_name, row_index)
-                    self.sheet[cell_index].comment = self.__get_error_comment(human_errors)
-                    self.sheet[cell_index].fill = error_fill
+                    self.__sheet[cell_index].comment = self.__get_error_comment(human_errors)
+                    self.__sheet[cell_index].fill = error_fill
             if error_count:
-                self.sheet[f'B{row_index}'] = f'Errors'
-                self.sheet[f'B{row_index}'].fill = error_fill
-                self.sheet[f'C{row_index}'] = f'{error_count} Errors'
-                self.sheet[f'C{row_index}'].fill = error_fill
-        self.book.save(self.__path)
+                self.__sheet[f'B{row_index}'] = f'Errors'
+                self.__sheet[f'B{row_index}'].fill = error_fill
+                self.__sheet[f'C{row_index}'] = f'{error_count} Errors'
+                self.__sheet[f'C{row_index}'].fill = error_fill
 
     def add_biosample_accessions(self):
         for row_index, row in self.rows.items():
             if 'sample' in row and 'biosample' in row['sample']:
                 cell_index = self.lookup_cell_index('sample', 'sample_accession', row_index)
-                self.sheet[cell_index] = row['sample']['biosample']['accession']
+                self.__sheet[cell_index] = row['sample']['biosample']['accession']
 
     def lookup_cell_index(self, entity_type, attribute, row):
         attribute_key = f'{entity_type}.{attribute}'

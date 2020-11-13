@@ -4,37 +4,34 @@ from os import listdir
 from os.path import dirname, join, splitext
 
 import requests
-from excel.validate import ValidatedExcel
+from .base import BaseValidator
 
 
-class SchemaValidation:
+class SchemaValidation(BaseValidator):
     schema_by_type = {}
 
     def __init__(self, validator_url: str):
         self.validator_url = validator_url
         self.__load_schema_files()
 
-    def validate_excel(self, excel_file: ValidatedExcel):
-        excel_file.errors = self.validate_data(excel_file.rows)
-
     def validate_data(self, data: dict) -> dict:
         errors = {}
         for row_index, entities in data.items():
             row_issues = {}
             for entity_type, entity in entities.items():
-                entity_issues = self.validate(entity_type, entity)
-                if entity_issues:
-                    row_issues[entity_type] = entity_issues
+                entity_errors = self.validate_entity(entity_type, entity)
+                if entity_errors:
+                    row_issues[entity_type] = entity_errors
             if row_issues:
                 errors[row_index] = row_issues
         return errors
 
-    def validate(self, entity_type: str, entity: dict) -> dict:
+    def validate_entity(self, entity_type: str, entity: dict) -> dict:
         schema = self.schema_by_type.get(entity_type, {})
         schema_errors = self.__validate(schema, entity)
-        errors = self.__translate_to_error(schema_errors)
-        entity['errors'] = errors
-        return errors
+        entity_errors = self.__translate_to_error(schema_errors)
+        entity['errors'] = entity_errors
+        return entity_errors
 
     def __validate(self, schema: dict, entity: dict):
         schema.pop('id', None)

@@ -3,6 +3,7 @@ from typing import List
 from openpyxl import load_workbook
 from openpyxl.worksheet.datavalidation import DataValidationList
 from openpyxl.worksheet.worksheet import Worksheet
+from validation.base import BaseValidator
 from .load import ExcelLoader
 from .clean import (object_has_attribute, clean_validation, clean_object, clean_key, clean_name,
                     clean_formula_list, clean_validation_list, valid_date)
@@ -163,17 +164,20 @@ def validate_dict_from_excel(file_path, data, sheet_index=0):
     return validate_data_list(validation_map, data)
 
 
-class ValidatedExcel(ExcelLoader):
+class ValidatingExcel(ExcelLoader):
     def __init__(self, excel_path: str, sheet_index=0):
         super().__init__(excel_path, sheet_index)
         self.errors = {}
+
+    def validate(self, validator: BaseValidator):
+        self.errors = validator.validate_data(self.rows)
 
     @staticmethod
     def human_entity_errors(entity_type: str, errors: dict) -> List[str]:
         translated_messages = []
         for attribute_name, attribute_errors in errors.items():
             translated_messages.extend(
-                ValidatedExcel.human_attribute_errors(entity_type, attribute_name, attribute_errors))
+                ValidatingExcel.human_attribute_errors(entity_type, attribute_name, attribute_errors))
         return translated_messages
 
     @staticmethod
