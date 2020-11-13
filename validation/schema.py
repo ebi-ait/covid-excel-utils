@@ -8,8 +8,8 @@ import requests
 
 from docker_helper.docker_utils import DockerUtils
 
-JSON_SCHEMA_VALIDATOR_PORT = 3020
-JSON_SCHEMA_VALIDATOR_IMAGE_NAME = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
+VALIDATOR_IMAGE_NAME = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
+VALIDATOR_PORT = 3020
 
 
 class SchemaValidation:
@@ -18,7 +18,7 @@ class SchemaValidation:
     def __init__(self, validator_url):
         self.validator_url = validator_url
         self.__load_schema_files()
-        self.docker_utils = DockerUtils(3020)
+        self.docker_utils = DockerUtils(VALIDATOR_IMAGE_NAME, VALIDATOR_PORT)
 
     def validate_data(self, data):
         issues = {}
@@ -61,12 +61,10 @@ class SchemaValidation:
                     self.schema_by_type[entity_type] = json.load(schema_file)
 
     def __start_json_schema_validator(self):
-        self.docker_utils.launch(JSON_SCHEMA_VALIDATOR_IMAGE_NAME, JSON_SCHEMA_VALIDATOR_PORT)
+        self.docker_utils.launch()
 
     def __stop_json_schema_validator(self):
-        self.docker_utils.stop(
-            self.docker_utils.create_container_name(JSON_SCHEMA_VALIDATOR_IMAGE_NAME))
-        self.docker_utils.prune()
+        self.docker_utils.stop()
 
     @staticmethod
     def __create_validator_payload(schema, entity):
