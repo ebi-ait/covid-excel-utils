@@ -6,8 +6,6 @@ The goal of this project is to validate metadata obtained via excel spreadsheets
 # Getting Ready
 ## Prerequisites
  - Download and Install [Docker for Desktop](https://www.docker.com/products/docker-desktop)
- - Run this command in a terminal
- `docker pull dockerhub.ebi.ac.uk/ait/json-schema-validator`
  - Used for more accurate validation, *"Best Guess" Excel validation is available if you skip this prerequisite*.
 
 ## Installation
@@ -26,12 +24,8 @@ The goal of this project is to validate metadata obtained via excel spreadsheets
 - Activate the virtual environment:
     - `cd covid-excel-utils`
     - `source venv/bin/activate`
-- Run the docker validation service:
-    - `docker run -p 3020:3020 -d dockerhub.ebi.ac.uk/ait/json-schema-validator`
 - Run the CLI:
     - `python3 ./cli.py examples/blank_uploader_tool_metadata_v2_raw_reads.xlsx`
-- When finished validating:
-    - `docker stop $(docker ps -q --filter ancestor=dockerhub.ebi.ac.uk/ait/json-schema-validator)`
 
 ## Output:
 The cli will create output files with the same names and locations as the input excel files, with a `.json` extension. This will include the objects as loaded from the excel file, with any conversion errors listed in an `errors` attribute. If any errors are encountered they are also duplicated into an `_issues.json` for quick reference.
@@ -56,7 +50,6 @@ The cli will create output files with the same names and locations as the input 
 # Example Terminal Commands
 ## Installation
 ```
-docker pull dockerhub.ebi.ac.uk/ait/json-schema-validator
 git clone git@github.com:ebi-ait/covid-excel-utils.git
 cd covid-excel-utils
 python3 -m venv ./venv
@@ -69,7 +62,6 @@ cd covid-excel-utils
 source venv/bin/activate
 export AAP_USERNAME='not_a_real_aap_user'
 export AAP_PASSWORD='My very secure password'
-docker run -p 3020:3020 -d dockerhub.ebi.ac.uk/ait/json-schema-validator
 ```
 ## Validation
 ```
@@ -89,8 +81,4 @@ python3 ./cli.py ~/excel_file.xlsx \
  --biosamples_domain self.test-domain \
  --biosamples_url https://wwwdev.ebi.ac.uk/biosamples \
  --aap_url https://explore.api.aai.ebi.ac.uk`
-```
-## Shutdown
-```
-docker stop $(docker ps -q --filter ancestor=dockerhub.ebi.ac.uk/ait/json-schema-validator)
 ```
