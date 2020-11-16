@@ -5,10 +5,6 @@ from os.path import dirname, join, splitext
 
 import requests
 from .base import BaseValidator
-from docker_helper.docker_utils import DockerUtils
-
-VALIDATOR_IMAGE_NAME = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
-VALIDATOR_PORT = 3020
 
 
 class SchemaValidator(BaseValidator):
@@ -17,10 +13,8 @@ class SchemaValidator(BaseValidator):
     def __init__(self, validator_url: str):
         self.validator_url = validator_url
         self.__load_schema_files()
-        self.docker_utils = DockerUtils(VALIDATOR_IMAGE_NAME, VALIDATOR_PORT)
 
     def validate_data(self, data: dict) -> dict:
-        self.__stop_json_schema_validator()
         errors = {}
         for row_index, entities in data.items():
             row_issues = {}
@@ -30,7 +24,6 @@ class SchemaValidator(BaseValidator):
                     row_issues[entity_type] = entity_errors
             if row_issues:
                 errors[row_index] = row_issues
-        self.__stop_json_schema_validator()
         return errors
 
     def validate_entity(self, entity_type: str, entity: dict) -> dict:
@@ -53,12 +46,6 @@ class SchemaValidator(BaseValidator):
                 file_path = join(schema_dir, file)
                 with open(file_path) as schema_file:
                     self.schema_by_type[entity_type] = json.load(schema_file)
-
-    def __start_json_schema_validator(self):
-        self.docker_utils.launch()
-
-    def __stop_json_schema_validator(self):
-        self.docker_utils.stop()
 
     @staticmethod
     def __create_validator_payload(schema, entity):

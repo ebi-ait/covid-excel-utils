@@ -6,7 +6,7 @@ import sys
 
 from services.biosamples import AapClient, BioSamples
 from excel.markup import ExcelMarkup
-from validation.schema import SchemaValidator
+from validation.docker import DockerValidator
 from validation.excel import ExcelValidator
 
 
@@ -92,7 +92,7 @@ if __name__ == '__main__':
         close(f'No Data imported from: {excel_file_path}', status=0)
 
     try:
-        excel_file.validate(SchemaValidator("http://localhost:3020/validate"))
+        excel_file.validate(DockerValidator("dockerhub.ebi.ac.uk/ait/json-schema-validator", "http://localhost:3020/validate"))
     except Exception as error:
         print('Error validating schema, using best guess validation.')
         logging.warning(error)
