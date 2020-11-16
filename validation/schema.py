@@ -10,6 +10,7 @@ from docker_helper.docker_utils import DockerUtils
 
 VALIDATOR_IMAGE_NAME = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
 VALIDATOR_PORT = 3020
+ACCESSION_FIELD_NAMES = ['study_accession', 'sample_accession']
 
 
 class SchemaValidation:
@@ -29,7 +30,11 @@ class SchemaValidation:
             for entity_type, entity in entities.items():
                 if entity_type == 'row':
                     continue
-                human_errors = self.get_human_errors(entity_type, entity)
+
+                if self.is_accessioned(entity):
+                    continue
+                validation_result = self.validate(entity_type, entity)
+                human_errors = self.get_human_errors(entity_type, validation_result)
                 if human_errors:
                     entity.setdefault('errors', []).extend(human_errors)
                     issues.setdefault(str(entities['row']), []).extend(human_errors)
@@ -38,8 +43,7 @@ class SchemaValidation:
 
         return issues
 
-    def get_human_errors(self, entity_type, entity):
-        validation_result = self.validate(entity_type, entity)
+    def get_human_errors(self, entity_type, validation_result):
         return self.__translate_to_human(entity_type, validation_result)
 
     def validate(self, entity_type, entity):
@@ -65,6 +69,10 @@ class SchemaValidation:
 
     def __stop_json_schema_validator(self):
         self.docker_utils.stop()
+
+    @staticmethod
+    def is_accessioned(entity):
+        return bool(set(ACCESSION_FIELD_NAMES).intersection(entity))
 
     @staticmethod
     def __create_validator_payload(schema, entity):

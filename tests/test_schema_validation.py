@@ -1,5 +1,6 @@
 import json
 import unittest
+
 import requests
 from os.path import dirname, join
 from mock import patch
@@ -8,7 +9,7 @@ from validation.schema import SchemaValidation
 
 class TestSchemaValidation(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.schema_validation = SchemaValidation("")
 
     @patch('validation.schema.requests.post')

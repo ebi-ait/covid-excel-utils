@@ -1,0 +1,6 @@
+{
+  "6": [
+    "Error: isolate_genome_assembly_information.assembly_type should be equal to one of the allowed values: ['covid-19 outbreak']",
+    "Error: isolate_genome_assembly_information should have required property 'coverage'"
+  ]
+}

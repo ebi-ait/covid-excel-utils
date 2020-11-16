@@ -14,7 +14,7 @@ class TestIssuesGeneration(unittest.TestCase):
         self.schema_validation = SchemaValidation("")
 
     @patch('validation.schema.requests.post')
-    def test_when_validate_invalid_entity_with_valid_schema_should_return_errors(self, mock_post):
+    def test_when_validate_invalid_entity_without_accession_with_valid_schema_should_return_errors(self, mock_post):
         mock_post.return_value.json.side_effect = ([
                 {
                     'dataPath': '.assembly_type',
@@ -43,9 +43,40 @@ class TestIssuesGeneration(unittest.TestCase):
         mock_post.return_value.status = requests.codes['ok']
 
         current_folder = dirname(__file__)
-        with open(join(current_folder, "resources/data_for_test_issues.json")) as test_data_file:
+        with open(join(current_folder, "resources/data_for_test_issues_without_accession.json")) as test_data_file:
             test_data = json.load(test_data_file)
-        with open(join(current_folder, "resources/test_issues.json")) as test_issues_file:
+        with open(join(current_folder, "resources/test_issues_without_accession.json")) as test_issues_file:
+            expected_test_issues = json.load(test_issues_file)
+
+        actual_issues = self.schema_validation.validate_data(test_data)
+        self.assertEqual(expected_test_issues, actual_issues)
+
+    @patch('validation.schema.requests.post')
+    def test_when_validate_invalid_entity_with_accession_with_valid_schema_should_return_errors(self, mock_post):
+        mock_post.return_value.json.side_effect = ([
+                {
+                    'dataPath': '.assembly_type',
+                    'errors': [
+                        'should be equal to one of the allowed values: [\'covid-19 outbreak\']'
+                    ]
+                },
+                {
+                    'dataPath': '.coverage',
+                    'errors': [
+                        "should have required property 'coverage'"
+                    ]
+                }
+            ],
+            [],
+            [],
+            []
+        )
+        mock_post.return_value.status = requests.codes['ok']
+
+        current_folder = dirname(__file__)
+        with open(join(current_folder, "resources/data_for_test_issues_with_accession.json")) as test_data_file:
+            test_data = json.load(test_data_file)
+        with open(join(current_folder, "resources/test_issues_with_accession.json")) as test_issues_file:
             expected_test_issues = json.load(test_issues_file)
 
         actual_issues = self.schema_validation.validate_data(test_data)
