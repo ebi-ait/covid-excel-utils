@@ -6,6 +6,7 @@ import sys
 from services.biosamples import AapClient, BioSamples
 from excel.markup import ExcelMarkup
 from validation.schema import SchemaValidator
+from validation.excel import ExcelValidator
 
 
 def write_dict(file_path, data_dict):
@@ -76,9 +77,8 @@ if __name__ == '__main__':
     try:
         excel_file.validate(SchemaValidator("http://localhost:3020/validate"))
     except Exception as error:
-        # ToDo: Refactor Best Guess validation to match output of schema_validation
-        # excel_file.validate(ExcelValidator())
-        close('Error validating schema, Exiting.', status=2)
+        print('Error validating schema, using best guess validation.')
+        excel_file.validate(ExcelValidator(excel_file_path))
 
     if args['biosamples']:
         exit_status = None
