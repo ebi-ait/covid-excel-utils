@@ -53,7 +53,8 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--log_level', '-l', type=str, default='WARN',
-        help='Override the default logging level.'
+        help='Override the default logging level.',
+        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
     )
 
     args = vars(parser.parse_args())
