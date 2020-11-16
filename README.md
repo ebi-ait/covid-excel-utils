@@ -16,7 +16,7 @@ The goal of this project is to validate metadata obtained via excel spreadsheets
     - `python3 -m venv ./venv`
  - Activate the virtual environment:
     - `source venv/bin/activate`
- - Install dependancies
+ - Install dependencies
     - `python3 -m pip install -r requirements.txt`
 
 # Using the Tool
