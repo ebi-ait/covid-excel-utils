@@ -7,7 +7,7 @@ import requests
 from .base import BaseValidator
 
 
-class SchemaValidation(BaseValidator):
+class SchemaValidator(BaseValidator):
     schema_by_type = {}
 
     def __init__(self, validator_url: str):

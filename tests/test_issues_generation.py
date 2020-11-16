@@ -5,13 +5,13 @@ from os.path import dirname, join
 import requests
 from mock import patch
 
-from validation.schema import SchemaValidation
+from validation.schema import SchemaValidator
 
 
 class TestIssuesGeneration(unittest.TestCase):
 
     def setUp(self):
-        self.schema_validation = SchemaValidation("")
+        self.schema_validation = SchemaValidator("")
 
     @patch('validation.schema.requests.post')
     def test_when_validate_invalid_entity_with_valid_schema_should_return_errors(self, mock_post):
