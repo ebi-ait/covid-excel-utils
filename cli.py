@@ -6,7 +6,7 @@ import sys
 
 from services.biosamples import AapClient, BioSamples
 from excel.markup import ExcelMarkup
-from validation.schema import SchemaValidation
+from validation.schema import SchemaValidator
 
 
 def write_dict(file_path, data_dict):
@@ -91,7 +91,7 @@ if __name__ == '__main__':
         close(f'No Data imported from: {excel_file_path}', status=0)
 
     try:
-        excel_file.validate(SchemaValidation("http://localhost:3020/validate"))
+        excel_file.validate(SchemaValidator("http://localhost:3020/validate"))
     except Exception as error:
         print('Error validating schema, Exiting.')
         logging.error(error)

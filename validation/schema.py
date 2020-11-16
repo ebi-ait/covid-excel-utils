@@ -11,7 +11,7 @@ VALIDATOR_IMAGE_NAME = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
 VALIDATOR_PORT = 3020
 
 
-class SchemaValidation(BaseValidator):
+class SchemaValidator(BaseValidator):
     schema_by_type = {}
 
     def __init__(self, validator_url: str):
