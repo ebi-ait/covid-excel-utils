@@ -94,8 +94,8 @@ if __name__ == '__main__':
     try:
         excel_file.validate(DockerValidator("dockerhub.ebi.ac.uk/ait/json-schema-validator", "http://localhost:3020/validate"))
     except Exception as error:
-        print('Error validating schema, using best guess validation.')
         logging.warning(error)
+        print('Error validating schema, using best guess validation.')
         excel_file.validate(ExcelValidator(excel_file_path))
 
     if args['biosamples']:
