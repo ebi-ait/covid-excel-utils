@@ -1,9 +1,10 @@
 from openpyxl import load_workbook
-from .clean import clean_object, clean_name
+from .clean import clean_entity_name, clean_name
 
 
 class ExcelLoader:
     def __init__(self, excel_path: str, sheet_index=0):
+        # ToDo: Accept param for number of header rows, columns
         self.__path = excel_path
         self.__sheet_index = sheet_index
         workbook = load_workbook(filename=self.__path, read_only=True, keep_links=False)
@@ -29,7 +30,7 @@ class ExcelLoader:
 
             # Update Object Name otherwise use most recent Object found
             if object_cell.value is not None:
-                object_name = clean_object(object_cell.value)
+                object_name = clean_entity_name(object_cell.value)
             if object_name:
                 column_info['object'] = object_name
             if attribute_cell.value is not None:
