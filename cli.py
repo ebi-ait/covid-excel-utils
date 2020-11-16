@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import sys
+import logging
 
 from services.biosamples import AapClient, BioSamples
 from excel.load import get_dict_from_excel
@@ -16,6 +17,14 @@ def write_dict(file_path, data_dict):
     with open(file_path, "w") as open_file:
         json.dump(data_dict, open_file, indent=2)
         open_file.close()
+
+
+def set_logging_level():
+    log_level = args['log_level']
+    numeric_level = getattr(logging, log_level.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % log_level)
+    logging.basicConfig(level=numeric_level)
 
 
 if __name__ == '__main__':
@@ -42,8 +51,16 @@ if __name__ == '__main__':
         '--aap_url', type=str, default='https://api.aai.ebi.ac.uk',
         help='Override the default URL for AAP API.'
     )
+    parser.add_argument(
+        '--log_level', '-l', type=str, default='WARN',
+        help='Override the default logging level.',
+        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
+    )
 
     args = vars(parser.parse_args())
+
+    set_logging_level()
+
     excel_file_path = args['file_path']
     file_name = os.path.splitext(excel_file_path)[0]
     json_file_path = file_name + '.json'
@@ -62,6 +79,7 @@ if __name__ == '__main__':
         issues = schema_validation.validate_data(data)
     except Exception as error:
         print('Error validating schema, using best guess validation.')
+        logging.error(error)
         issues = validate_dict_from_excel(excel_file_path, data)
 
     if issues:

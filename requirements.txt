@@ -1,3 +1,4 @@
 openpyxl
 requests
+docker
 git+https://github.com/ebi-ait/python_biosamples-v4_lib.git@covid-excel-utils#egg=biosamples-v4
