@@ -38,7 +38,7 @@ class DockerValidator(SchemaValidator):
             docker_client.images.pull(image_name)
         containers = docker_client.containers.list(filters={'ancestor': image_name})
         if containers:
-            container = containers[0].reload()
+            container = containers[0]
         else:
             logging.info(f'Run {image_name} container image locally.')
             container = docker_client.containers.run(
@@ -47,4 +47,5 @@ class DockerValidator(SchemaValidator):
                 detach=True
             )
             time.sleep(5)
+        container.reload()
         return container
