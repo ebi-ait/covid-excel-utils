@@ -26,7 +26,7 @@ class DockerValidator(SchemaValidator):
         if not docker_client.images.list(image_name):
             logging.info(f'Pulling image: {image_name}')
             docker_client.images.pull(image_name)
-            logging.info(f'Pulled image from DockerHub: {image_name}')
+            logging.info(f'Pulled image: {image_name}')
         containers = docker_client.containers.list(filters={'ancestor': image_name})
         if containers:
             logging.info(f'Attaching to existing container from image: {image_name}')
