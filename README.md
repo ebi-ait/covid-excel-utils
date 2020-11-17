@@ -19,6 +19,15 @@ The goal of this project is to validate metadata obtained via excel spreadsheets
  - Install dependencies
     - `python3 -m pip install -r requirements.txt`
 
+### Updates
+ - Get updates from this repository on your local machine:
+    - `cd covid-excel-utils`
+    - `git pull origin --ff-only`
+ - Activate the virtual environment:
+    - `source venv/bin/activate`
+ - Update dependencies
+    - `python3 -m pip install -r requirements.txt`
+
 # Using the Tool
 ## Terminal Commands
 - Activate the virtual environment:
@@ -38,7 +47,7 @@ INFO:root:Validating 5 rows.
 INFO:root:Removing container: strange_gauss
 INFO:root:Excel file updated: examples/blank_uploader_tool_metadata_v2_raw_reads.xlsx
 ```
-## JSON Output
+## Output Options
  - By default the `--output` parameter is set to `excel`, this will update any validation or submission errors into the passed excel file as notes, styling the cells red.
  - Set the `--output` parameter to `json` to create an output file with the same names and locations as the input excel file, with a `.json` extension. This will include the objects as loaded from the excel file, with any conversion, validation or subbmission errors listed in an `errors` attribute. If any errors are encountered they are also duplicated into an `_issues.json` for quick reference. This will not save to the original excel file.
  - Set the `--output` parameter to `all` to update the original excel file and output the json files.
@@ -69,6 +78,15 @@ python3 -m venv ./venv
 source venv/bin/activate
 python3 -m pip install -r requirements.txt
 ```
+
+## Get updates
+```
+cd covid-excel-utils
+git pull origin --ff-only
+source venv/bin/activate
+python3 -m pip install -r requirements.txt
+```
+
 ## Startup
 ```
 cd covid-excel-utils
@@ -79,6 +97,11 @@ export AAP_PASSWORD='My very secure password'
 ## Validation
 ```
 python3 ./cli.py ~/excel_file.xlsx
+```
+
+## Output to JSON
+```
+python3 ./cli.py ~/excel_file.xlsx --output json
 ```
 
 ## Submit to BioSamples
