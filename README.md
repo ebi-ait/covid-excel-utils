@@ -90,6 +90,7 @@ python3 ./cli.py ~/excel_file.xlsx \
 ## Submit to BioSamples Explore/Test
 ```
 python3 ./cli.py ~/excel_file.xlsx \
+ --output all \
  --biosamples \
  --biosamples_domain self.test-domain \
  --biosamples_url https://wwwdev.ebi.ac.uk/biosamples \
