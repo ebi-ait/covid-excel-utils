@@ -28,7 +28,20 @@ The goal of this project is to validate metadata obtained via excel spreadsheets
     - `python3 ./cli.py examples/blank_uploader_tool_metadata_v2_raw_reads.xlsx`
 
 ## Output:
-The cli will create output files with the same names and locations as the input excel files, with a `.json` extension. This will include the objects as loaded from the excel file, with any conversion errors listed in an `errors` attribute. If any errors are encountered they are also duplicated into an `_issues.json` for quick reference.
+The cli will add any errors in validation or submission into the original excel file as notes, styling the cell's red.
+
+### Example Console Output:
+```
+INFO:root:Pulling image: dockerhub.ebi.ac.uk/ait/json-schema-validator
+INFO:root:Running Container: strange_gauss from image: dockerhub.ebi.ac.uk/ait/json-schema-validator
+INFO:root:Validating 5 rows.
+INFO:root:Removing container: strange_gauss
+INFO:root:Excel file updated: examples/blank_uploader_tool_metadata_v2_raw_reads.xlsx
+```
+## JSON Output
+ - By default the `--output` parameter is set to `excel`, this will update any validation or submission errors into the passed excel file as notes, styling the cell's red.
+ - Set the `--output` parameter to `json` to create an output file with the same names and locations as the input excel file, with a `.json` extension. This will include the objects as loaded from the excel file, with any conversion, validation or subbmission errors listed in an `errors` attribute. If any errors are encountered they are also duplicated into an `_issues.json` for quick reference. This will not save to the original excel file.
+ - Set the `--output` parameter to `all` to update the original excel file and output the json files.
 
 ## Biosamples Submissions
  - Pass the `--biosamples` parameter to submit any converted samples to BioSamples, the response from BioSamples, including the accession, will be  stored in the output file.
@@ -81,4 +94,17 @@ python3 ./cli.py ~/excel_file.xlsx \
  --biosamples_domain self.test-domain \
  --biosamples_url https://wwwdev.ebi.ac.uk/biosamples \
  --aap_url https://explore.api.aai.ebi.ac.uk`
+```
+## Example BioSamples Submission Console Output (Explore/Test)
+```
+INFO:root:Pulling image: dockerhub.ebi.ac.uk/ait/json-schema-validator
+INFO:root:Running Container: strange_gauss from image: dockerhub.ebi.ac.uk/ait/json-schema-validator
+INFO:root:Validating 5 rows.
+INFO:root:Removing container: strange_gauss
+Issues from 5 rows detected. Continue with BioSamples Submission? (y/N)?:y
+INFO:root:Attempting to Submit to BioSamples: https://wwwdev.ebi.ac.uk/biosamples, AAP: https://explore.api.aai.ebi.ac.uk
+INFO:root:Successfully submitted 5 BioSamples
+INFO:root:Excel file updated: examples/excel_file.xlsx
+INFO:root:JSON output written to: examples/excel_file.json
+INFO:root:JSON issues written to: examples/excel_file_issues.json
 ```

@@ -95,7 +95,7 @@ if __name__ == '__main__':
         '--output', type=str,
         choices=['all', 'excel', 'json'],
         default='excel',
-        help='Where to save the validation and submission output.'
+        help='Override the default output of "excel" which will update validation and submission errors into the passed excel file as notes, styling the cell\'s red. "json" will create a .json of the parsed excel objects annotated with errors with an _issues.json file of errors by row. "all" will do both.'
     )
     parser.add_argument(
         '--biosamples', action='store_true',
@@ -107,15 +107,15 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--biosamples_url', type=str, default='https://www.ebi.ac.uk/biosamples',
-        help='Override the default URL for BioSamples API.'
+        help='Override the default URL for BioSamples API: https://www.ebi.ac.uk/biosamples'
     )
     parser.add_argument(
         '--aap_url', type=str, default='https://api.aai.ebi.ac.uk',
-        help='Override the default URL for AAP API.'
+        help='Override the default URL for AAP API: https://api.aai.ebi.ac.uk'
     )
     parser.add_argument(
         '--log_level', '-l', type=str, default='INFO',
-        help='Override the default logging level.',
+        help='Override the default logging level: INFO',
         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
     )
     args = vars(parser.parse_args())
