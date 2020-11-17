@@ -3,7 +3,7 @@ from biosamples_v4.api import Client as BioSamplesClient
 from biosamples_v4.aap import Client as AapClient
 from biosamples_v4.encoders import SampleEncoder
 from biosamples_v4.models import Attribute, Sample
-from excel.clean import object_has_attribute, value_populated
+from excel.clean import entity_has_attribute, value_populated
 
 
 def attribute_name(name: str) -> str:
@@ -11,7 +11,7 @@ def attribute_name(name: str) -> str:
 
 
 def optional_attribute(sample: dict, attribute: str):
-    return sample[attribute] if object_has_attribute(sample, attribute) else None
+    return sample[attribute] if entity_has_attribute(sample, attribute) else None
 
 
 def make_attribute(name, value) -> Attribute:

@@ -3,13 +3,13 @@ import unittest
 import requests
 from os.path import dirname, join
 from mock import patch
-from validation.schema import SchemaValidation
+from validation.schema import SchemaValidator
 
 
 class TestSchemaValidation(unittest.TestCase):
 
     def setUp(self):
-        self.schema_validation = SchemaValidation("")
+        self.schema_validation = SchemaValidator("")
 
     @patch('validation.schema.requests.post')
     def test_when_validate_valid_entity_with_valid_schema_should_return_no_errors(self, mock_post):
@@ -19,7 +19,7 @@ class TestSchemaValidation(unittest.TestCase):
         entity_type = ''
         entity = {}
 
-        validation_errors = self.schema_validation.validate(entity_type, entity)
+        validation_errors = self.schema_validation.validate_entity(entity_type, entity)
 
         self.assertEqual(0, len(validation_errors))
 
@@ -38,7 +38,7 @@ class TestSchemaValidation(unittest.TestCase):
         entity_type = ''
         entity = {}
 
-        validation_errors = self.schema_validation.validate(entity_type, entity)
+        validation_errors = self.schema_validation.validate_entity(entity_type, entity)
 
         self.assertEqual(len(validation_errors), 1)
 

@@ -1,5 +1,5 @@
-[
-  {
+{
+  "6": {
     "isolate_genome_assembly_information": {
       "assemblyname": "P17157_1007",
       "assembly_type": "scaffold",
@@ -63,10 +63,9 @@
       "insert_size": "350",
       "uploaded_file_1": "P17157_1007_S7_L001_R1_001.fastq.gz",
       "uploaded_file_2": "P17157_1007_S7_L001_R2_001.fastq.gz"
-    },
-    "row": 6
+    }
   },
-  {
+  "7": {
     "isolate_genome_assembly_information": {
       "assemblyname": "P17157_1016",
       "assembly_type": "scaffold",
@@ -131,10 +130,9 @@
       "insert_size": "350",
       "uploaded_file_1": "P17157_1016_S16_L001_R1_001.fastq.gz",
       "uploaded_file_2": "P17157_1016_S16_L001_R2_001.fastq.gz"
-    },
-    "row": 7
+    }
   },
-  {
+  "8": {
     "isolate_genome_assembly_information": {
       "assemblyname": "P17157_1018",
       "assembly_type": "contigs",
@@ -199,10 +197,9 @@
       "insert_size": "350",
       "uploaded_file_1": "P17157_1018_S18_L001_R1_001.fastq.gz",
       "uploaded_file_2": "P17157_1018_S18_L001_R2_001.fastq.gz"
-    },
-    "row": 8
+    }
   },
-  {
+  "9": {
     "isolate_genome_assembly_information": {
       "assemblyname": "P17157_1020",
       "assembly_type": "scaffold",
@@ -267,10 +264,9 @@
       "insert_size": "350",
       "uploaded_file_1": "P17157_1020_S20_L001_R1_001.fastq.gz",
       "uploaded_file_2": "P17157_1020_S20_L001_R2_001.fastq.gz"
-    },
-    "row": 9
+    }
   },
-  {
+  "10": {
     "isolate_genome_assembly_information": {
       "assemblyname": "P17157_1021",
       "assembly_type": "scaffold",
@@ -335,7 +331,6 @@
       "insert_size": "350",
       "uploaded_file_1": "P17157_1021_S21_L001_R1_001.fastq.gz",
       "uploaded_file_2": "P17157_1021_S21_L001_R2_001.fastq.gz"
-    },
-    "row": 10
+    }
   }
-]
+}

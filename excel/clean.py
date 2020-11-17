@@ -2,8 +2,8 @@ from datetime import date
 from typing import List
 
 
-def clean_object(name: str) -> str:
-    # Objects may include a postfix which can be discarded
+def clean_entity_name(name: str) -> str:
+    # Entities may include a postfix which can be discarded
     return clean_name(name.partition('-')[0])
 
 
@@ -34,7 +34,7 @@ def clean_validation(value: str) -> str:
     return value.lower()
 
 
-def object_has_attribute(object_data: dict, attribute: str) -> bool:
+def entity_has_attribute(object_data: dict, attribute: str) -> bool:
     return attribute in object_data and value_populated(object_data[attribute].strip())
 
 
