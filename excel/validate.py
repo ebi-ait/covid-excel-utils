@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 from validation.base import BaseValidator
@@ -10,7 +11,9 @@ class ValidatingExcel(ExcelLoader):
         self.errors = {}
 
     def validate(self, validator: BaseValidator):
+        logging.info(f'Validating {len(self.data)} rows.')
         self.errors = validator.validate_data(self.data)
+        logging.debug(f'Validation Complete.')    
 
     def human_errors(self):
         return self.human_file_errors(self.errors)

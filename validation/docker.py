@@ -15,9 +15,9 @@ class DockerValidator(SchemaValidator):
     def close(self):
         self.container.reload()
         if self.container:
-            logging.info(f'Stop running container: {self.container.name}')
+            logging.debug(f'Stop running container: {self.container.name}')
             self.container.stop()
-            logging.info(f'Removing container image: {self.container.name}')
+            logging.info(f'Removing container: {self.container.name}')
             self.container.remove()
             self.__client.close()
     
@@ -26,19 +26,19 @@ class DockerValidator(SchemaValidator):
         if not docker_client.images.list(image_name):
             logging.info(f'Pulling image: {image_name}')
             docker_client.images.pull(image_name)
-            logging.info(f'Pulled image: {image_name}')
+            logging.debug(f'Pulled image: {image_name}')
         containers = docker_client.containers.list(filters={'ancestor': image_name})
         if containers:
-            logging.info(f'Attaching to existing container from image: {image_name}')
+            logging.debug(f'Attaching to existing container from image: {image_name}')
             container = containers[0]
         else:
-            logging.info(f'Starting container from image: {image_name}')
+            logging.debug(f'Starting container from image: {image_name}')
             container = docker_client.containers.run(
                 image_name,
                 ports={f'{port}/tcp': port},
                 detach=True
             )
             time.sleep(5)
-        logging.info(f'Running Container: {container.name}')
+        logging.info(f'Running Container: {container.name} from image: {image_name}')
         container.reload()
         return container
