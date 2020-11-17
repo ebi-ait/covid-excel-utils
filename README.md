@@ -28,7 +28,7 @@ The goal of this project is to validate metadata obtained via excel spreadsheets
     - `python3 ./cli.py examples/blank_uploader_tool_metadata_v2_raw_reads.xlsx`
 
 ## Output:
-The cli will add any errors in validation or submission into the original excel file as notes, styling the cell's red.
+The cli will add any errors in validation or submission into the original excel file as notes, styling the cells red.
 
 ### Example Console Output:
 ```
@@ -39,7 +39,7 @@ INFO:root:Removing container: strange_gauss
 INFO:root:Excel file updated: examples/blank_uploader_tool_metadata_v2_raw_reads.xlsx
 ```
 ## JSON Output
- - By default the `--output` parameter is set to `excel`, this will update any validation or submission errors into the passed excel file as notes, styling the cell's red.
+ - By default the `--output` parameter is set to `excel`, this will update any validation or submission errors into the passed excel file as notes, styling the cells red.
  - Set the `--output` parameter to `json` to create an output file with the same names and locations as the input excel file, with a `.json` extension. This will include the objects as loaded from the excel file, with any conversion, validation or subbmission errors listed in an `errors` attribute. If any errors are encountered they are also duplicated into an `_issues.json` for quick reference. This will not save to the original excel file.
  - Set the `--output` parameter to `all` to update the original excel file and output the json files.
 

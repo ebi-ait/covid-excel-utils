@@ -95,7 +95,7 @@ if __name__ == '__main__':
         '--output', type=str,
         choices=['all', 'excel', 'json'],
         default='excel',
-        help='Override the default output of "excel" which will update validation and submission errors into the passed excel file as notes, styling the cell\'s red. "json" will create a .json of the parsed excel objects annotated with errors with an _issues.json file of errors by row. "all" will do both.'
+        help='Override the default output of "excel" which will update validation and submission errors into the passed excel file as notes, styling the cells red. "json" will create a .json of the parsed excel objects annotated with errors with an _issues.json file of errors by row. "all" will do both.'
     )
     parser.add_argument(
         '--biosamples', action='store_true',
