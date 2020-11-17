@@ -1,3 +1,5 @@
+from contextlib import closing
+
 from openpyxl import load_workbook
 from .clean import clean_entity_name, clean_name
 
@@ -7,13 +9,10 @@ class ExcelLoader:
         # ToDo: Accept param for number of header rows, columns
         self.__path = excel_path
         self.__sheet_index = sheet_index
-        workbook = load_workbook(filename=self.__path, read_only=True, keep_links=False)
-        try:
+        with closing(load_workbook(filename=self.__path, read_only=True, keep_links=False)) as workbook:
             worksheet = workbook.worksheets[self.__sheet_index]
             self.column_map = self.get_column_map(worksheet)
-            self.rows = self.get_data(worksheet, self.column_map)
-        finally:
-            workbook.close()
+            self.data = self.get_data(worksheet, self.column_map)
 
     @staticmethod
     def get_column_map(worksheet) -> dict:

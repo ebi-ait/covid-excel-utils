@@ -1,3 +1,5 @@
+from contextlib import closing
+
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from openpyxl.comments import Comment
@@ -36,7 +38,7 @@ class ExcelMarkup(ValidatingExcel):
                 self.__sheet[f'C{row_index}'].fill = error_fill
 
     def add_biosample_accessions(self):
-        for row_index, row in self.rows.items():
+        for row_index, row in self.data.items():
             if 'sample' in row and 'biosample' in row['sample']:
                 cell_index = self.lookup_cell_index('sample', 'sample_accession', row_index)
                 self.__sheet[cell_index] = row['sample']['biosample']['accession']
@@ -56,23 +58,22 @@ class ExcelMarkup(ValidatingExcel):
 
     @staticmethod
     def __clear_markup(excel_path, sheet_index):
-        book = load_workbook(filename=excel_path, keep_links=False)
-        sheet = book.worksheets[sheet_index]
+        with closing(load_workbook(filename=excel_path, keep_links=False)) as book:
+            sheet = book.worksheets[sheet_index]
 
-        if sheet['B1'].value == 'validation':
-            sheet.delete_cols(2, 2)
+            if sheet['B1'].value == 'validation':
+                sheet.delete_cols(2, 2)
 
-        sheet.insert_cols(2, 2)
-        sheet['B1'] = 'validation'
-        sheet['B2'] = 'summary'
-        sheet['C2'] = 'number_of_errors'
+            sheet.insert_cols(2, 2)
+            sheet['B1'] = 'validation'
+            sheet['B2'] = 'summary'
+            sheet['C2'] = 'number_of_errors'
 
-        for row in sheet.iter_rows():
-            for cell in row:
-                cell.fill = PatternFill()
-                cell.comment = None
-        book.save(excel_path)
-        book.close()
+            for row in sheet.iter_rows():
+                for cell in row:
+                    cell.fill = PatternFill()
+                    cell.comment = None
+            book.save(excel_path)
 
     @staticmethod
     def __get_error_comment(human_errors):
