@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+from contextlib import closing
 
 from services.biosamples import AapClient, BioSamples
 from excel.markup import ExcelMarkup
@@ -10,40 +11,76 @@ from validation.docker import DockerValidator
 from validation.excel import ExcelValidator
 
 
-def write_dict(file_path, data_dict):
-    file_path = os.path.abspath(file_path)
-    if os.path.exists(file_path):
-        os.remove(file_path)
-    with open(file_path, "w") as open_file:
-        json.dump(data_dict, open_file, indent=2)
-        open_file.close()
+class CovidExcelUtils:
+    docker_image = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
+    validation_url = "http://localhost:3020/validate"
+    excel: ExcelMarkup
+
+    def __init__(self, file_path, output):
+        self.__file_path = file_path
+        self.__output = output
+
+    def load(self):
+        self.excel = ExcelMarkup(self.__file_path)
+
+    def validate(self):
+        try:
+            with closing(DockerValidator(self.docker_image, self.validation_url)) as validator:
+                self.excel.validate(validator)
+        except Exception as error:
+            logging.warning(f'Error validating schema, using best guess validation. Detected Error: {error}')
+            self.excel.validate(ExcelValidator(self.__file_path))
+
+    def submit_biosamples(self, url, domain, aap_url, aap_username, aap_password):
+        logging.info(f'Attempting to Submit to BioSamples: {url}, AAP: {aap_url}')
+        aap_client = AapClient(url=aap_url, username=aap_username, password=aap_password)
+        biosamples = BioSamples(aap_client, url, domain)
+        biosamples_count = 0
+        for row in self.excel.data.values():
+            if 'sample' in row:
+                try:
+                    row['sample']['request'] = biosamples.encode_sample(row['sample'])
+                    row['sample']['biosample'] = biosamples.send_sample(row['sample']['request'])
+                    row['sample'].pop('request')
+                    biosamples_count = biosamples_count + 1
+                except Exception as error:
+                    error_msg = f'Encoding Error: {error}'
+                    row['sample'].setdefault('errors', {}).setdefault('sample_accession', []).append(error_msg)
+        logging.info(f'Successfully submitted {biosamples_count} BioSamples')
+
+    def close(self):
+        if self.excel:
+            if self.__output in ['all', 'excel']:
+                self.excel.add_biosample_accessions()
+                self.excel.markup_with_errors()
+                logging.info(f'Excel file updated: {self.__file_path}')
+            if self.__output in ['all', 'json']:
+                file_name = os.path.splitext(self.__file_path)[0]
+                if self.excel.data:
+                    json_file_path = file_name + '.json'
+                    self.write_dict(json_file_path, self.excel.data)
+                    logging.info(f'JSON output written to: {json_file_path}')
+                if self.excel.errors:
+                    issues_file_path = file_name + '_issues.json'
+                    self.write_dict(issues_file_path, self.excel.human_errors())
+                    logging.info(f'JSON issues written to: {issues_file_path}')
+            self.excel.close()
+
+    @staticmethod
+    def write_dict(file_path, data_dict):
+        file_path = os.path.abspath(file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "w") as open_file:
+            json.dump(data_dict, open_file, indent=2)
+            open_file.close()
 
 
-def set_logging_level():
-    log_level = args['log_level']
+def set_logging_level(log_level):
     numeric_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % log_level)
     logging.basicConfig(level=numeric_level)
-
-
-def close(message, status=0, xls_file: ExcelMarkup = None, main_args=None):
-    if xls_file and main_args['output'] in ['all', 'excel']:
-        xls_file.markup_with_errors()
-        xls_file.close()
-        print(f"Excel file updated: {main_args['file_path']}")
-    if xls_file and main_args['output'] in ['all', 'json']:
-        file_path = main_args['file_path']
-        file_name = os.path.splitext(file_path)[0]
-        json_file_path = file_name + '.json'
-        write_dict(json_file_path, xls_file.rows)
-        print(f'JSON output written to: {json_file_path}')
-
-        issues_file_path = file_name + '_issues.json'
-        write_dict(issues_file_path, xls_file.errors)
-        print(f'JSON issues written to: {issues_file_path}')
-    print(message)
-    sys.exit(status)
 
 
 if __name__ == '__main__':
@@ -77,79 +114,34 @@ if __name__ == '__main__':
         help='Override the default URL for AAP API.'
     )
     parser.add_argument(
-        '--log_level', '-l', type=str, default='WARN',
+        '--log_level', '-l', type=str, default='INFO',
         help='Override the default logging level.',
-        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
+        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
     )
-
     args = vars(parser.parse_args())
-
-    set_logging_level()
-
-    excel_file_path = args['file_path']
-    excel_file = ExcelMarkup(excel_file_path)
-    if not excel_file.rows:
-        close(f'No Data imported from: {excel_file_path}', status=0)
-
-    try:
-        excel_file.validate(DockerValidator("dockerhub.ebi.ac.uk/ait/json-schema-validator", "http://localhost:3020/validate"))
-    except Exception as error:
-        logging.warning(error)
-        print('Error validating schema, using best guess validation.')
-        excel_file.validate(ExcelValidator(excel_file_path))
-
-    if args['biosamples']:
-        exit_status = None
-        exit_message = ''
-        if excel_file.errors:
-            user_text = input(
-                f'Issues from {len(excel_file.errors)} rows detected. Continue with BioSamples Submission? (y/N)?:')
-            if not user_text.lower().startswith('y'):
-                exit_status = 0
-                exit_message = 'Exiting'
-
-        aap_url = args['aap_url']
-        url = args['biosamples_url']
-        domain = args['biosamples_domain']
-
-        if 'AAP_USERNAME' in os.environ:
-            aap_username = os.environ['AAP_USERNAME']
-        else:
-            exit_status = 2
-            exit_message = 'No AAP_USERNAME detected in os environment variables.'
-
-        if 'AAP_PASSWORD' in os.environ:
-            aap_password = os.environ['AAP_PASSWORD']
-        else:
-            exit_status = 2
-            exit_message = 'No AAP_PASSWORD detected in os environment variables.'
-
-        if exit_status or exit_message:
-            close(exit_message, exit_status, excel_file, args)
-
-        print(f'Attempting to Submit to BioSamples: {url}, AAP: {aap_url}')
-        aap_client = AapClient(url=aap_url, username=aap_username, password=aap_password)
-        biosamples = BioSamples(aap_client, url, domain)
-        for row_index, row in excel_file.rows.items():
-            if 'sample' in row:
-                try:
-                    row['sample']['request'] = biosamples.encode_sample(row['sample'])
-                except Exception as error:
-                    error_msg = f'Encoding Error: {error}'
-                    row['sample'].setdefault('errors', {}).setdefault('sample_accession', []).append(error_msg)
-
-        biosamples_count = 0
-        for row_index, row in excel_file.rows.items():
-            if 'sample' in row and 'request' in row['sample']:
-                try:
-                    row['sample']['biosample'] = biosamples.send_sample(row['sample']['request'])
-                    row['sample'].pop('request')
-                    biosamples_count = biosamples_count + 1
-                except Exception as error:
-                    error_msg = f'BioSamples Error: {error}'
-                    row['sample'].setdefault('errors', {}).setdefault('sample_accession', []).append(error_msg)
-        if biosamples_count:
-            excel_file.add_biosample_accessions()
-            print(f'Successfully submitted {biosamples_count} BioSamples')
-
-    close('Exiting', 0, excel_file, args)
+    set_logging_level(args['log_level'])
+    with closing(CovidExcelUtils(args['file_path'], args['output'])) as excel_utils:
+        excel_utils.load()
+        if not excel_utils.excel.data:
+            logging.info(f"No Data imported from: {args['file_path']}")
+            sys.exit(0)
+        excel_utils.validate()
+        if args['biosamples']:
+            if excel_utils.excel.errors:
+                user_text = input(f'Issues from {len(excel_utils.excel.errors)} rows detected. Continue with BioSamples Submission? (y/N)?:')
+                if not user_text.lower().startswith('y'):
+                    print('Exiting')
+                    sys.exit(0)
+            if 'AAP_USERNAME' not in os.environ:
+                logging.error('No AAP_USERNAME detected in os environment variables.')
+                sys.exit(2)
+            if 'AAP_PASSWORD' not in os.environ:
+                logging.error('No AAP_PASSWORD detected in os environment variables.')
+                sys.exit(2)
+            excel_utils.submit_biosamples(
+                args['biosamples_url'],
+                args['biosamples_domain'],
+                args['aap_url'],
+                os.environ['AAP_USERNAME'],
+                os.environ['AAP_PASSWORD']
+            )
