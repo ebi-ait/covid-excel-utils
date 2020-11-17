@@ -60,5 +60,8 @@ class SchemaValidator(BaseValidator):
         errors = {}
         for schema_error in schema_errors:
             attribute_name = str(schema_error['dataPath']).strip('.')
-            errors.setdefault(attribute_name, []).extend(schema_error['errors'])
+            stripped_errors = []
+            for error in schema_error['errors']:
+                stripped_errors.append(error.replace('"', '\''))
+            errors.setdefault(attribute_name, []).extend(stripped_errors)
         return errors
