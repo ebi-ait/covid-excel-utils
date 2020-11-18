@@ -7,6 +7,7 @@ from contextlib import closing
 
 from services.biosamples import AapClient, BioSamples
 from excel.markup import ExcelMarkup
+from excel.validate import ValidatingExcel
 from validation.docker import DockerValidator
 from validation.excel import ExcelValidator
 
@@ -14,14 +15,17 @@ from validation.excel import ExcelValidator
 class CovidExcelUtils:
     docker_image = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
     validation_url = "http://localhost:3020/validate"
-    excel: ExcelMarkup
+    excel = None
 
     def __init__(self, file_path, output):
         self.__file_path = file_path
         self.__output = output
 
     def load(self):
-        self.excel = ExcelMarkup(self.__file_path)
+        if self.__output in ['all', 'excel']:
+            self.excel = ExcelMarkup(self.__file_path)
+        else:
+            self.excel = ValidatingExcel(self.__file_path)
 
     def validate(self):
         try:
@@ -50,9 +54,10 @@ class CovidExcelUtils:
 
     def close(self):
         if self.excel:
-            if self.__output in ['all', 'excel']:
+            if isinstance(self.excel, ExcelMarkup):
                 self.excel.add_biosample_accessions()
                 self.excel.markup_with_errors()
+                self.excel.close()
                 logging.info(f'Excel file updated: {self.__file_path}')
             if self.__output in ['all', 'json']:
                 file_name = os.path.splitext(self.__file_path)[0]
@@ -64,7 +69,6 @@ class CovidExcelUtils:
                     issues_file_path = file_name + '_issues.json'
                     self.write_dict(issues_file_path, self.excel.human_errors())
                     logging.info(f'JSON issues written to: {issues_file_path}')
-            self.excel.close()
 
     @staticmethod
     def write_dict(file_path, data_dict):
