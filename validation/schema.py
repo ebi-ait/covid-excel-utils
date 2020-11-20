@@ -5,6 +5,7 @@ from os.path import dirname, join, splitext
 
 import requests
 from .base import BaseValidator
+from .taxonomy_validator import TaxonomyValidator
 
 
 class SchemaValidator(BaseValidator):
@@ -13,6 +14,7 @@ class SchemaValidator(BaseValidator):
     def __init__(self, validator_url: str):
         self.validator_url = validator_url
         self.__load_schema_files()
+        self.tax_id_validator = TaxonomyValidator()
 
     def validate_data(self, data: dict) -> dict:
         errors = {}
@@ -20,8 +22,24 @@ class SchemaValidator(BaseValidator):
             row_issues = {}
             for entity_type, entity in entities.items():
                 entity_errors = self.validate_entity(entity_type, entity)
+                if entity_type == 'sample':
+                    tax_id_error = \
+                        self.tax_id_validator.validate_tax_id(entity['tax_id'])
+                    scientific_name_error = \
+                        self.tax_id_validator.validate_scientific_name(entity['scientific_name'])
+                    if tax_id_error:
+                        if entity_errors:
+                            self.append_value(entity_errors, 'tax_id', tax_id_error)
+                        else:
+                            entity_errors['tax_id'] = tax_id_error
+                    if scientific_name_error:
+                        if entity_errors:
+                            self.append_value(entity_errors, 'scientific_name', scientific_name_error)
+                        else:
+                            entity_errors['scientific_name'] = scientific_name_error
                 if entity_errors:
                     row_issues[entity_type] = entity_errors
+
             if row_issues:
                 errors[row_index] = row_issues
         return errors
@@ -65,3 +83,19 @@ class SchemaValidator(BaseValidator):
                 stripped_errors.append(error.replace('"', '\''))
             errors.setdefault(attribute_name, []).extend(stripped_errors)
         return errors
+
+    @staticmethod
+    def append_value(dict_obj, key, value):
+        # Check if key exist in dict or not
+        if key in dict_obj:
+            # Key exist in dict.
+            # Check if type of value of key is list or not
+            if not isinstance(dict_obj[key], list):
+                # If type is not list then make it list
+                dict_obj[key] = [dict_obj[key]]
+            # Append the value in list
+            dict_obj[key].append(value)
+        else:
+            # As key is not in dict,
+            # so, add key-value pair
+            dict_obj[key] = value
