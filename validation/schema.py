@@ -10,11 +10,13 @@ from .taxonomy_validator import TaxonomyValidator
 
 class SchemaValidator(BaseValidator):
     schema_by_type = {}
+    TAX_ID_KEY = 'tax_id'
+    SCIENTIFIC_NAME_KEY = 'scientific_name'
 
     def __init__(self, validator_url: str):
         self.validator_url = validator_url
         self.__load_schema_files()
-        self.tax_id_validator = TaxonomyValidator()
+        self.taxonomy_validator = TaxonomyValidator()
 
     def validate_data(self, data: dict) -> dict:
         errors = {}
@@ -23,20 +25,20 @@ class SchemaValidator(BaseValidator):
             for entity_type, entity in entities.items():
                 entity_errors = self.validate_entity(entity_type, entity)
                 if entity_type == 'sample':
-                    tax_id_error = \
-                        self.tax_id_validator.validate_tax_id(entity['tax_id'])
-                    scientific_name_error = \
-                        self.tax_id_validator.validate_scientific_name(entity['scientific_name'])
-                    if tax_id_error:
-                        if entity_errors:
-                            self.append_value(entity_errors, 'tax_id', tax_id_error)
-                        else:
-                            entity_errors['tax_id'] = tax_id_error
-                    if scientific_name_error:
-                        if entity_errors:
-                            self.append_value(entity_errors, 'scientific_name', scientific_name_error)
-                        else:
-                            entity_errors['scientific_name'] = scientific_name_error
+                    if entity['tax_id'] is not None and entity['scientific_name'] is not None:
+                        data_to_validate = {self.TAX_ID_KEY: entity['tax_id'],
+                                            self.SCIENTIFIC_NAME_KEY: entity['scientific_name']}
+                        taxonomy_validation_result = self.taxonomy_validator.validate_data(data_to_validate)
+                        for tax_key, error_message in taxonomy_validation_result.items():
+                            if entity_errors:
+                                self.append_value(entity_errors, tax_key, error_message)
+                            else:
+                                entity_errors[tax_key] = error_message
+                    else:
+                        if entity['tax_id'] is None:
+                            entity_errors['tax_id'] = "Tax_id field is mandatory."
+                        if entity['scientific_name'] is None:
+                            entity_errors['scientific_name'] = "Scientific_name field is mandatory."
                 if entity_errors:
                     row_issues[entity_type] = entity_errors
 
@@ -86,16 +88,9 @@ class SchemaValidator(BaseValidator):
 
     @staticmethod
     def append_value(dict_obj, key, value):
-        # Check if key exist in dict or not
         if key in dict_obj:
-            # Key exist in dict.
-            # Check if type of value of key is list or not
             if not isinstance(dict_obj[key], list):
-                # If type is not list then make it list
                 dict_obj[key] = [dict_obj[key]]
-            # Append the value in list
             dict_obj[key].append(value)
         else:
-            # As key is not in dict,
-            # so, add key-value pair
             dict_obj[key] = value
