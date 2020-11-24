@@ -12,38 +12,38 @@ class TaxonomyValidator(BaseValidator):
     SCIENTIFIC_NAME_KEY = 'scientific_name'
 
     def validate_tax_id(self, data_to_validate):
-        return self.__validate(self.ENA_TAX_ID_LOOKUP_URL, 'tax_id', data_to_validate)
+        return self.__validate(self.ENA_TAX_ID_LOOKUP_URL, self.TAX_ID_KEY, data_to_validate)
 
     def validate_scientific_name(self, data_to_validate):
         return \
             self.__validate(
-                self.ENA_SPECIES_LOOKUP_URL, 'scientific_name', data_to_validate)
+                self.ENA_SPECIES_LOOKUP_URL, self.SCIENTIFIC_NAME_KEY, data_to_validate)
 
     def validate_data(self, data_to_validate: dict):
         errors = {}
-        if 'tax_id' not in data_to_validate:
-            errors['tax_id'] = "Tax_id field is mandatory."
-        if 'scientific_name' not in data_to_validate:
-            errors['scientific_name'] = "Scientific_name field is mandatory."
+        if self.TAX_ID_KEY not in data_to_validate:
+            errors[self.TAX_ID_KEY] = "Tax_id field is mandatory."
+        if self.SCIENTIFIC_NAME_KEY not in data_to_validate:
+            errors[self.SCIENTIFIC_NAME_KEY] = "Scientific_name field is mandatory."
         if errors:
             return errors
 
         species_validation_response = \
-            self.validate_scientific_name(data_to_validate['scientific_name'])
-        tax_id_validation_response = self.validate_tax_id(data_to_validate['tax_id'])
+            self.validate_scientific_name(data_to_validate[self.SCIENTIFIC_NAME_KEY])
+        tax_id_validation_response = self.validate_tax_id(data_to_validate[self.TAX_ID_KEY])
         if 'error' in species_validation_response:
-            self.append_value(errors, 'scientific_name', species_validation_response['error'])
+            self.append_value(errors, self.SCIENTIFIC_NAME_KEY, species_validation_response['error'])
         if 'error' in tax_id_validation_response:
-            self.append_value(errors, 'tax_id', tax_id_validation_response['error'])
+            self.append_value(errors, self.TAX_ID_KEY, tax_id_validation_response['error'])
 
         if 'taxId' not in species_validation_response or \
                 'scientificName' not in tax_id_validation_response or \
-                species_validation_response['taxId'] != str(data_to_validate['tax_id']) or \
-                tax_id_validation_response['scientificName'] != str(data_to_validate['scientific_name']):
-            cross_check_error = f"Information is not consistent between taxId: {data_to_validate['tax_id']} " \
-                                f"and scientificName: {data_to_validate['scientific_name']}"
-            self.append_value(errors, 'tax_id', cross_check_error)
-            self.append_value(errors, 'scientific_name', cross_check_error)
+                species_validation_response['taxId'] != str(data_to_validate[self.TAX_ID_KEY]) or \
+                tax_id_validation_response['scientificName'] != str(data_to_validate[self.SCIENTIFIC_NAME_KEY]):
+            cross_check_error = f"Information is not consistent between taxId: {data_to_validate[self.TAX_ID_KEY]} " \
+                                f"and scientificName: {data_to_validate[self.SCIENTIFIC_NAME_KEY]}"
+            self.append_value(errors, self.TAX_ID_KEY, cross_check_error)
+            self.append_value(errors, self.SCIENTIFIC_NAME_KEY, cross_check_error)
 
         return errors
 
@@ -57,7 +57,7 @@ class TaxonomyValidator(BaseValidator):
         if isinstance(response, list):
             response = response[0]
 
-        if response['submittable'] == "false":
+        if 'submittable' in response and response['submittable'] == "false":
             response = \
                 {'error': f'{self.NOT_VALID_ERROR_MESSAGE_START} {data_type_to_validate}: {value_to_validate}. ' \
                           f'It is not submittable.'}

@@ -25,26 +25,24 @@ class SchemaValidator(BaseValidator):
             for entity_type, entity in entities.items():
                 entity_errors = self.validate_entity(entity_type, entity)
                 if entity_type == 'sample':
-                    if entity['tax_id'] is not None and entity['scientific_name'] is not None:
-                        data_to_validate = {self.TAX_ID_KEY: entity['tax_id'],
-                                            self.SCIENTIFIC_NAME_KEY: entity['scientific_name']}
-                        taxonomy_validation_result = self.taxonomy_validator.validate_data(data_to_validate)
-                        for tax_key, error_message in taxonomy_validation_result.items():
-                            if entity_errors:
-                                self.append_value(entity_errors, tax_key, error_message)
-                            else:
-                                entity_errors[tax_key] = error_message
-                    else:
-                        if entity['tax_id'] is None:
-                            entity_errors['tax_id'] = "Tax_id field is mandatory."
-                        if entity['scientific_name'] is None:
-                            entity_errors['scientific_name'] = "Scientific_name field is mandatory."
+                    self.taxonomy_validation(entity, entity_errors)
                 if entity_errors:
                     row_issues[entity_type] = entity_errors
 
             if row_issues:
                 errors[row_index] = row_issues
         return errors
+
+    def taxonomy_validation(self, entity, entity_errors):
+        if 'tax_id' in entity and 'scientific_name' in entity:
+            data_to_validate = {self.TAX_ID_KEY: entity['tax_id'],
+                                self.SCIENTIFIC_NAME_KEY: entity['scientific_name']}
+            taxonomy_validation_result = self.taxonomy_validator.validate_data(data_to_validate)
+            for tax_key, error_message in taxonomy_validation_result.items():
+                if entity_errors:
+                    self.append_value(entity_errors, tax_key, error_message)
+                else:
+                    entity_errors[tax_key] = error_message
 
     def validate_entity(self, entity_type: str, entity: dict) -> dict:
         schema = self.schema_by_type.get(entity_type, {})
