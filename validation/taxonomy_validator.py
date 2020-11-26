@@ -32,9 +32,9 @@ class TaxonomyValidator(BaseValidator):
             self.validate_scientific_name(data_to_validate[self.SCIENTIFIC_NAME_KEY])
         tax_id_validation_response = self.validate_tax_id(data_to_validate[self.TAX_ID_KEY])
         if 'error' in species_validation_response:
-            self.append_value(errors, self.SCIENTIFIC_NAME_KEY, species_validation_response['error'])
+            errors.setdefault(self.SCIENTIFIC_NAME_KEY, []).extend(species_validation_response['error'])
         if 'error' in tax_id_validation_response:
-            self.append_value(errors, self.TAX_ID_KEY, tax_id_validation_response['error'])
+            errors.setdefault(self.TAX_ID_KEY, []).extend(tax_id_validation_response['error'])
 
         if 'taxId' not in species_validation_response or \
                 'scientificName' not in tax_id_validation_response or \
@@ -42,8 +42,8 @@ class TaxonomyValidator(BaseValidator):
                 tax_id_validation_response['scientificName'] != str(data_to_validate[self.SCIENTIFIC_NAME_KEY]):
             cross_check_error = f"Information is not consistent between taxId: {data_to_validate[self.TAX_ID_KEY]} " \
                                 f"and scientificName: {data_to_validate[self.SCIENTIFIC_NAME_KEY]}"
-            self.append_value(errors, self.TAX_ID_KEY, cross_check_error)
-            self.append_value(errors, self.SCIENTIFIC_NAME_KEY, cross_check_error)
+            errors.setdefault(self.TAX_ID_KEY, []).extend(cross_check_error)
+            errors.setdefault(self.SCIENTIFIC_NAME_KEY, []).extend(cross_check_error)
 
         return errors
 
@@ -71,12 +71,3 @@ class TaxonomyValidator(BaseValidator):
         if response.text == 'No results.':
             return {'error': f'{self.NOT_VALID_ERROR_MESSAGE_START} {type}: {value}'}
         return response.json()
-
-    @staticmethod
-    def append_value(dict_obj, key, value):
-        if key in dict_obj:
-            if not isinstance(dict_obj[key], list):
-                dict_obj[key] = [dict_obj[key]]
-            dict_obj[key].append(value)
-        else:
-            dict_obj[key] = [value]

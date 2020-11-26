@@ -40,7 +40,7 @@ class SchemaValidator(BaseValidator):
             taxonomy_validation_result = self.taxonomy_validator.validate_data(data_to_validate)
             for tax_key, error_message in taxonomy_validation_result.items():
                 if entity_errors:
-                    self.append_value(entity_errors, tax_key, error_message)
+                    entity_errors.setdefault(tax_key, []).extend(error_message)
                 else:
                     entity_errors[tax_key] = error_message
 
@@ -83,12 +83,3 @@ class SchemaValidator(BaseValidator):
                 stripped_errors.append(error.replace('"', '\''))
             errors.setdefault(attribute_name, []).extend(stripped_errors)
         return errors
-
-    @staticmethod
-    def append_value(dict_obj, key, value):
-        if key in dict_obj:
-            if not isinstance(dict_obj[key], list):
-                dict_obj[key] = [dict_obj[key]]
-            dict_obj[key].append(value)
-        else:
-            dict_obj[key] = value
