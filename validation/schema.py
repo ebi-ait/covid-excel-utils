@@ -5,18 +5,14 @@ from os.path import dirname, join, splitext
 
 import requests
 from .base import BaseValidator
-from .taxonomy_validator import TaxonomyValidator
 
 
 class SchemaValidator(BaseValidator):
     schema_by_type = {}
-    TAX_ID_KEY = 'tax_id'
-    SCIENTIFIC_NAME_KEY = 'scientific_name'
 
     def __init__(self, validator_url: str):
         self.validator_url = validator_url
         self.__load_schema_files()
-        self.taxonomy_validator = TaxonomyValidator()
 
     def validate_data(self, data: dict) -> dict:
         errors = {}
@@ -24,31 +20,18 @@ class SchemaValidator(BaseValidator):
             row_issues = {}
             for entity_type, entity in entities.items():
                 entity_errors = self.validate_entity(entity_type, entity)
-                if entity_type == 'sample':
-                    self.taxonomy_validation(entity, entity_errors)
                 if entity_errors:
                     row_issues[entity_type] = entity_errors
-
             if row_issues:
                 errors[row_index] = row_issues
         return errors
-
-    def taxonomy_validation(self, entity, entity_errors):
-        if 'tax_id' in entity and 'scientific_name' in entity:
-            data_to_validate = {self.TAX_ID_KEY: entity['tax_id'],
-                                self.SCIENTIFIC_NAME_KEY: entity['scientific_name']}
-            taxonomy_validation_result = self.taxonomy_validator.validate_data(data_to_validate)
-            for tax_key, error_message in taxonomy_validation_result.items():
-                if entity_errors:
-                    entity_errors.setdefault(tax_key, []).extend(error_message)
-                else:
-                    entity_errors[tax_key] = error_message
 
     def validate_entity(self, entity_type: str, entity: dict) -> dict:
         schema = self.schema_by_type.get(entity_type, {})
         schema_errors = self.__validate(schema, entity)
         entity_errors = self.__translate_to_error(schema_errors)
-        entity['errors'] = entity_errors
+        for attribute, errors in entity_errors.items():
+            entity.setdefault('errors', {}).setdefault(attribute, []).extend(errors)
         return entity_errors
 
     def __validate(self, schema: dict, entity: dict):

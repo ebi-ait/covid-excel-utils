@@ -49,6 +49,7 @@ class ExcelValidator(BaseValidator):
                 attribute_errors.extend(ExcelValidator.validate_attribute(attribute_validation, entity[attribute_name]))
             if attribute_errors:
                 entity_errors[attribute_name] = attribute_errors
+                entity.setdefault('errors', {}).setdefault(attribute_name, []).extend(attribute_errors)
         return entity_errors
 
     @staticmethod
