@@ -11,34 +11,23 @@ class EnaTaxonomy:
         self.species_url = f'{ena_url.rstrip("/")}/data/taxonomy/v1/taxon/scientific-name/'
 
     def validate_tax_id(self, tax_id: str):
-        tax_id_response = self.__validate(self.tax_id_url, self.TAX_ID_KEY, tax_id)
-        return self.add_response_errors(tax_id_response, self.TAX_ID_KEY, {})
+        return self.__validate(self.tax_id_url, self.TAX_ID_KEY, tax_id)
 
     def validate_scientific_name(self, scientific_name: str):
-        species_response = self.__validate(self.species_url, self.SPECIES_KEY, scientific_name)
-        return self.add_response_errors(species_response, self.SPECIES_KEY, {})
+        return self.__validate(self.species_url, self.SPECIES_KEY, scientific_name)
 
     def validate_taxonomy(self, scientific_name: str, tax_id: str):
-        errors = {}
-        species_response = self.__validate(self.species_url, self.SPECIES_KEY, scientific_name)
-        self.add_response_errors(species_response, self.SPECIES_KEY, errors)
-
-        tax_id_response = self.__validate(self.tax_id_url, self.TAX_ID_KEY, tax_id)
-        self.add_response_errors(tax_id_response, self.TAX_ID_KEY, errors)
-
+        species_response = self.validate_scientific_name(scientific_name)
+        tax_id_response = self.validate_tax_id(tax_id)
+        response = {
+            self.SPECIES_KEY: species_response,
+            self.TAX_ID_KEY: tax_id_response
+        }
         if 'taxId' not in species_response or 'scientificName' not in tax_id_response or \
                 species_response['taxId'] != tax_id or \
                 tax_id_response['scientificName'] != scientific_name:
-            cross_check_error = f"Information is not consistent between taxId: {tax_id} " \
-                                f"and scientificName: {scientific_name}"
-            errors.setdefault(self.TAX_ID_KEY, []).append(cross_check_error)
-            errors.setdefault(self.SPECIES_KEY, []).append(cross_check_error)
-        return errors
-
-    @staticmethod
-    def add_response_errors(response, key, errors):
-        if 'error' in response:
-            errors.setdefault(key, []).append(response['error'])
+            response['error'] = f"Information is not consistent between taxId: {tax_id} and scientificName: {scientific_name}"
+        return response
 
     @staticmethod
     def __validate(url, data_type, value):
