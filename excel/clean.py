@@ -44,7 +44,8 @@ def entity_has_attribute(object_data: dict, attribute: str) -> bool:
 
 
 def value_populated(value: str) -> bool:
-    return value not in ['NP', 'NA', 'NC']
+    stripped_value = value.lower().replace(' ', '')
+    return stripped_value not in ['', 'np', 'na', 'nc','notapplicable','notprovided','notcollected']
 
 
 def valid_date(value: str) -> bool:
