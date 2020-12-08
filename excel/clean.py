@@ -9,7 +9,12 @@ def clean_entity_name(name: str) -> str:
 
 def clean_name(name: str) -> str:
     # Object and Attribute name are lower case with underscores
-    return name.strip().lower().replace(' ', '_').replace('/', '_')
+    # Parentheses are removed
+    return name.strip().lower()\
+        .replace(' ', '_')\
+        .replace('/', '_')\
+        .replace('(', '')\
+        .replace(')', '')
 
 
 def clean_key(key: str) -> str:
