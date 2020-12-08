@@ -1,7 +1,7 @@
 from contextlib import closing
 
 from openpyxl import load_workbook
-from .clean import clean_entity_name, clean_name
+from .clean import clean_entity_name, clean_name, is_value_populated
 
 
 class ExcelLoader:
@@ -46,7 +46,7 @@ class ExcelLoader:
         for row in worksheet.iter_rows(min_row=row_index, min_col=2):
             row_data = {}
             for cell in row:
-                if cell.value is not None:
+                if cell.value is not None and is_value_populated(cell.value):
                     if cell.is_date:
                         value = cell.value.date().isoformat()
                     else:

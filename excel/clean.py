@@ -40,14 +40,15 @@ def clean_validation(value: str) -> str:
 
 
 def entity_has_attribute(object_data: dict, attribute: str) -> bool:
-    return attribute in object_data and value_populated(object_data[attribute].strip())
+    return attribute in object_data and is_value_populated(object_data[attribute].strip())
 
 
-def value_populated(value: str) -> bool:
-    return value not in ['NP', 'NA', 'NC']
+def is_value_populated(value: str) -> bool:
+    stripped_value = value.lower().replace(' ', '')
+    return stripped_value not in ['', 'np', 'na', 'nc','notapplicable','notprovided','notcollected']
 
 
-def valid_date(value: str) -> bool:
+def is_valid_date(value: str) -> bool:
     try:
         date.fromisoformat(value)
         return True

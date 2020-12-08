@@ -4,7 +4,7 @@ from openpyxl import load_workbook
 from openpyxl.worksheet.datavalidation import DataValidationList
 from openpyxl.worksheet.worksheet import Worksheet
 from excel.clean import (entity_has_attribute, clean_validation, clean_entity_name, clean_key,
-                         clean_name, clean_formula_list, clean_validation_list, valid_date)
+                         clean_name, clean_formula_list, clean_validation_list, is_valid_date)
 from .base import BaseValidator
 
 
@@ -57,7 +57,7 @@ class ExcelValidator(BaseValidator):
         attribute_errors = []
         if ('format' in attribute_validation
                 and attribute_validation['format'] == 'YYYY-MM-DD'
-                and not valid_date(value)):
+                and not is_valid_date(value)):
             attribute_errors.append(f"'{value}' is not in date format: YYYY-MM-DD.")
         if ('accepted_values' in attribute_validation
                 and clean_validation(value) not in attribute_validation['accepted_values']):
