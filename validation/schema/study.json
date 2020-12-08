@@ -38,7 +38,13 @@
     },
     "short_description": {
       "description": "More extensive free-form description of the study.",
-      "type": "string"
+      "not": {
+        "enum": [
+          "not provided",
+          "not applicable",
+          "not collected"
+        ]
+      }
     },
     "abstract": {
       "description": "Briefly describes the goals, purpose, and scope of the Study.",
