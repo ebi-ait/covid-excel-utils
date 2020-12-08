@@ -46,7 +46,7 @@ class ExcelLoader:
         for row in worksheet.iter_rows(min_row=row_index, min_col=2):
             row_data = {}
             for cell in row:
-                if cell.value is not None and is_value_populated(cell.value):
+                if cell.value is not None and (cell.is_date or not isinstance(cell.value, str) or is_value_populated(cell.value)):
                     if cell.is_date:
                         value = cell.value.date().isoformat()
                     else:
