@@ -4,17 +4,17 @@ from unittest.mock import patch, MagicMock
 
 from services.ena_taxonomy import EnaTaxonomy
 
+
 class TestEnaTaxonomy(unittest.TestCase):
     def setUp(self):
         self.ena_taxonomy = EnaTaxonomy(ena_url='')
     
     @staticmethod
-    def expected_error(key, value, details = '') -> str:
+    def expected_error(key, value, details='') -> str:
         filler = ''
         if details:
             filler = ' '
         return f'Not valid {key}: {value}.{filler}{details}'
-
 
     @patch('services.ena_taxonomy.requests.get')
     def test_when_tax_id_not_numeric_should_return_error(self, mock_get):
@@ -100,7 +100,6 @@ class TestEnaTaxonomy(unittest.TestCase):
         self.assertIn('error', result)
         self.assertEqual(expected_error, result['error'])
 
-
     @patch('services.ena_taxonomy.requests.get')
     def test_when_not_suitable_parameter_given_should_return_error(self, mock_get):
         invalid_param = "?"
@@ -164,8 +163,7 @@ class TestEnaTaxonomy(unittest.TestCase):
         self.assertNotIn('error', result)
         self.assertIn('scientificName', result)
 
-    @patch('services.ena_taxonomy.requests.get')
-    def test_when_scientific_name_and_tax_id_not_matching_should_return_error(self, mock_get):
+    def test_when_scientific_name_and_tax_id_not_matching_should_return_error(self):
         valid_scientific_name = "homo sapiens"
         valid_tax_id = "9999"
 
