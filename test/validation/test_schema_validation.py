@@ -47,7 +47,7 @@ class TestSchemaValidation(unittest.TestCase):
         mock_post.return_value.json.return_value = []
         mock_post.return_value.status = requests.codes['ok']
 
-        with open(join(dirname(__file__), "resources/valid_spreadsheet.json")) as valid_file:
+        with open(join(dirname(__file__), "../resources/valid_spreadsheet.json")) as valid_file:
             valid_json = json.load(valid_file)
 
         validation_result = self.schema_validation.validate_data(valid_json)
@@ -86,7 +86,7 @@ class TestSchemaValidation(unittest.TestCase):
         )
         mock_post.return_value.status = requests.codes['ok']
 
-        with open(join(dirname(__file__), "resources/invalid_spreadsheet.json")) as invalid_file:
+        with open(join(dirname(__file__), "../resources/invalid_spreadsheet.json")) as invalid_file:
             invalid_json = json.load(invalid_file)
 
         validation_result = self.schema_validation.validate_data(invalid_json)

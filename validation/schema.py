@@ -30,7 +30,8 @@ class SchemaValidator(BaseValidator):
         schema = self.schema_by_type.get(entity_type, {})
         schema_errors = self.__validate(schema, entity)
         entity_errors = self.__translate_to_error(schema_errors)
-        entity['errors'] = entity_errors
+        for attribute, errors in entity_errors.items():
+            entity.setdefault('errors', {}).setdefault(attribute, []).extend(errors)
         return entity_errors
 
     def __validate(self, schema: dict, entity: dict):

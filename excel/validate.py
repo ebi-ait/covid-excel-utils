@@ -11,12 +11,22 @@ class ValidatingExcel(ExcelLoader):
         self.errors = {}
 
     def validate(self, validator: BaseValidator):
-        logging.info(f'Validating {len(self.data)} rows.')
-        self.errors = validator.validate_data(self.data)
+        logging.info(f'Validating {len(self.data)} rows with {validator.__class__}')
+        self.__merge_errors(validator.validate_data(self.data))
         logging.debug(f'Validation Complete.')    
 
     def human_errors(self):
         return self.human_file_errors(self.errors)
+
+    def __merge_errors(self, new_errors: dict):
+        for row_index, entities in new_errors.items():
+            for entity_type, entity_errors in entities.items():
+                for attribute, errors in entity_errors.items():
+                    self.errors\
+                        .setdefault(row_index, {})\
+                        .setdefault(entity_type, {})\
+                        .setdefault(attribute, [])\
+                        .extend(errors)
 
     @staticmethod
     def human_file_errors(file_errors: dict) -> dict:
