@@ -3,7 +3,7 @@ from biosamples_v4.api import Client as BioSamplesClient
 from biosamples_v4.aap import Client as AapClient
 from biosamples_v4.encoders import SampleEncoder
 from biosamples_v4.models import Attribute, Sample
-from excel.clean import entity_has_attribute, value_populated
+from excel.clean import entity_has_attribute, is_value_populated
 
 
 def attribute_name(name: str) -> str:
@@ -25,7 +25,7 @@ def make_attribute(name, value) -> Attribute:
 def make_attributes(sample: dict) -> List[Attribute]:
     attributes = []
     for name, value in sample.items():
-        if value_populated(value):
+        if is_value_populated(value):
             attributes.append(make_attribute(name, value))
     return attributes
 
