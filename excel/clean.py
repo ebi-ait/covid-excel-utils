@@ -48,7 +48,7 @@ def is_value_populated(value: str) -> bool:
     return stripped_value not in ['', 'np', 'na', 'nc','notapplicable','notprovided','notcollected']
 
 
-def valid_date(value: str) -> bool:
+def is_valid_date(value: str) -> bool:
     try:
         date.fromisoformat(value)
         return True
