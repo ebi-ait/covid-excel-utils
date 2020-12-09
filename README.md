@@ -5,8 +5,9 @@ The goal of this project is to validate metadata obtained via excel spreadsheets
 
 # Getting Ready
 ## Prerequisites
- - Download and Install [Docker for Desktop](https://www.docker.com/products/docker-desktop)
- - Used for more accurate validation, *"Best Guess" Excel validation is available if you skip this prerequisite*.
+ - [Python3](https://installpython3.com)
+ - [Docker for Desktop](https://www.docker.com/products/docker-desktop)
+    - Used for more accurate validation, *"Best Guess" Excel validation is available if you skip this prerequisite*.
 
 ## Installation
  - Get a copy of this repository on your local machine to you current directory:
