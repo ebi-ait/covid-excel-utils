@@ -22,7 +22,14 @@
     "study_alias": {
       "description": "An unique identifier in a submission.",
       "type": "string",
-      "minLength": 1
+      "not": {
+        "enum": [
+          "not provided",
+          "not applicable",
+          "not collected",
+          "restricted access"
+        ]
+      }
     },
     "email_address": {
       "description": "The email address of the submitter.",
@@ -34,21 +41,39 @@
     },
     "study_name": {
       "description": "Name of the study.",
-      "type": "string"
-    },
-    "short_description": {
-      "description": "More extensive free-form description of the study.",
+      "type": "string",
       "not": {
         "enum": [
           "not provided",
           "not applicable",
-          "not collected"
+          "not collected",
+          "restricted access"
+        ]
+      }
+    },
+    "short_description": {
+      "description": "More extensive free-form description of the study.",
+      "type": "string",
+      "not": {
+        "enum": [
+          "not provided",
+          "not applicable",
+          "not collected",
+          "restricted access"
         ]
       }
     },
     "abstract": {
       "description": "Briefly describes the goals, purpose, and scope of the Study.",
-      "type": "string"
+      "type": "string",
+      "not": {
+        "enum": [
+          "not provided",
+          "not applicable",
+          "not collected",
+          "restricted access"
+        ]
+      }
     },
     "release_date": {
       "description": "The release date defines the date the study would be available publicly.",
