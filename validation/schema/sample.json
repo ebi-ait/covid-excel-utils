@@ -24,13 +24,39 @@
     "isolate"
   ],
   "properties": {
-    "sample_description": {
-      "description": "Description of the sample.",
+    "sample_alias": {
+      "description": "Unique identifier of the sample.",
+      "type": "string",
       "not": {
         "enum": [
           "not provided",
           "not applicable",
-          "not collected"
+          "not collected",
+          "restricted access"
+        ]
+      }
+    },
+    "sample_title": {
+      "description": "Title of the sample.",
+      "type": "string",
+      "not": {
+        "enum": [
+          "not provided",
+          "not applicable",
+          "not collected",
+          "restricted access"
+        ]
+      }
+    },
+    "sample_description": {
+      "description": "Description of the sample.",
+      "type": "string",
+      "not": {
+        "enum": [
+          "not provided",
+          "not applicable",
+          "not collected",
+          "restricted access"
         ]
       }
     },
@@ -79,6 +105,18 @@
       "items": {
         "required": [
           "units"
+        ]
+      }
+    },
+    "sample_capture_status": {
+      "description": "Reason for the sample collection.",
+      "type": "string",
+      "not": {
+        "enum": [
+          "not provided",
+          "not applicable",
+          "not collected",
+          "restricted access"
         ]
       }
     },
@@ -439,17 +477,21 @@
         ]
       }
     },
-    "sample_capture_status": {
-      "description": "Reason for the sample collection.",
-      "type": "string"
-    },
     "geographic_location_(region_and_locality)": {
       "description": "The geographical origin of the sample as defined by the specific region name followed by the locality name.",
       "type": "string"
     },
     "host_common_name": {
-      "description": "common name of the host, e.g. human",
-      "type": "string"
+      "description": "Common name of the host, e.g. human",
+      "type": "string",
+      "not": {
+        "enum": [
+          "not provided",
+          "not applicable",
+          "not collected",
+          "restricted access"
+        ]
+      }
     },
     "definition_for_seropositive_sample": {
       "description": "The cut off value used by an investigatior in determining that a sample was seropositive.",
