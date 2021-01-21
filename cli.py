@@ -5,9 +5,11 @@ import os
 import sys
 from contextlib import closing
 
+from lxml import etree
 from services.biosamples import AapClient, BioSamples
 from excel.markup import ExcelMarkup
 from excel.validate import ValidatingExcel
+from conversion.ena.submission import EnaSubmissionConverter
 from validation.docker import DockerValidator
 from validation.excel import ExcelValidator
 from validation.taxonomy import TaxonomyValidator
@@ -22,6 +24,8 @@ class CovidExcelUtils:
     def __init__(self, file_path, output):
         self.__file_path = file_path
         self.__output = output
+        self.__ena_converter = EnaSubmissionConverter()
+        self.ena_submission = None
 
     def load(self):
         if self.__output in ['all', 'excel']:
@@ -45,15 +49,21 @@ class CovidExcelUtils:
         biosamples_count = 0
         for row in self.excel.data.values():
             if 'sample' in row:
+                sample = row['sample']
                 try:
-                    row['sample']['request'] = biosamples.encode_sample(row['sample'])
-                    row['sample']['biosample'] = biosamples.send_sample(row['sample']['request'])
-                    row['sample'].pop('request')
+                    sample['request'] = biosamples.encode_sample(sample)
+                    sample['biosample'] = biosamples.send_sample(sample['request'])
+                    sample.pop('request')
+                    if 'accession' in sample['biosample']:
+                        sample['study_accession'] = sample['biosample']['accession']
                     biosamples_count = biosamples_count + 1
                 except Exception as error:
                     error_msg = f'Encoding Error: {error}'
                     row['sample'].setdefault('errors', {}).setdefault('sample_accession', []).append(error_msg)
         logging.info(f'Successfully submitted {biosamples_count} BioSamples')
+    
+    def submit_ena(self):
+        self.ena_submission = self.__ena_converter.convert(self.excel.data)
 
     def close(self):
         if self.excel:
@@ -63,24 +73,38 @@ class CovidExcelUtils:
                 self.excel.close()
                 logging.info(f'Excel file updated: {self.__file_path}')
             if self.__output in ['all', 'json']:
-                file_name = os.path.splitext(self.__file_path)[0]
+                input_file_name = os.path.splitext(self.__file_path)[0]
                 if self.excel.data:
-                    json_file_path = file_name + '.json'
+                    json_file_path = input_file_name + '.json'
                     self.write_dict(json_file_path, self.excel.data)
                     logging.info(f'JSON output written to: {json_file_path}')
+                # ToDo: Remove this? USeful for debugging 
+                if self.ena_submission:
+                    for ena_file_name, xml_element in self.ena_submission.files().items():
+                        ena_file_path = input_file_name + '_ena_' + ena_file_name
+                        self.write_xml(ena_file_path, xml_element)
+                        logging.info(f'ENA Submission File written to: {ena_file_path}')  
                 if self.excel.errors:
-                    issues_file_path = file_name + '_issues.json'
+                    issues_file_path = input_file_name + '_issues.json'
                     self.write_dict(issues_file_path, self.excel.human_errors())
                     logging.info(f'JSON issues written to: {issues_file_path}')
 
     @staticmethod
-    def write_dict(file_path, data_dict):
+    def write_dict(file_path: str, data: dict):
         file_path = os.path.abspath(file_path)
         if os.path.exists(file_path):
             os.remove(file_path)
         with open(file_path, "w") as open_file:
-            json.dump(data_dict, open_file, indent=2)
-            open_file.close()
+            json.dump(data, open_file, indent=2)
+    
+    @staticmethod
+    def write_xml(file_path: str, xml_element):
+        file_path = os.path.abspath(file_path)
+        xml_bytes = etree.tostring(xml_element, xml_declaration=True, pretty_print=True, encoding="UTF-8")
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "wb") as open_file:
+            open_file.write(xml_bytes)
 
 
 def set_logging_level(log_level):
@@ -121,6 +145,10 @@ if __name__ == '__main__':
         help='Override the default URL for AAP API: https://api.aai.ebi.ac.uk'
     )
     parser.add_argument(
+        '--ena', action='store_true',
+        help='Submit to ENA'
+    )
+    parser.add_argument(
         '--log_level', '-l', type=str, default='INFO',
         help='Override the default logging level: INFO',
         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
@@ -152,3 +180,5 @@ if __name__ == '__main__':
                 os.environ['AAP_USERNAME'],
                 os.environ['AAP_PASSWORD']
             )
+        if args['ena']:
+            excel_utils.submit_ena()
