@@ -1,24 +1,30 @@
-from copy import deepcopy
+from xml.etree.ElementTree import Element
 
 from lxml import etree
 from jsonconverter.json_mapper import JsonMapper
 
 
-class BaseEnaConverter():
-    def __init__(self, template_path, xpath_spec):
-        self.template = etree.parse(template_path).getroot()
-        self.xpath_spec = xpath_spec
+class BaseEnaConverter:
+    def __init__(self, root_name: str, xml_spec: dict):
+        self.root_name = root_name
+        self.xml_spec = xml_spec
 
-    def convert(self, entity: dict):
-        entity_xml = deepcopy(self.template)
-        xpath_map = JsonMapper(entity).map(self.xpath_spec)
-        for xpath_key, value in xpath_map.items():
-            # ToDo: Handle the case where the xpath_key is not found by creating the necessary element
-            # We can then remove the need for template.xml files. 
-            element = entity_xml.xpath(xpath_key)[0]
-            if isinstance(value, dict):
-                for attribute_key, attribute_value in value.items():
-                    element.attrib[attribute_key] = attribute_value
+    def convert(self, entity: dict) -> Element:
+        xml_map = JsonMapper(entity).map(self.xml_spec)
+        root = etree.Element(self.root_name)
+        self.add_children(parent=root, children=xml_map)
+        return root
+    
+    @staticmethod
+    def add_children(parent: Element, children: dict):
+        for name, value in children.items():
+            if name.startswith('@'):
+                attribute_name = name.lstrip('@')
+                parent.attrib[attribute_name] = str(value)
             else:
-                element.text = value
-        return entity_xml
+                element = etree.Element(name)
+                parent.append(element)
+                if isinstance(value, dict):
+                    BaseEnaConverter.add_children(parent=element, children=value)
+                elif value and str(value):
+                    element.text = str(value)

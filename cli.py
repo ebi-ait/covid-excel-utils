@@ -6,6 +6,7 @@ import sys
 from contextlib import closing
 
 from lxml import etree
+from xml.etree.ElementTree import Element
 from services.biosamples import AapClient, BioSamples
 from excel.markup import ExcelMarkup
 from excel.validate import ValidatingExcel
@@ -98,7 +99,7 @@ class CovidExcelUtils:
             json.dump(data, open_file, indent=2)
     
     @staticmethod
-    def write_xml(file_path: str, xml_element):
+    def write_xml(file_path: str, xml_element: Element):
         file_path = os.path.abspath(file_path)
         xml_bytes = etree.tostring(xml_element, xml_declaration=True, pretty_print=True, encoding="UTF-8")
         if os.path.exists(file_path):

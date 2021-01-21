@@ -1,19 +1,19 @@
 from .base import BaseEnaConverter
 
 
-TEMPLATE_FILE_PATH = 'conversion/ena/template/project.xml'
-XPATH_SPEC = {
-    '/PROJECT': {
-        'accession': ['study_accession'],
-        'alias': ['study_alias'],
-        'center_name': ['center_name'],
-    },
-    '/PROJECT/NAME': ['study_name'],
-    '/PROJECT/TITLE': ['short_description'],
-    '/PROJECT/DESCRIPTION': ['abstract'],
+PROJECT_SPEC = {
+    '@accession': ['study_accession'],
+    '@alias': ['study_alias'],
+    '@center_name': ['center_name'],
+    'NAME': ['study_name'],
+    'TITLE': ['short_description'],
+    'DESCRIPTION': ['abstract'],
+    'SUBMISSION_PROJECT': ['$object', {
+        'SEQUENCING_PROJECT': {}
+    }] # $object keyword for JSON Literal
 }
 
 
 class EnaProjectConverter(BaseEnaConverter):
     def __init__(self):
-        super().__init__(TEMPLATE_FILE_PATH, XPATH_SPEC)
+        super().__init__(root_name='PROJECT', xml_spec=PROJECT_SPEC)
