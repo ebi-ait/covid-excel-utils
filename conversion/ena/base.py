@@ -1,7 +1,7 @@
 from xml.etree.ElementTree import Element
 
 from lxml import etree
-from jsonconverter.json_mapper import JsonMapper
+from json_converter.json_mapper import JsonMapper
 
 
 class BaseEnaConverter:
