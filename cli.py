@@ -48,7 +48,7 @@ class CovidExcelUtils:
         aap_client = AapClient(url=aap_url, username=aap_username, password=aap_password)
         biosamples = BioSamples(aap_client, url, domain)
         biosamples_count = 0
-        for row in self.excel.data.values():
+        for row_index, row in self.excel.data.items():
             if 'sample' in row:
                 sample = row['sample']
                 try:
@@ -59,8 +59,9 @@ class CovidExcelUtils:
                         sample['accession'] = sample['biosample']['accession']
                     biosamples_count = biosamples_count + 1
                 except Exception as error:
-                    error_msg = f'Encoding Error: {error}'
+                    error_msg = f'BioSamples Error: {error}'
                     row['sample'].setdefault('errors', {}).setdefault('sample_accession', []).append(error_msg)
+                    self.excel.errors.setdefault(row_index, {}).setdefault('sample', {}).setdefault('sample_accession', []).append(error_msg)
         logging.info(f'Successfully submitted {biosamples_count} BioSamples')
     
     def submit_ena(self):
