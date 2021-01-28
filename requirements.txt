@@ -1,4 +1,5 @@
 openpyxl
 requests
 docker
-git+https://github.com/ebi-ait/python_biosamples-v4_lib.git@covid-excel-utils#egg=biosamples-v4
+pyjwt==1.7.1
+git+https://github.com/ebi-ait/python_biosamples-v4_lib.git@covid-excel-utils#egg=biosamples-v4 #  Issue: Does not respect locked versions from biosamples repo requirements.txt
