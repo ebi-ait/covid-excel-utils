@@ -55,8 +55,8 @@ class CovidExcelUtils:
                     sample['request'] = biosamples.encode_sample(sample)
                     sample['biosample'] = biosamples.send_sample(sample['request'])
                     sample.pop('request')
-                    if 'accession' in sample['biosample']:
-                        sample['study_accession'] = sample['biosample']['accession']
+                    if 'accession' in sample['biosample'] and 'accession' not in sample:
+                        sample['accession'] = sample['biosample']['accession']
                     biosamples_count = biosamples_count + 1
                 except Exception as error:
                     error_msg = f'Encoding Error: {error}'
