@@ -28,6 +28,16 @@ class Submission:
     def __init__(self, collider: HandleCollision = None):
         self.collider = collider if collider else HandleCollision.UPDATE
 
+    def __len__(self):
+        count = 0
+        for indexed_entities in self.__map.values():
+            count = count + len(indexed_entities.values())
+
+    def map(self, entity_type: str, index: str, accession: str, attributes: dict) -> Entity:
+        entity = Entity(entity_type, index, accession, attributes)
+        self.map_entity(entity)
+        return entity
+
     def map_entity(self, entity: Entity):
         if self.__is_collision(entity.identifier):
             self.__handle_collision(entity)

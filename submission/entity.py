@@ -1,4 +1,4 @@
-from typing import Set
+from typing import Set, Iterable
 
 EXAMPLE_ATTRIBUTES = {
     'sample_alias': 'hCoV-19/Ireland/D-NVRL-20G44567/2020',
@@ -22,9 +22,10 @@ EXAMPLE_ATTRIBUTES = {
 
 
 class EntityIdentifier:
-    entity_type: str  # examples: project, study, sample, experiment_run
-    index: str  # example: hCoV-19/Ireland/D-NVRL-20G44567/2020
-    accession: str  # example: PRJEB42510
+    def __init__(self, entity_type: str, index: str, accession: str):
+        self.entity_type = entity_type  # examples: project, study, sample, experiment_run
+        self.index = index  # example: hCoV-19/Ireland/D-NVRL-20G44567/2020
+        self.accession = accession  # example: PRJEB42510
 
     # ToDo: Decide if we need these hash methods
     #  def __hash__(self):
@@ -35,9 +36,18 @@ class EntityIdentifier:
 
 
 class Entity:
-    identifier: EntityIdentifier
-    attributes: dict
     links: Set[EntityIdentifier]
+    errors: dict
+
+    def __init__(self, entity_type: str, index: str, accession: str, attributes: dict):
+        self.identifier = EntityIdentifier(entity_type, index, accession)
+        self.attributes = attributes
+
+    def add_error(self, attribute: str, error_msg: str):
+        self.errors.setdefault(attribute, []).append(error_msg)
+
+    def add_errors(self, attribute: str, error_msgs: Iterable[str]):
+        self.errors.setdefault(attribute, []).extend(error_msgs)
 
     #  def __hash__(self):
     #     return hash(self.identifier)

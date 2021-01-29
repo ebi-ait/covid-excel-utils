@@ -1,3 +1,5 @@
+from typing import List
+
 from submission.entity import Entity, EntityIdentifier
 from submission.submission import Submission
 
@@ -33,12 +35,25 @@ class ExcelSubmission(Submission):
     __row_entities = {}
     __entity_rows = {}
 
+    def map_row(self, row: int, entity_type: str, index: str, accession: str, attributes: dict):
+        entity = super().map(entity_type, index, accession, attributes)
+        self.__map_row_entity(row, entity)
+
     def map_row_entity(self, row: int, entity: Entity):
         super().map_entity(entity)
-        self.__map_row(row, entity.identifier)
+        self.__map_row_entity(row, entity)
+
+    def get_rows_from_id(self, identifier: EntityIdentifier) -> List[str]:
+        return self.get_rows(identifier.entity_type, identifier.index)
+
+    def get_rows(self, entity_type: str, index: str) -> List[str]:
+        return self.__entity_rows[entity_type][index]
+
+    def __map_row_entity(self, row, entity):
+        self.__map_row_ids(row, entity.identifier)
         self.__add_entity_links(row, entity)
 
-    def __map_row(self, row: int, identifier: EntityIdentifier):
+    def __map_row_ids(self, row: int, identifier: EntityIdentifier):
         self.__row_entities.setdefault(row, {})[identifier.entity_type] = identifier.index
         self.__entity_rows.setdefault(identifier.entity_type, {}).setdefault(identifier.index, []).append(row)
 
