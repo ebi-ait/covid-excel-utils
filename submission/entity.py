@@ -1,4 +1,4 @@
-from typing import Set, Iterable
+from typing import Iterable
 
 EXAMPLE_ATTRIBUTES = {
     'sample_alias': 'hCoV-19/Ireland/D-NVRL-20G44567/2020',
@@ -36,12 +36,11 @@ class EntityIdentifier:
 
 
 class Entity:
-    links: Set[EntityIdentifier]
-    errors: dict
-
     def __init__(self, entity_type: str, index: str, accession: str, attributes: dict):
         self.identifier = EntityIdentifier(entity_type, index, accession)
         self.attributes = attributes
+        self.errors = {}
+        self.links = set()
 
     def add_error(self, attribute: str, error_msg: str):
         self.errors.setdefault(attribute, []).append(error_msg)

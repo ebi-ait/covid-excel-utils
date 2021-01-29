@@ -1,8 +1,10 @@
 from lxml import etree
+
+from submission.submission import Submission
 from .project import EnaProjectConverter
 
 
-class EnaSubmission():
+class EnaSubmission(Submission):
     projects = {}
     samples = {}
     experiments = {}
@@ -23,14 +25,16 @@ class EnaSubmission():
         return project_set
 
 
-class EnaSubmissionConverter():
+class EnaSubmissionConverter:
     def __init__(self):
         self.project_converter = EnaProjectConverter()
 
-    def convert(self, data: dict) -> EnaSubmission:
-        submission = EnaSubmission()
-        for row_index, row in data.items():
-            if 'study' in row:
-                submission.projects[row_index] = self.project_converter.convert(row['study'])
-                # ToDo: Handle study.release_date
-        return submission
+    def convert(self, data: Submission) -> EnaSubmission:
+        pass
+        # ToDo: Finish ENA Conversion
+        # submission = EnaSubmission()
+        # for row_index, row in data.items():
+        #     if 'study' in row:
+        #       submission.projects[row_index] = self.project_converter.convert(row['study'])
+        #         # ToDo: Handle study.release_date
+        # return submission

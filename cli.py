@@ -11,6 +11,7 @@ from services.biosamples import AapClient, BioSamples
 from excel.markup import ExcelMarkup
 from excel.validate import ValidatingExcel
 from conversion.ena.submission import EnaSubmissionConverter
+from submission.entity import Entity
 from validation.docker import DockerValidator
 from validation.excel import ExcelValidator
 from validation.taxonomy import TaxonomyValidator
@@ -48,24 +49,25 @@ class CovidExcelUtils:
         aap_client = AapClient(url=aap_url, username=aap_username, password=aap_password)
         biosamples = BioSamples(aap_client, url, domain)
         biosamples_count = 0
-        for row_index, row in self.excel.data.items():
-            if 'sample' in row:
-                sample = row['sample']
-                try:
-                    sample['request'] = biosamples.encode_sample(sample)
-                    sample['biosample'] = biosamples.send_sample(sample['request'])
-                    sample.pop('request')
-                    if 'accession' in sample['biosample'] and 'accession' not in sample:
-                        sample['accession'] = sample['biosample']['accession']
-                    biosamples_count = biosamples_count + 1
-                except Exception as error:
-                    error_msg = f'BioSamples Error: {error}'
-                    row['sample'].setdefault('errors', {}).setdefault('sample_accession', []).append(error_msg)
-                    self.excel.errors.setdefault(row_index, {}).setdefault('sample', {}).setdefault('sample_accession', []).append(error_msg)
+        sample: Entity
+        for sample in self.excel.data.get_entities('sample'):
+            try:
+                sample.attributes['request'] = biosamples.encode_sample(sample.attributes)
+                sample.attributes['biosample'] = biosamples.send_sample(sample.attributes['request'])
+                sample.attributes.pop('request')
+                if 'accession' in sample.attributes['biosample']:
+                    # ToDo: introduce accession handling methods to submission class.
+                    sample.identifier.accession = sample.attributes['biosample']['accession']
+                    sample.attributes['sample_accession'] = sample.identifier.accession
+                biosamples_count = biosamples_count + 1
+            except Exception as error:
+                error_msg = f'BioSamples Error: {error}'
+                sample.add_error('sample_accession', error_msg)
         logging.info(f'Successfully submitted {biosamples_count} BioSamples')
     
     def submit_ena(self):
-        self.ena_submission = self.__ena_converter.convert(self.excel.data)
+        pass
+        # self.ena_submission = self.__ena_converter.convert(self.excel.data)
 
     def close(self):
         if self.excel:
@@ -76,17 +78,17 @@ class CovidExcelUtils:
                 logging.info(f'Excel file updated: {self.__file_path}')
             if self.__output in ['all', 'json']:
                 input_file_name = os.path.splitext(self.__file_path)[0]
-                if self.excel.data:
+                if self.excel.data.has_data():
                     json_file_path = input_file_name + '.json'
-                    self.write_dict(json_file_path, self.excel.data)
+                    self.write_dict(json_file_path, self.excel.data.get_all_data())
                     logging.info(f'JSON output written to: {json_file_path}')
-                # ToDo: Remove this? USeful for debugging 
+                # ToDo: Remove this when no longer useful for debugging
                 if self.ena_submission:
                     for ena_file_name, xml_element in self.ena_submission.files().items():
                         ena_file_path = input_file_name + '_ena_' + ena_file_name
                         self.write_xml(ena_file_path, xml_element)
                         logging.info(f'ENA Submission File written to: {ena_file_path}')  
-                if self.excel.errors:
+                if self.excel.data.has_errors():
                     issues_file_path = input_file_name + '_issues.json'
                     self.write_dict(issues_file_path, self.excel.human_errors())
                     logging.info(f'JSON issues written to: {issues_file_path}')
@@ -159,13 +161,13 @@ if __name__ == '__main__':
     set_logging_level(args['log_level'])
     with closing(CovidExcelUtils(args['file_path'], args['output'])) as excel_utils:
         excel_utils.load()
-        if not excel_utils.excel.data:
+        if not excel_utils.excel.data.has_data:
             logging.info(f"No Data imported from: {args['file_path']}")
             sys.exit(0)
         excel_utils.validate()
         if args['biosamples']:
-            if excel_utils.excel.errors:
-                user_text = input(f'Issues from {len(excel_utils.excel.errors)} rows detected. Continue with BioSamples Submission? (y/N)?:')
+            if excel_utils.excel.data.has_errors():
+                user_text = input(f'Issues detected. Continue with BioSamples Submission? (y/N)?:')
                 if not user_text.lower().startswith('y'):
                     print('Exiting')
                     sys.exit(0)

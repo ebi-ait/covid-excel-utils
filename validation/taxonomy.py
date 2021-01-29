@@ -1,4 +1,6 @@
 from services.ena_taxonomy import EnaTaxonomy
+from submission.entity import Entity
+from submission.submission import Submission
 from validation.base import BaseValidator
 
 
@@ -6,20 +8,12 @@ class TaxonomyValidator(BaseValidator):
     def __init__(self, ena_url: str):
         self.ena_taxonomy = EnaTaxonomy(ena_url)
 
-    def validate_data(self, data: dict) -> dict:
-        errors = {}
-        for row_index, entities in data.items():
-            row_issues = {}
-            for entity_type, entity in entities.items():
-                if entity_type == 'sample':
-                    entity_errors = self.validate_sample(entity)
-                    if entity_errors:
-                        row_issues[entity_type] = entity_errors
-            if row_issues:
-                errors[row_index] = row_issues
-        return errors
+    def validate_data(self, data: Submission):
+        for entity in data.get_entities('sample'):
+            self.validate_entity(entity)
 
-    def validate_sample(self, sample):
+    def validate_entity(self, entity: Entity):
+        sample = entity.attributes
         sample_errors = {}
         if 'tax_id' in sample and 'scientific_name' in sample:
             tax_response = self.ena_taxonomy.validate_taxonomy(
@@ -35,9 +29,8 @@ class TaxonomyValidator(BaseValidator):
                 tax_response = self.ena_taxonomy.validate_scientific_name(sample['scientific_name'])
                 sample_errors = self.get_errors(tax_response, 'scientific_name')
         for attribute, errors in sample_errors.items():
-            sample.setdefault('errors', {}).setdefault(attribute, []).extend(errors)
-        return sample_errors
-    
+            entity.add_errors(attribute, errors)
+
     @staticmethod
     def get_taxonomy_errors(response: dict) -> dict:
         errors = {}

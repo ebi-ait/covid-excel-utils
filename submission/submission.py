@@ -44,11 +44,43 @@ class Submission:
         else:
             self.__map.setdefault(entity.identifier.entity_type, {})[entity.identifier.index] = entity
 
+    def get_entity_types(self):
+        return self.__map.keys()
+
     def get_entities(self, entity_type: str):
         return self.__map[entity_type].values()
 
     def get_entity(self, entity_type: str, index: str) -> Entity:
         return self.__map[entity_type][index]
+
+    def has_data(self) -> bool:
+        for entities in self.__map.values():
+            if len(entities.values()) > 0:
+                return True
+        return False
+    
+    def get_all_data(self) -> dict:
+        data = {}
+        for entity_type, indexed_entities in self.__map.items():
+            for entity in indexed_entities.values():
+                data[entity_type] = entity
+        return data
+
+    def has_errors(self) -> bool:
+        for entities in self.__map.values():
+            for entity in entities.values():
+                if entity.errors:
+                    return True
+        return False
+
+    def get_all_errors(self) -> dict:
+        errors = {}
+        for entity_type, entities in self.__map.items():
+            errors[entity_type] = {}
+            for index, entity in entities.items():
+                if entity.errors:
+                    errors[entity_type][index] = entity.errors
+        return errors
 
     def __is_collision(self, identifier: EntityIdentifier) -> bool:
         return identifier.entity_type in self.__map and identifier.index in self.__map[identifier.entity_type]
