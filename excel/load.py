@@ -85,6 +85,6 @@ class ExcelLoader:
         for possible_key in possible_keys:
             if possible_key in attributes:
                 return attributes[possible_key]
-        for key, value in attributes:
+        for key, value in attributes.items():
             if 'accession' in key:
                 return value

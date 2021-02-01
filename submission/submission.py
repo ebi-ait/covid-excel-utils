@@ -23,7 +23,7 @@ class HandleCollision(Enum):
 
 
 class Submission:
-    __map = {}  # Upgrade python to 3.9 for dict[str, dict[str, Entity]]
+    __map = {}  # ToDo: Upgrade python to 3.9 for dict[str, dict[str, Entity]]
 
     def __init__(self, collider: HandleCollision = None):
         self.collider = collider if collider else HandleCollision.UPDATE

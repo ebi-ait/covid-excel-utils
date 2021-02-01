@@ -30,7 +30,7 @@ class ExcelValidator(BaseValidator):
                     elif mandatory != 'O':
                         attribute_errors.append(f'may be required: {mandatory}')
             else:
-                attribute_errors.extend(ExcelValidator.validate_attribute(attribute_validation, entity[attribute_name]))
+                attribute_errors.extend(ExcelValidator.validate_attribute(attribute_validation, entity.attributes[attribute_name]))
             if attribute_errors:
                 entity.add_errors(attribute_name, attribute_errors)
 

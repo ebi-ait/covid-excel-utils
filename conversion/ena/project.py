@@ -10,7 +10,7 @@ PROJECT_SPEC = {
     'DESCRIPTION': ['abstract'],
     'SUBMISSION_PROJECT': ['$object', {
         'SEQUENCING_PROJECT': {}
-    }] # $object keyword for JSON Literal
+    }]  # $object keyword for JSON Literal
 }
 
 
