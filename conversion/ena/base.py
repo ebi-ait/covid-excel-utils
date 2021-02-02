@@ -24,8 +24,7 @@ class BaseEnaConverter:
                 attribute_name = name.lstrip('@')
                 parent.attrib[attribute_name] = str(value)
             else:
-                element = etree.Element(name)
-                parent.append(element)
+                element = etree.SubElement(parent, name)
                 if isinstance(value, dict):
                     BaseEnaConverter.add_children(parent=element, children=value)
                 elif value and str(value):
