@@ -15,7 +15,12 @@ class BaseEnaConverter:
         xml_map = JsonMapper(entity.attributes).map(self.xml_spec)
         root = etree.Element(self.root_name)
         self.add_children(parent=root, children=xml_map)
+        self.post_conversion(entity, root)
         return root
+    
+    @staticmethod
+    def post_conversion(entity: Entity, xml_element: Element):
+        pass
     
     @staticmethod
     def add_children(parent: Element, children: dict):
