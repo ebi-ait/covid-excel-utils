@@ -26,8 +26,7 @@ class CovidExcelUtils:
     def __init__(self, file_path, output):
         self.__file_path = file_path
         self.__output = output
-        self.__ena_converter = EnaSubmissionConverter()
-        self.ena_submission = None
+        self.ena_submission_files = {}
 
     def load(self):
         if self.__output in ['all', 'excel']:
@@ -66,8 +65,7 @@ class CovidExcelUtils:
         logging.info(f'Successfully submitted {biosamples_count} BioSamples')
     
     def submit_ena(self):
-        pass
-        # self.ena_submission = self.__ena_converter.convert(self.excel.data)
+        self.ena_submission_files = EnaSubmissionConverter().convert(self.excel.data)
 
     def close(self):
         if self.excel:
@@ -83,8 +81,8 @@ class CovidExcelUtils:
                     self.write_dict(json_file_path, self.excel.data.get_all_data())
                     logging.info(f'JSON output written to: {json_file_path}')
                 # ToDo: Remove this when no longer useful for debugging
-                if self.ena_submission:
-                    for ena_file_name, xml_element in self.ena_submission.files().items():
+                if self.ena_submission_files:
+                    for ena_file_name, xml_element in self.ena_submission_files.items():
                         ena_file_path = input_file_name + '_ena_' + ena_file_name
                         self.write_xml(ena_file_path, xml_element)
                         logging.info(f'ENA Submission File written to: {ena_file_path}')  

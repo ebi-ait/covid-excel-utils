@@ -1,40 +1,38 @@
+from typing import NamedTuple
+
 from lxml import etree
+from xml.etree.ElementTree import Element
 
 from submission.submission import Submission
+from .base import BaseEnaConverter
 from .project import EnaProjectConverter
+from .sample import EnaSampleConverter
 
 
-class EnaSubmission(Submission):
-    projects = {}
-    samples = {}
-    experiments = {}
-    runs = {}
-
-    def files(self) -> dict:
-        return {
-            'projects.xml': self.projects_file(),
-            # 'samples.xml': '',
-            # 'experiments.xml': '',
-            # 'runs.xml': ''
-        }
-    
-    def projects_file(self):
-        project_set = etree.XML('<PROJECT_SET />')
-        for project in self.projects.values():
-            project_set.append(project)
-        return project_set
+class ConverterParams(NamedTuple):
+    file_name: str
+    root_node: Element
+    converter: BaseEnaConverter
 
 
 class EnaSubmissionConverter:
     def __init__(self):
-        self.project_converter = EnaProjectConverter()
+        study_converter = EnaProjectConverter()
+        sample_converter = EnaSampleConverter()
+        self.conversion_map = {
+            'study': ConverterParams('projects.xml', etree.XML('<PROJECT_SET />'), study_converter),
+            'sample': ConverterParams('samples.xml', etree.XML('<SAMPLE_SET />'), sample_converter)
+        }
 
-    def convert(self, data: Submission) -> EnaSubmission:
-        pass
-        # ToDo: Finish ENA Conversion
-        # submission = EnaSubmission()
-        # for row_index, row in data.items():
-        #     if 'study' in row:
-        #       submission.projects[row_index] = self.project_converter.convert(row['study'])
-        #         # ToDo: Handle study.release_date
-        # return submission
+    def convert(self, data: Submission) -> dict:
+        ena_files = {}
+        params: ConverterParams  # ToDo: Upgrade python to 3.9 for dict[str, ConverterParams]
+        for entity_type, params in self.conversion_map.items():
+            xml_node = params.root_node
+            for entity in data.get_entities(entity_type):
+                xml_node.append(params.converter.convert(entity))
+            ena_files[params.file_name] = xml_node
+
+        # ToDo: Generate Submission file
+        # Handle study.release_date
+        return ena_files
