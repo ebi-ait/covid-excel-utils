@@ -63,6 +63,7 @@ class BioSamples:
         self.domain = domain
         self.encoder = SampleEncoder()
 
+    # ToDo: Move encoding the sample to conversion.biosamples.py
     def encode_sample(self, input_sample: dict) -> dict:
         sample = map_sample(input_sample)
         return self.encoder.default(sample)

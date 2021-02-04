@@ -34,3 +34,16 @@ class BaseEnaConverter:
                     BaseEnaConverter.add_children(parent=element, children=value)
                 elif value and str(value):
                     element.text = str(value)
+
+    @staticmethod
+    def make_attribute(parent: Element, element_name: str, key: str, value: str, key_name: str = None, value_name: str = None):
+        attribute = etree.SubElement(parent, element_name)
+        if not key_name:
+            key_name = 'TAG'
+        attribute_key = etree.SubElement(attribute, key_name)
+        attribute_key.text = key
+        
+        if not value_name:
+            value_name = 'VALUE'
+        attribute_value = etree.SubElement(attribute, value_name)
+        attribute_value.text = value
