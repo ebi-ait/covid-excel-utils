@@ -59,19 +59,21 @@ class ExcelLoader:
                     attribute_name = column_map[cell.column_letter]['attribute']
                     row_data.setdefault(object_name, {})[attribute_name] = value
             for entity_type, attributes in row_data.items():
-                index = ExcelLoader.get_index(entity_type, attributes)
+                index = ExcelLoader.get_index(entity_type, row_index, attributes)
                 accession = ExcelLoader.get_accession(entity_type, attributes)
                 data.map_row(row_index, entity_type, index, accession, attributes)
             row_index = row_index + 1
         return data
 
     @staticmethod
-    def get_index(entity_type: str, attributes: dict) -> str:
+    def get_index(entity_type: str, row: int, attributes: dict) -> str:
         # Find index in the form 'study_alias', study_index, study_name, ect
         for possible_key in POSSIBLE_KEYS:
             typed_key = f'{entity_type}_{possible_key}'
             if typed_key in attributes:
                 return attributes[typed_key]
+        #Else: no index found use row:entity_type
+        return f'{row}:{entity_type}'
         # If none of the above are found find keys that include 'alias', 'index', 'name'
         # for possible_key in POSSIBLE_KEYS:
         #    for key, value in attributes:

@@ -33,12 +33,4 @@ class EnaSampleConverter(BaseEnaConverter):
         attributes = etree.SubElement(xml_element, 'SAMPLE_ATTRIBUTES')
         for key, value in entity.attributes.items():
             if key not in REMOVE_KEYS:
-                EnaSampleConverter.make_attribute(attributes, key, value)
-
-    @staticmethod
-    def make_attribute(parent: Element, key: str, value: str):
-        attribute = etree.SubElement(parent, 'SAMPLE_ATTRIBUTE')
-        attribute_key = etree.SubElement(attribute, 'TAG')
-        attribute_key.text = key
-        attribute_value = etree.SubElement(attribute, 'VALUE')
-        attribute_value.text = value
+                super().make_attribute(attributes, 'SAMPLE_ATTRIBUTE', key, value)
