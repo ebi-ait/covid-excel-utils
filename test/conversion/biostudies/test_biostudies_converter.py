@@ -24,7 +24,7 @@ class TestBioStudiesConverter(unittest.TestCase):
 
         expected_payload = self.__get_expected_payload(bio_study_entity)
 
-        bio_study_json_payload = BioStudyConverter.convert(bio_study_entity)
+        bio_study_json_payload = BioStudyConverter.convert_study(bio_study_entity)
 
         self.assertEqual(expected_payload, bio_study_json_payload)
 

@@ -17,3 +17,7 @@ class BioStudies:
     def __get_auth_response(self, username, password):
         return self.auth.login(username, password)
 
+    def send_submission(self, submission):
+        response = self.api.create_submission(submission)
+
+        return response['accno']

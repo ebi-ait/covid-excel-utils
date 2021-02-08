@@ -1,4 +1,5 @@
 from json_converter.json_mapper import JsonMapper
+from typing import List
 
 from conversion.conversion_utils import fixed_attribute
 from submission.entity import Entity
@@ -86,6 +87,14 @@ BIO_STUDY_SPEC = {
 class BioStudyConverter:
 
     @staticmethod
-    def convert(entity: Entity):
+    def convert_all_studies(studies: List[Entity]):
+        biostudies_submissions = set()
+        for study in studies:
+            biostudies_submissions.add(BioStudyConverter.convert_study(study))
+
+        return biostudies_submissions
+
+    @staticmethod
+    def convert_study(entity: Entity):
 
         return JsonMapper(entity.attributes).map(BIO_STUDY_SPEC)
