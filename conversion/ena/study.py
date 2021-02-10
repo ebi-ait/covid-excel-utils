@@ -14,9 +14,9 @@ STUDY_SPEC = {
         'STUDY_DESCRIPTION': ['short_description'],
         'STUDY_ABSTRACT': ['abstract'],
         'CENTER_PROJECT_NAME': ['study_name'],
-        'STUDY_TYPE': {
-            '@existing_study_type': ['$object', 'Other']
-        }
+        'STUDY_TYPE': ['$object', {
+            '@existing_study_type': 'Other'
+        }]
     }
 }
 
@@ -32,4 +32,4 @@ class EnaStudyConverter(BaseEnaConverter):
         attributes = etree.SubElement(xml_element, 'STUDY_ATTRIBUTES')
         for key, value in entity.attributes.items():
             if key not in REMOVE_KEYS:
-                super().make_attribute(attributes, 'STUDY_ATTRIBUTE', key, value)
+                BaseEnaConverter.make_attribute(attributes, 'STUDY_ATTRIBUTE', key, value)

@@ -22,7 +22,7 @@ class EnaSubmissionConverter:
         project_converter = EnaProjectConverter()
         study_converter = EnaStudyConverter()
         sample_converter = EnaSampleConverter()
-        self.conversion_map = [
+        self.conversions = [
             ConverterParams('study', 'projects.xml', etree.XML('<PROJECT_SET />'), project_converter),
             ConverterParams('study', 'studies.xml', etree.XML('<STUDY_SET />'), study_converter),
             ConverterParams('sample', 'samples.xml', etree.XML('<SAMPLE_SET />'), sample_converter)
@@ -30,7 +30,7 @@ class EnaSubmissionConverter:
 
     def convert(self, data: Submission) -> dict:
         ena_files = {}
-        for params in self.conversion_map:
+        for params in self.conversions:
             xml_node = params.root_node
             for entity in data.get_entities(params.entity_type):
                 xml_node.append(params.converter.convert(entity))
