@@ -37,7 +37,7 @@ class TestBioStudiesConverter(unittest.TestCase):
                     "value": bio_study_entity.attributes["study_name"]
                 },
                 {
-                    "name": "Release Date",
+                    "name": "ReleaseDate",
                     "value": bio_study_entity.attributes["release_date"]
                 }
             ],

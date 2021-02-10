@@ -6,6 +6,8 @@ from biostudiesclient.exceptions import RestErrorException
 
 from unittest.mock import MagicMock
 
+from biostudiesclient.response_utils import ResponseObject
+
 from services.biostudies import BioStudies
 
 
@@ -56,8 +58,11 @@ class TestBioStudiesService(unittest.TestCase):
 
         bst_accession_id = 'bst123'
 
+        response = ResponseObject()
+        response.json = {'accno': bst_accession_id}
+
         biostudies = BioStudies("url", "username", "password")
-        biostudies.api.create_submission = MagicMock(return_value={'accno': bst_accession_id})
+        biostudies.api.create_submission = MagicMock(return_value=response)
 
         accession_from_response = biostudies.send_submission(TestBioStudiesService.__create_submission())
 
@@ -72,9 +77,11 @@ class TestBioStudiesService(unittest.TestCase):
         self.mock_auth.login = MagicMock(return_value=auth_response)
 
         bst_accession_id = 'bst124'
+        response = ResponseObject()
+        response.json = {'accno': bst_accession_id}
 
         biostudies = BioStudies("url", "username", "password")
-        biostudies.api.create_submission = MagicMock(return_value={'accno': bst_accession_id})
+        biostudies.api.create_submission = MagicMock(return_value=response)
         biostudies.api.create_user_sub_folder = MagicMock()
         biostudies.api.upload_file = MagicMock()
 

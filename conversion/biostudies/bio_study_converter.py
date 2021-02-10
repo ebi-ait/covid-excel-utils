@@ -12,7 +12,7 @@ BIO_STUDY_SPEC = {
                 'value': ['study_name']
             },
             {
-                'name': ['', fixed_attribute, 'Release Date'],
+                'name': ['', fixed_attribute, 'ReleaseDate'],
                 'value': ['release_date']
             }
         ],
@@ -88,9 +88,9 @@ class BioStudyConverter:
 
     @staticmethod
     def convert_all_studies(studies: List[Entity]):
-        biostudies_submissions = set()
+        biostudies_submissions = []
         for study in studies:
-            biostudies_submissions.add(BioStudyConverter.convert_study(study))
+            biostudies_submissions.append(BioStudyConverter.convert_study(study))
 
         return biostudies_submissions
 

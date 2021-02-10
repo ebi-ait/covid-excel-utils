@@ -29,7 +29,7 @@ class BioStudies:
 
         response = self.api.create_submission(submission)
 
-        return response['accno']
+        return response.json['accno']
 
     def __get_session_id(self, username, password):
         return self.__get_auth_response(username, password).session_id
