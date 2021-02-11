@@ -17,6 +17,7 @@ class BaseEnaConverter:
         if not xml_spec:
             xml_spec = deepcopy(self.xml_spec)
         xml_spec['@alias'] = ['', fixed_attribute, entity.identifier.index]
+        xml_spec['@accession'] = ['', fixed_attribute, entity.identifier.accession]
         
         xml_map = JsonMapper(entity.attributes).map(xml_spec)
         root = etree.Element(self.root_name)

@@ -2,7 +2,6 @@ from .base import BaseEnaConverter
 
 
 PROJECT_SPEC = {
-    '@accession': ['study_accession'],
     '@center_name': ['center_name'],
     'NAME': ['study_name'],
     'TITLE': ['short_description'],

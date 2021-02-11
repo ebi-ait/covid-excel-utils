@@ -6,7 +6,6 @@ from .base import BaseEnaConverter
 
 
 SAMPLE_SPEC = {
-    '@accession': ['sample_accession'],
     '@center_name': ['center_name'],
     '@broker_name': ['broker_name'],
     'TITLE': ['sample_title'],

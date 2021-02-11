@@ -8,7 +8,6 @@ from .base import BaseEnaConverter
 
 
 EXPERIMENT_SPEC = {
-    '@accession': ['experiment_accession'],
     '@center_name': ['center_name'],
     'TITLE': ['experiment_name'],
     'STUDY_REF': {},
