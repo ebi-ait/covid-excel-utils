@@ -1,6 +1,5 @@
 from copy import deepcopy
 from xml.etree.ElementTree import Element
-from json_converter.post_process import fixed_attribute
 
 from lxml import etree
 from submission.entity import Entity
@@ -45,13 +44,8 @@ class EnaExperimentConverter(BaseEnaConverter):
     def convert_experiment(self, experiment: Entity, sample: Entity, study: Entity) -> Element:
         spec = deepcopy(self.xml_spec)
         
-        spec['DESIGN']['SAMPLE_DESCRIPTOR']['@refname'] = ['', fixed_attribute, sample.identifier.index]
-        if sample.identifier.accession:
-            spec['DESIGN']['SAMPLE_DESCRIPTOR']['@accession'] = ['', fixed_attribute, sample.identifier.accession]
-
-        spec['STUDY_REF']['@refname'] = ['', fixed_attribute, study.identifier.index]
-        if study.identifier.accession:
-            spec['STUDY_REF']['@accession'] = ['', fixed_attribute, study.identifier.accession]
+        BaseEnaConverter.add_link(spec['DESIGN']['SAMPLE_DESCRIPTOR'], sample.identifier)
+        BaseEnaConverter.add_link(spec['STUDY_REF'], study.identifier)
 
         if 'insert_size' in experiment.attributes and 'uploaded_file_2' in experiment.attributes:
             del spec['DESIGN']['LIBRARY_DESCRIPTOR']['LIBRARY_LAYOUT']['SINGLE']

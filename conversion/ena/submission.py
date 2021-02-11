@@ -16,7 +16,7 @@ class EnaSubmissionConverter:
             'studies.xml': self.studies_file,
             'samples.xml': self.samples_file,
             'experiments.xml': self.experiments_file,
-            #  'runs.xml': self.runs_file,
+            'runs.xml': self.runs_file,
             #  'submission.xml': self.submission_file
         }
 
@@ -79,8 +79,5 @@ class EnaSubmissionConverter:
         run_converter = EnaRunConverter()
         runs_node = etree.XML('<RUN_SET />')
         for run in data.get_entities('run_experiment'):
-            # ENA Only supports linking one study & sample to an experiment
-            sample = data.get_linked_entities(run, 'sample')[0]
-            study = data.get_linked_entities(run, 'study')[0]
-            runs_node.append(run_converter.convert(run, sample, study))
+            runs_node.append(run_converter.convert_run(run, experiment=run))
         return runs_node
