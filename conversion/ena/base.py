@@ -1,7 +1,9 @@
+from copy import deepcopy
 from xml.etree.ElementTree import Element
 
 from lxml import etree
 from json_converter.json_mapper import JsonMapper
+from json_converter.post_process import fixed_attribute  # ToDo: Add fixed attribute to json-converter.post-process
 
 from submission.entity import Entity
 
@@ -11,8 +13,12 @@ class BaseEnaConverter:
         self.root_name = root_name
         self.xml_spec = xml_spec
 
-    def convert(self, entity: Entity) -> Element:
-        xml_map = JsonMapper(entity.attributes).map(self.xml_spec)
+    def convert(self, entity: Entity, xml_spec: dict = None) -> Element:
+        if not xml_spec:
+            xml_spec = deepcopy(self.xml_spec)
+        xml_spec['@alias'] = ['', fixed_attribute, entity.identifier.index]
+        
+        xml_map = JsonMapper(entity.attributes).map(xml_spec)
         root = etree.Element(self.root_name)
         self.add_children(parent=root, children=xml_map)
         self.post_conversion(entity, root)

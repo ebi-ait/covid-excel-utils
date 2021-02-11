@@ -40,13 +40,22 @@ class Entity:
         self.identifier = EntityIdentifier(entity_type, index, accession)
         self.attributes = attributes
         self.errors = {}
-        self.links = set()
+        self.links = {}
 
     def add_error(self, attribute: str, error_msg: str):
         self.errors.setdefault(attribute, []).append(error_msg)
 
     def add_errors(self, attribute: str, error_msgs: Iterable[str]):
         self.errors.setdefault(attribute, []).extend(error_msgs)
+        
+    def add_link_id(self, identifier: EntityIdentifier):
+        self.add_link(identifier.entity_type, identifier.index)    
+
+    def add_link(self, entity_type: str, index: str):
+        self.links.setdefault(entity_type, []).append(index)
+    
+    def get_linked_indexes(self, entity_type):
+        return self.links.get(entity_type, [])
 
     #  def __hash__(self):
     #     return hash(self.identifier)

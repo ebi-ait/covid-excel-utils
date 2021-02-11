@@ -72,8 +72,8 @@ class ExcelLoader:
             typed_key = f'{entity_type}_{possible_key}'
             if typed_key in attributes:
                 return attributes[typed_key]
-        #Else: no index found use row:entity_type
-        return f'{row}:{entity_type}'
+        # Else: no index found use entity_type:row
+        return f'{entity_type}:{row}'
         # If none of the above are found find keys that include 'alias', 'index', 'name'
         # for possible_key in POSSIBLE_KEYS:
         #    for key, value in attributes:
