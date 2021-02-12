@@ -1,13 +1,12 @@
 from xml.etree.ElementTree import Element
 
 from lxml import etree
+from json_converter.post_process import fixed_attribute  # ToDo: Add fixed attribute to json-converter.post-process
 from submission.entity import Entity
 from .base import BaseEnaConverter
 
 
 STUDY_SPEC = {
-    '@accession': ['study_accession'],
-    '@alias': ['study_alias'],
     '@center_name': ['center_name'],
     'DESCRIPTOR': {
         'STUDY_TITLE': ['study_name'],
@@ -15,7 +14,7 @@ STUDY_SPEC = {
         'STUDY_ABSTRACT': ['abstract'],
         'CENTER_PROJECT_NAME': ['study_name'],
         'STUDY_TYPE': {
-            '@existing_study_type': ['$object', 'Other']
+            '@existing_study_type': ['', fixed_attribute, 'Other']
         }
     }
 }
@@ -32,4 +31,4 @@ class EnaStudyConverter(BaseEnaConverter):
         attributes = etree.SubElement(xml_element, 'STUDY_ATTRIBUTES')
         for key, value in entity.attributes.items():
             if key not in REMOVE_KEYS:
-                super().make_attribute(attributes, 'STUDY_ATTRIBUTE', key, value)
+                BaseEnaConverter.make_attribute(attributes, 'STUDY_ATTRIBUTE', key, value)

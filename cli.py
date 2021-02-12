@@ -53,7 +53,7 @@ class CovidExcelUtils:
             try:
                 sample.attributes['request'] = biosamples.encode_sample(sample.attributes)
                 sample.attributes['biosample'] = biosamples.send_sample(sample.attributes['request'])
-                sample.attributes.pop('request')
+                del sample.attributes['request']
                 if 'accession' in sample.attributes['biosample']:
                     # ToDo: introduce accession handling methods to submission class.
                     sample.identifier.accession = sample.attributes['biosample']['accession']

@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 
 from submission.entity import Entity, EntityIdentifier
 
@@ -52,6 +53,12 @@ class Submission:
 
     def get_entity(self, entity_type: str, index: str) -> Entity:
         return self.__map[entity_type][index]
+    
+    def get_linked_entities(self, entity: Entity, entity_type: str) -> List[Entity]:
+        entities = []
+        for index in entity.get_linked_indexes(entity_type):
+            entities.append(self.get_entity(entity_type, index))
+        return entities
 
     def has_data(self) -> bool:
         for entities in self.__map.values():
@@ -96,5 +103,5 @@ class Submission:
 
     @staticmethod
     def link_entities(entity_a: Entity, entity_b: Entity):
-        entity_a.links.add(entity_b.identifier)
-        entity_b.links.add(entity_a.identifier)
+        entity_a.add_link_id(entity_b.identifier)
+        entity_b.add_link_id(entity_a.identifier)
