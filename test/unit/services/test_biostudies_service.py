@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 from biostudiesclient.response_utils import ResponseObject
 
 from services.biostudies import BioStudies
+from submission.entity import Entity, EntityIdentifier
 
 
 class TestBioStudiesService(unittest.TestCase):
@@ -108,6 +109,25 @@ class TestBioStudiesService(unittest.TestCase):
         self.assertEqual(HTTPStatus.BAD_REQUEST, context.exception.status_code)
         self.assertEqual(expected_error_message, context.exception.message)
 
+    def test_when_study_contains_new_links_then_those_added_to_submission(self):
+        submission = self.__create_submission()
+        submission['section'].pop('links')
+
+        study = Entity('study', 'test alias', 'PRJ1234', attributes={})
+        study.links = self.__create_entity_links()
+
+        test_session_id = "test.session.id"
+        auth_response = AuthResponse(status=HTTPStatus(200))
+        auth_response.session_id = test_session_id
+        self.mock_auth.login = MagicMock(return_value=auth_response)
+        biostudies = BioStudies("url", "username", "password")
+
+        biostudies.update_links_in_submission(submission, study)
+
+        links_section = submission['section']['links']
+        self.assertTrue(links_section)
+        self.assertEqual(len(links_section), 3)
+
     @staticmethod
     def __create_submission():
         return {
@@ -166,6 +186,23 @@ class TestBioStudiesService(unittest.TestCase):
         ]
 
         return submission
+
+    def __create_entity_links(self):
+        entity_links = {}
+        sample_links = entity_links.setdefault('sample', [])
+
+        for index in [123, 456, 789]:
+            sample_links.append(self.__create_entity_identifier(
+                entity_type='sample',
+                index=f'index_{index}',
+                accession=f'SAME{index}'
+            ))
+
+        return entity_links
+
+    @staticmethod
+    def __create_entity_identifier(entity_type, index, accession):
+        return EntityIdentifier(entity_type, index, accession)
 
 
 if __name__ == '__main__':

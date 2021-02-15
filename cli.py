@@ -7,10 +7,13 @@ from contextlib import closing
 
 from lxml import etree
 from xml.etree.ElementTree import Element
-from services.biosamples import AapClient, BioSamples
+
+from conversion.biostudies.bio_study_converter import BioStudyConverter
 from excel.markup import ExcelMarkup
 from excel.validate import ValidatingExcel
 from conversion.ena.submission import EnaSubmissionConverter
+from services.biosamples import BioSamples, AapClient
+from services.biostudies import BioStudies
 from submission.entity import Entity
 from validation.docker import DockerValidator
 from validation.excel import ExcelValidator
@@ -27,6 +30,12 @@ class CovidExcelUtils:
         self.__file_path = file_path
         self.__output = output
         self.ena_submission_files = {}
+
+        self.bio_studies_service = BioStudies(
+            args['biostudies_url'],
+            os.environ['BIOSTUDIES_USERNAME'],
+            os.environ['BIOSTUDIES_PASSWORD']
+        )
 
     def load(self):
         if self.__output in ['all', 'excel']:
@@ -63,7 +72,35 @@ class CovidExcelUtils:
                 error_msg = f'BioSamples Error: {error}'
                 sample.add_error('sample_accession', error_msg)
         logging.info(f'Successfully submitted {biosamples_count} BioSamples')
-    
+
+    def submit_to_biostudies(self, url):
+        logging.info(f'Attempting to Submit to BioStudies: {url}')
+
+        accessions = []
+        for bio_study in self.excel.data.get_entities("study"):
+            bio_study_submission = BioStudyConverter.convert_study(bio_study)
+            accession = self.bio_studies_service.send_submission(bio_study_submission)
+            accessions.append(accession)
+            bio_study.attributes['bio_study_accession'] = accession
+
+        biostudies_accession_count = len(accessions)
+        if biostudies_accession_count > 0:
+            logging.info(f'Number of successfully submitted study to BioStudies archive: {biostudies_accession_count}')
+            logging.info(f'Accession IDs from BioStudies archive\'s response: {accessions}')
+
+        return accessions
+
+    def update_biostudies_submissions_with_links(self, url):
+        logging.info(f'Attempting to update entity links in BioStudies: {url}')
+
+        for study in excel_utils.excel.data.get_entities('study'):
+            bio_study_accession = study.attributes['bio_study_accession']
+
+            if bio_study_accession in bio_study_accessions:
+                submission = self.bio_studies_service.get_submission_by_accession(bio_study_accession).json
+                self.bio_studies_service.update_links_in_submission(submission, study)
+                self.bio_studies_service.send_submission(submission)
+
     def submit_ena(self):
         self.ena_submission_files = EnaSubmissionConverter().convert(self.excel.data)
 
@@ -130,6 +167,7 @@ if __name__ == '__main__':
         default='excel',
         help='Override the default output of "excel" which will update validation and submission errors into the passed excel file as notes, styling the cells red. "json" will create a .json of the parsed excel objects annotated with errors with an _issues.json file of errors by row. "all" will do both.'
     )
+
     parser.add_argument(
         '--biosamples', action='store_true',
         help='Submit to BioSamples, requires environment variables AAP_USERNAME and AAP_PASSWORD'
@@ -142,6 +180,16 @@ if __name__ == '__main__':
         '--biosamples_url', type=str, default='https://www.ebi.ac.uk/biosamples',
         help='Override the default URL for BioSamples API: https://www.ebi.ac.uk/biosamples'
     )
+
+    parser.add_argument(
+        '--biostudies', action='store_true',
+        help='Submit to BioStudies, requires environment variables BIOSTUDIES_USERNAME and BIOSTUDIES_PASSWORD'
+    )
+    parser.add_argument(
+        '--biostudies_url', type=str, default='http://biostudy-bia.ebi.ac.uk:8788',
+        help='Override the default URL for BioStudies REST API: http://biostudy-bia.ebi.ac.uk:8788'
+    )
+
     parser.add_argument(
         '--aap_url', type=str, default='https://api.aai.ebi.ac.uk',
         help='Override the default URL for AAP API: https://api.aai.ebi.ac.uk'
@@ -182,5 +230,19 @@ if __name__ == '__main__':
                 os.environ['AAP_USERNAME'],
                 os.environ['AAP_PASSWORD']
             )
+
+        if args['biostudies']:
+            if 'BIOSTUDIES_USERNAME' not in os.environ:
+                logging.error('No BIOSTUDIES_USERNAME detected in os environment variables.')
+                sys.exit(2)
+            if 'BIOSTUDIES_PASSWORD' not in os.environ:
+                logging.error('No BIOSTUDIES_PASSWORD detected in os environment variables.')
+                sys.exit(2)
+            bio_study_accessions = excel_utils.submit_to_biostudies(args['biosamples_url'])
+
         if args['ena']:
             excel_utils.submit_ena()
+
+        # update archived entities with links
+        if args['biostudies']:
+            excel_utils.update_biostudies_submissions_with_links(args['biostudies_url'])
