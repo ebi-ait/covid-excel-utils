@@ -1,7 +1,7 @@
 from xml.etree.ElementTree import Element
 
 from lxml import etree
-from json_converter.post_process import fixed_attribute  # ToDo: Add fixed attribute to json-converter.post-process
+# from json_converter.post_process import fixed_attribute  # ToDo: Add fixed attribute to json-converter.post-process
 from submission.entity import Entity
 from .base import BaseEnaConverter
 
@@ -13,9 +13,9 @@ STUDY_SPEC = {
         'STUDY_DESCRIPTION': ['short_description'],
         'STUDY_ABSTRACT': ['abstract'],
         'CENTER_PROJECT_NAME': ['study_name'],
-        'STUDY_TYPE': {
-            '@existing_study_type': ['', fixed_attribute, 'Other']
-        }
+        # 'STUDY_TYPE': {
+        #     '@existing_study_type': ['', fixed_attribute, 'Other']
+        # }
     }
 }
 

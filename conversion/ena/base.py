@@ -3,7 +3,7 @@ from xml.etree.ElementTree import Element
 
 from lxml import etree
 from json_converter.json_mapper import JsonMapper
-from json_converter.post_process import fixed_attribute  # ToDo: Add fixed attribute to json-converter.post-process
+# from json_converter.post_process import fixed_attribute  # ToDo: Add fixed attribute to json-converter.post-process
 
 from submission.entity import Entity, EntityIdentifier
 
@@ -53,14 +53,14 @@ class BaseEnaConverter:
         attribute_value = etree.SubElement(attribute, value_name)
         attribute_value.text = value
     
-    @staticmethod
-    def add_alias(spec: dict, id: EntityIdentifier):
-        spec['@alias'] = ['', fixed_attribute, id.index]
-        if id.accession:
-            spec['@accession'] = ['', fixed_attribute, id.accession]
-
-    @staticmethod
-    def add_link(link: dict, id: EntityIdentifier):
-        link['@refname'] = ['', fixed_attribute, id.index]
-        if id.accession:
-            link['@accession'] = ['', fixed_attribute, id.accession]
+    # @staticmethod
+    # def add_alias(spec: dict, id: EntityIdentifier):
+    #     spec['@alias'] = ['', fixed_attribute, id.index]
+    #     if id.accession:
+    #         spec['@accession'] = ['', fixed_attribute, id.accession]
+    #
+    # @staticmethod
+    # def add_link(link: dict, id: EntityIdentifier):
+    #     link['@refname'] = ['', fixed_attribute, id.index]
+    #     if id.accession:
+    #         link['@accession'] = ['', fixed_attribute, id.accession]
