@@ -49,10 +49,13 @@ class Entity:
         self.errors.setdefault(attribute, []).extend(error_msgs)
         
     def add_link_id(self, identifier: EntityIdentifier):
-        self.links.setdefault(identifier.entity_type, []).append(identifier)
+        self.add_link(identifier.entity_type, identifier.index)    
 
+    def add_link(self, entity_type: str, index: str):
+        self.links.setdefault(entity_type, set()).add(index)
+    
     def get_linked_indexes(self, entity_type):
-        return self.links.get(entity_type, [])
+        return self.links.get(entity_type, set())
 
     def get_accession(self):
         accession = self.identifier.accession
