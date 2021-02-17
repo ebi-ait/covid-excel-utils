@@ -1,17 +1,13 @@
 {
-  "6": {
-    "isolate_genome_assembly_information": {
-      "assembly_type": [
-        "should be equal to one of the allowed values: ['covid-19 outbreak']"
-      ],
-      "coverage": [
-        "should have required property 'coverage'"
-      ]
-    },
-    "study": {
-      "email_address": [
-        "should have required property 'email_address'"
-      ]
+  "isolate_genome_assembly_information": {
+    "P17157_1007": {
+      "assembly_type": ["should be equal to one of the allowed values: ['covid-19 outbreak']"],
+      "coverage": ["should have required property 'coverage'"]
+    }
+  },
+  "study": {
+    "PRJEB39632": {
+      "email_address": ["should have required property 'email_address'"]
     }
   }
 }

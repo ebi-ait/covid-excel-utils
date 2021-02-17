@@ -9,6 +9,7 @@ from submission.entity import Entity
 class TestServiceUtils(unittest.TestCase):
 
     def setUp(self) -> None:
+        self.maxDiff = None
         self.__setup_mock_entities()
 
     def test_when_entities_has_accessions_returns_them_by_type(self):

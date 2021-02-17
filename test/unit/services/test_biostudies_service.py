@@ -15,6 +15,7 @@ from submission.entity import Entity, EntityIdentifier
 class TestBioStudiesService(unittest.TestCase):
 
     def setUp(self) -> None:
+        self.maxDiff = None
         self.mock_auth = Auth
 
     def test_given_credentials_can_get_session_id(self):
