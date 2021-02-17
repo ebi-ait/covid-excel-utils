@@ -3,19 +3,6 @@ from typing import List
 
 from submission.entity import Entity, EntityIdentifier
 
-EXAMPLE__MAP = {
-    'sample': {
-        'hCoV-19/Ireland/D-NVRL-20G44567/2020': 'Entity',
-        'hCoV-19/Ireland/D-NVRL-20G44568/2020': 'Entity'
-    },
-    'study': {
-        'ICSC-Helixworks': 'Entity'
-    },
-    'entity_type': {
-        'index': 'Entity'
-    }
-}
-
 
 class HandleCollision(Enum):
     UPDATE = 1
@@ -24,10 +11,9 @@ class HandleCollision(Enum):
 
 
 class Submission:
-    __map = {}  # ToDo: Upgrade python to 3.9 for dict[str, dict[str, Entity]]
-
     def __init__(self, collider: HandleCollision = None):
         self.collider = collider if collider else HandleCollision.UPDATE
+        self.__map = {}  # ToDo: Upgrade python to 3.9 for dict[str, dict[str, Entity]]
 
     def __len__(self):
         count = 0

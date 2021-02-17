@@ -32,10 +32,9 @@ EXAMPLE__ENTITY_ROWS = {
 
 
 class ExcelSubmission(Submission):
-    __row_entities = {}
-    __entity_rows = {}
-
     def map_row(self, row: int, entity_type: str, index: str, accession: str, attributes: dict):
+        self.__row_entities = {}
+        self.__entity_rows = {}
         entity = super().map(entity_type, index, accession, attributes)
         self.__map_row_entity(row, entity)
 
