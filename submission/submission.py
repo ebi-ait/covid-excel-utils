@@ -68,12 +68,18 @@ class Submission:
 
     def get_all_errors(self) -> dict:
         errors = {}
-        for entity_type, entities in self.__map.items():
-            errors[entity_type] = {}
-            for index, entity in entities.items():
-                if entity.errors:
-                    errors[entity_type][index] = entity.errors
+        for entity_type in self.get_entity_types():
+            type_errors = self.get_type_errors(entity_type)
+            if type_errors:
+                errors[entity_type] = type_errors
         return errors
+    
+    def get_type_errors(self, entity_type: str):
+        type_errors = {}
+        for index, entity in self.__map[entity_type].items():
+            if entity.errors:
+                type_errors[index] = entity.errors
+        return type_errors
 
     def __is_collision(self, identifier: EntityIdentifier) -> bool:
         return identifier.entity_type in self.__map and identifier.index in self.__map[identifier.entity_type]
