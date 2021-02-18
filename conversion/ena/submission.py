@@ -14,12 +14,12 @@ from .run import EnaRunConverter
 class EnaSubmissionConverter:
     def __init__(self):
         self.conversions = {
-            'projects.xml': self.projects_file,
-            'studies.xml': self.studies_file,
-            'samples.xml': self.samples_file,
-            'experiments.xml': self.experiments_file,
-            'runs.xml': self.runs_file,
-            'submission.xml': self.submission_file
+            'PROJECT': self.projects_file,
+            'STUDY': self.studies_file,
+            'SAMPLE': self.samples_file,
+            'EXPERIMENT': self.experiments_file,
+            'RUN': self.runs_file,
+            'SUBMISSION': self.submission_file
         }
 
     def convert(self, data: Submission) -> dict:

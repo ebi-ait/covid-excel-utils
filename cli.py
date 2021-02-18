@@ -119,10 +119,14 @@ class CovidExcelUtils:
                     logging.info(f'JSON output written to: {json_file_path}')
                 # ToDo: Remove this when no longer useful for debugging
                 if self.ena_submission_files:
+                    curl = 'curl -u username:password'
                     for ena_file_name, xml_element in self.ena_submission_files.items():
-                        ena_file_path = input_file_name + '_ena_' + ena_file_name
+                        ena_file_path = input_file_name + '_ena_' + ena_file_name + '.xml'
                         self.write_xml(ena_file_path, xml_element)
+                        curl = curl + f' -F {ena_file_name}={ena_file_path}'
                         logging.info(f'ENA Submission File written to: {ena_file_path}')  
+                    curl = curl + ' "https://wwwdev.ebi.ac.uk/ena/submit/drop-box/submit/"'
+                    print(curl)
                 if self.excel.data.has_errors():
                     issues_file_path = input_file_name + '_issues.json'
                     self.write_dict(issues_file_path, self.excel.human_errors())
