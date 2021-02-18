@@ -8,7 +8,7 @@ from submission.entity import Entity
 class TestTaxonomyValidator(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
-        self.taxonomy_validator = TaxonomyValidator(ena_url='')
+        self.taxonomy_validator = TaxonomyValidator()
         self.valid_human = {
             "taxId": "9606",
             "scientificName": "Homo sapiens",
