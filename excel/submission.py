@@ -1,40 +1,16 @@
 from typing import List
 
 from submission.entity import Entity, EntityIdentifier
-from submission.submission import Submission
-
-EXAMPLE__ROW_ENTITIES = {
-    '10': {
-        'sample': 'hCoV-19/Ireland/D-NVRL-20G44567/2020',
-        'study': 'ICSC-Helixworks'
-    },
-    '11': {
-        'sample': 'hCoV-19/Ireland/D-NVRL-20G44568/2020',
-        'study': 'ICSC-Helixworks'
-    },
-    'row': {
-        'entity_type': 'index'
-    }
-}
-EXAMPLE__ENTITY_ROWS = {
-    'sample': {
-        'hCoV-19/Ireland/D-NVRL-20G44567/2020': ['10'],
-        'hCoV-19/Ireland/D-NVRL-20G44568/2020': ['11'],
-    },
-    'study': {
-        'ICSC-Helixworks': ['10','11']
-    },
-    'entity_type': {
-        'index': ['row'],
-        'another_index': ['row1', 'row2'],
-    }
-}
+from submission.submission import Submission, HandleCollision
 
 
 class ExcelSubmission(Submission):
-    def map_row(self, row: int, entity_type: str, index: str, accession: str, attributes: dict):
-        self.__row_entities = {}
+    def __init__(self, collider: HandleCollision = None):
+        super().__init__(collider)
         self.__entity_rows = {}
+        self.__row_entities = {}
+
+    def map_row(self, row: int, entity_type: str, index: str, accession: str, attributes: dict):
         entity = super().map(entity_type, index, accession, attributes)
         self.__map_row_entity(row, entity)
 
