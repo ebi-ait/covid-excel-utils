@@ -8,8 +8,8 @@ from unittest.mock import patch
 from validation.schema import SchemaValidator
 from submission.submission import Submission
 
-class TestIssuesGeneration(unittest.TestCase):
 
+class TestIssuesGeneration(unittest.TestCase):
     def setUp(self):
         self.schema_validation = SchemaValidator("")
         self.maxDiff = None
@@ -19,7 +19,6 @@ class TestIssuesGeneration(unittest.TestCase):
         self.submission = Submission()
         for entity_type, attributes in test_data.items():
             self.submission.map(entity_type, attributes["index"], attributes.get("accession", ""), attributes)
-
 
     @patch('validation.schema.requests.post')
     def test_when_validate_invalid_entity_with_valid_schema_should_return_errors(self, mock_post):

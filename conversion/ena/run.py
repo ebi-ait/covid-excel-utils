@@ -44,7 +44,7 @@ class EnaRunConverter(BaseEnaConverter):
             file.attrib['filename'] = entity.attributes[file_key]
             file.attrib['filetype'] = EnaRunConverter.get_file_type(entity.attributes[file_key])
             file.attrib['checksum_method'] = 'MD5'
-            file.attrib['checksum'] = '0' # ToDo: get checksum from drag and drop?
+            file.attrib['checksum'] = '0'  # ToDo: get checksum from drag and drop?
 
             file_number = file_number + 1
             file_key = f'uploaded_file_{file_number}'

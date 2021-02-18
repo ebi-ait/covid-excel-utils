@@ -4,6 +4,7 @@ from os.path import dirname, join
 
 from submission.submission import Entity, Submission
 
+
 class TestSubmissionErrors(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None

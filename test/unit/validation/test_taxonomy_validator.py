@@ -171,7 +171,7 @@ class TestTaxonomyValidator(unittest.TestCase):
     def test_invalid_name_should_return_error(self):
         sample_attributes = {'scientific_name': 'Lorem Ipsum'}
         error = 'Not valid scientific_name: Lorem Ipsum.'
-        expected_error ={
+        expected_error = {
             'scientific_name': [error]
         }
         self.taxonomy_validator.ena_taxonomy.validate_scientific_name = MagicMock(return_value={'error': error})

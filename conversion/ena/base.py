@@ -54,13 +54,13 @@ class BaseEnaConverter:
         attribute_value.text = value
     
     @staticmethod
-    def add_alias(spec: dict, id: EntityIdentifier):
-        spec['@alias'] = ['', fixed_attribute, id.index]
-        if id.accession:
-            spec['@accession'] = ['', fixed_attribute, id.accession]
+    def add_alias(spec: dict, identifier: EntityIdentifier):
+        spec['@alias'] = ['', fixed_attribute, identifier.index]
+        if identifier.accession:
+            spec['@accession'] = ['', fixed_attribute, identifier.accession]
 
     @staticmethod
-    def add_link(link: dict, id: EntityIdentifier):
-        link['@refname'] = ['', fixed_attribute, id.index]
-        if id.accession:
-            link['@accession'] = ['', fixed_attribute, id.accession]
+    def add_link(link: dict, identifier: EntityIdentifier):
+        link['@refname'] = ['', fixed_attribute, identifier.index]
+        if identifier.accession:
+            link['@accession'] = ['', fixed_attribute, identifier.accession]
