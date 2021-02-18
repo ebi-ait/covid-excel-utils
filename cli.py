@@ -20,15 +20,15 @@ from validation.excel import ExcelValidator
 from validation.taxonomy import TaxonomyValidator
 
 
-class CovidExcelUtils:
-    docker_image = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
-    validation_url = "http://localhost:3020/validate"
-    ena_url = 'https://www.ebi.ac.uk/ena'
-    excel = None
+DOCKER_IMAGE = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
+SCHEMA_VALIDATION_URL = "http://localhost:3020/validate"
 
+
+class CovidExcelUtils:
     def __init__(self, file_path, output):
         self.__file_path = file_path
         self.__output = output
+        self.excel = None
         self.ena_submission_files = {}
 
         self.bio_studies_service = BioStudies(
@@ -45,12 +45,12 @@ class CovidExcelUtils:
 
     def validate(self):
         try:
-            with closing(DockerValidator(self.docker_image, self.validation_url)) as validator:
+            with closing(DockerValidator(DOCKER_IMAGE, SCHEMA_VALIDATION_URL)) as validator:
                 self.excel.validate(validator)
         except Exception as error:
             logging.warning(f'Error validating schema, using best guess validation. Detected Error: {error}')
             self.excel.validate(ExcelValidator(self.__file_path))
-        self.excel.validate(TaxonomyValidator(self.ena_url))
+        self.excel.validate(TaxonomyValidator())
 
     def submit_biosamples(self, url, domain, aap_url, aap_username, aap_password):
         logging.info(f'Attempting to Submit to BioSamples: {url}, AAP: {aap_url}')

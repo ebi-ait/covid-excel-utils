@@ -5,8 +5,8 @@ from validation.base import BaseValidator
 
 
 class TaxonomyValidator(BaseValidator):
-    def __init__(self, ena_url: str):
-        self.ena_taxonomy = EnaTaxonomy(ena_url)
+    def __init__(self):
+        self.ena_taxonomy = EnaTaxonomy()
 
     def validate_data(self, data: Submission):
         for entity in data.get_entities('sample'):

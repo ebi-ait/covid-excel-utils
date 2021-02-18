@@ -7,7 +7,6 @@ from .schema import SchemaValidator
 
 class DockerValidator(SchemaValidator):
     def __init__(self, image_name, validator_url, port=3020):
-        self.__image_name = image_name
         self.__client = docker.from_env()
         self.container = self.__launch(self.__client, image_name, port)
         super().__init__(validator_url)
