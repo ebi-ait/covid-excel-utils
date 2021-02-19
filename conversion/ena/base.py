@@ -16,7 +16,7 @@ class BaseEnaConverter:
     def convert(self, entity: Entity, xml_spec: dict = None) -> Element:
         if not xml_spec:
             xml_spec = deepcopy(self.xml_spec)
-        self.add_alias(xml_spec, entity.identifier)
+        self.add_alias(xml_spec, entity)
         xml_map = JsonMapper(entity.attributes).map(xml_spec)
         root = etree.Element(self.root_name)
         self.add_children(parent=root, children=xml_map)
@@ -54,13 +54,15 @@ class BaseEnaConverter:
         attribute_value.text = value
     
     @staticmethod
-    def add_alias(spec: dict, identifier: EntityIdentifier):
-        spec['@alias'] = ['', fixed_attribute, identifier.index]
-        if identifier.accession:
-            spec['@accession'] = ['', fixed_attribute, identifier.accession]
+    def add_alias(spec: dict, entity: Entity):
+        spec['@alias'] = ['', fixed_attribute, entity.identifier.index]
+        accession = entity.get_first_accession(['ENA', 'BioStudies', 'BioSamples'])
+        if accession:
+            spec['@accession'] = ['', fixed_attribute, accession]
 
     @staticmethod
-    def add_link(link: dict, identifier: EntityIdentifier):
-        link['@refname'] = ['', fixed_attribute, identifier.index]
-        if identifier.accession:
-            link['@accession'] = ['', fixed_attribute, identifier.accession]
+    def add_link(link: dict, entity: Entity):
+        link['@refname'] = ['', fixed_attribute, entity.identifier.index]
+        accession = entity.get_first_accession(['ENA', 'BioStudies', 'BioSamples'])
+        if accession:
+            link['@accession'] = ['', fixed_attribute, accession]

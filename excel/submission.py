@@ -10,8 +10,8 @@ class ExcelSubmission(Submission):
         self.__entity_rows = {}
         self.__row_entities = {}
 
-    def map_row(self, row: int, entity_type: str, index: str, accession: str, attributes: dict) -> Entity:
-        entity = super().map(entity_type, index, accession, attributes)
+    def map_row(self, row: int, entity_type: str, index: str, attributes: dict) -> Entity:
+        entity = super().map(entity_type, index, attributes)
         self.__map_row_ids(row, entity.identifier)
         self.__add_entity_links(row, entity)
         return entity

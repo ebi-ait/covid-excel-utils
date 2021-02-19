@@ -22,7 +22,7 @@ class EnaRunConverter(BaseEnaConverter):
     
     def convert_run(self, run: Entity, experiment: Entity) -> Element:
         spec = deepcopy(self.xml_spec)
-        BaseEnaConverter.add_link(spec['EXPERIMENT_REF'], experiment.identifier)
+        BaseEnaConverter.add_link(spec['EXPERIMENT_REF'], experiment)
         return super().convert(run, xml_spec=spec)
 
     @staticmethod

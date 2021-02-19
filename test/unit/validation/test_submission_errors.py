@@ -12,7 +12,7 @@ class TestSubmissionErrors(unittest.TestCase):
             test_data = json.load(test_data_file)
         self.submission = Submission()
         for entity_type, attributes in test_data.items():
-            self.submission.map(entity_type, attributes["index"], attributes.get("accession", ""), attributes)
+            self.submission.map(entity_type, attributes["index"], attributes)
 
     def test_submission_with_no_errors(self):
         # Given

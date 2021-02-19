@@ -1,11 +1,16 @@
 from contextlib import closing
-
 from openpyxl import load_workbook
 
 from .clean import clean_entity_name, clean_name, is_value_populated
 from .submission import ExcelSubmission
 
-POSSIBLE_KEYS = ['alias', 'index', 'name', 'accession']
+
+POSSIBLE_KEYS = ['alias', 'index', 'name']
+LINK_TYPE_MAP = {
+    'sample': 'BioSamples',
+    'study': 'ENA',
+    'run_experiment': 'ENA'
+}
 
 
 class ExcelLoader:
@@ -59,9 +64,14 @@ class ExcelLoader:
                     attribute_name = column_map[cell.column_letter]['attribute']
                     row_data.setdefault(object_name, {})[attribute_name] = value
             for entity_type, attributes in row_data.items():
-                index = ExcelLoader.get_index(entity_type, row_index, attributes)
                 accession = ExcelLoader.get_accession(entity_type, attributes)
-                data.map_row(row_index, entity_type, index, accession, attributes)
+                if accession:
+                    index = accession
+                else:
+                    index = ExcelLoader.get_index(entity_type, row_index, attributes)
+                entity = data.map_row(row_index, entity_type, index, attributes)
+                if accession and entity_type in LINK_TYPE_MAP:
+                    entity.add_accession(LINK_TYPE_MAP[entity_type], accession)
             row_index = row_index + 1
         return data
 
@@ -74,12 +84,6 @@ class ExcelLoader:
                 return attributes[typed_key]
         # Else: no index found use entity_type:row
         return f'{entity_type}:{row}'
-        # If none of the above are found find keys that include 'alias', 'index', 'name'
-        # for possible_key in POSSIBLE_KEYS:
-        #    for key, value in attributes:
-        #        if possible_key in key:
-        #            return value
-        # Else, no index found
 
     @staticmethod
     def get_accession(entity_type: str, attributes: dict) -> str:

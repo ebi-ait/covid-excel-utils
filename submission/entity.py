@@ -1,24 +1,19 @@
-from typing import Iterable
-
+from typing import Iterable, ItemsView
 
 class EntityIdentifier:
-    def __init__(self, entity_type: str, index: str, accession: str):
+    def __init__(self, entity_type: str, index: str):
         self.entity_type = entity_type  # examples: project, study, sample, experiment_run
         self.index = index  # example: hCoV-19/Ireland/D-NVRL-20G44567/2020
-        self.accession = accession  # example: PRJEB42510
 
-    # ToDo: Decide if we need these hash methods
-    #  def __hash__(self):
-    #    if self.accession:
-    #        return hash((self.entity_type, self.accession))
-    #    else:
-    #        return hash((self.entity_type, self.index))
+    def __hash__(self):
+        return hash((self.entity_type, self.index))
 
 
 class Entity:
-    def __init__(self, entity_type: str, index: str, accession: str, attributes: dict):
-        self.identifier = EntityIdentifier(entity_type, index, accession)
+    def __init__(self, entity_type: str, index: str, attributes: dict):
+        self.identifier = EntityIdentifier(entity_type, index)
         self.attributes = attributes
+        self.__accessions = {}
         self.errors = {}
         self.links = {}
 
@@ -27,7 +22,7 @@ class Entity:
 
     def add_errors(self, attribute: str, error_msgs: Iterable[str]):
         self.errors.setdefault(attribute, []).extend(error_msgs)
-        
+
     def add_link_id(self, identifier: EntityIdentifier):
         self.add_link(identifier.entity_type, identifier.index)    
 
@@ -37,6 +32,17 @@ class Entity:
     def get_linked_indexes(self, entity_type):
         return self.links.get(entity_type, set())
 
-    def get_accession(self):
-        accession = self.identifier.accession
-        return accession
+    def add_accession(self, service: str, accession_value: str):
+        self.__accessions[service] = accession_value
+
+    def get_accession(self, service: str) -> str:
+        return self.__accessions.get(service, None)
+
+    def get_first_accession(self, service_priority):
+        for service in service_priority:
+            accession = self.get_accession(service)
+            if accession:
+                return accession
+
+    def get_accessions(self) -> ItemsView[str, str]:
+        return self.__accessions.items()

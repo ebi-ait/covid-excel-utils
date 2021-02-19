@@ -3,11 +3,12 @@ import uuid
 from biostudiesclient.api import Api
 from biostudiesclient.auth import Auth
 
+from submission.entity import Entity
+
 LINK_TYPE_MAP = {
-    'sample': 'BioSample',
+    'sample': 'BioSamples',
     'study': 'ENA',
     'run_experiment': 'ENA'
-    # 'protocol': '???'
 }
 
 
@@ -29,7 +30,7 @@ class BioStudies:
             file_path,
             self.submission_folder_name)
 
-    def send_submission(self, submission):
+    def send_submission(self, submission: dict):
         files = self.__get_files_info(submission)
         if len(files) > 0:
             self.__process_files(files)
@@ -41,22 +42,20 @@ class BioStudies:
     def get_submission_by_accession(self, accession_id):
         return self.api.get_submission(accession_id)
 
-    def update_links_in_submission(self, submission, study):
+    def update_links_in_submission(self, submission: dict, study: Entity):
         links_section = self.__get_links_section_from_submission(submission)
 
         self.__update_links_section(links_section, study)
 
     @staticmethod
-    def __get_links_section_from_submission(submission):
+    def __get_links_section_from_submission(submission) -> dict:
         section = submission['section']
-
         return section.setdefault('links', [])
 
-    def __update_links_section(self, links_section, study):
+    def __update_links_section(self, links_section, study: Entity):
         for entity_type, entity_ids in study.links.items():
             if entity_type not in LINK_TYPE_MAP:
                 continue
-
             link_type = LINK_TYPE_MAP[entity_type]
 
             for entity_id in entity_ids:
@@ -65,7 +64,6 @@ class BioStudies:
 
                 if other_object_accession_id:
                     link_to_add = self.__create_link_element(link_type, other_object_accession_id)
-
                     links_section.append(link_to_add)
 
     @staticmethod

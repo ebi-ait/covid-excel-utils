@@ -44,8 +44,8 @@ class EnaExperimentConverter(BaseEnaConverter):
     def convert_experiment(self, experiment: Entity, sample: Entity, study: Entity) -> Element:
         spec = deepcopy(self.xml_spec)
         
-        BaseEnaConverter.add_link(spec['DESIGN']['SAMPLE_DESCRIPTOR'], sample.identifier)
-        BaseEnaConverter.add_link(spec['STUDY_REF'], study.identifier)
+        BaseEnaConverter.add_link(spec['DESIGN']['SAMPLE_DESCRIPTOR'], sample)
+        BaseEnaConverter.add_link(spec['STUDY_REF'], study)
 
         if 'insert_size' in experiment.attributes and 'uploaded_file_2' in experiment.attributes:
             del spec['DESIGN']['LIBRARY_DESCRIPTOR']['LIBRARY_LAYOUT']['SINGLE']

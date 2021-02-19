@@ -47,36 +47,31 @@ class CovidExcelUtils:
             self.excel.validate(ExcelValidator(self.__file_path))
         self.excel.validate(TaxonomyValidator())
 
-    def submit_to_biosamples(self, service: BioSamples) -> List[str]:
-        accessions = []
-        sample: Entity
+    def submit_to_biosamples(self, service: BioSamples):
         for sample in self.excel.data.get_entities('sample'):
             try:
-                sample.attributes['request'] = service.encode_sample(sample.attributes)
-                sample.attributes['biosample'] = service.send_sample(sample.attributes['request'])
-                del sample.attributes['request']
-                if 'accession' in sample.attributes['biosample']:
-                    # ToDo: introduce accession handling methods to submission class.
-                    sample.identifier.accession = sample.attributes['biosample']['accession']
-                    sample.attributes['sample_accession'] = sample.identifier.accession
-                    accessions.append(sample.identifier.accession)
+                request = service.encode_sample(sample.attributes)
+                response = service.send_sample(request)
+                if 'accession' in response:
+                    sample.add_accession('BioSamples', response['accession'])
+                    sample.attributes['sample_accession'] = response['accession']
             except Exception as error:
                 error_msg = f'BioSamples Error: {error}'
                 sample.add_error('sample_accession', error_msg)
-        return accessions
 
-    def submit_to_biostudies(self, service: BioStudies) -> List[str]:
-        accessions = []
-        study: Entity
+    def submit_to_biostudies(self, service: BioStudies):
         for study in self.excel.data.get_entities("study"):
             bio_study_submission = BioStudyConverter.convert_study(study)
             accession = service.send_submission(bio_study_submission)
-            accessions.append(accession)
+            study.add_accession('BioStudies', accession)
             study.attributes['bio_study_accession'] = accession
-        return accessions
 
     def update_biostudies_links(self, service: BioStudies, accessions: List[str]):
+        pass
         for study in self.excel.data.get_entities('study'):
+            # ToDo: create BioStudies Update Converter that accepts a submission
+            # so that linked entity accessions can be retrieved
+            # using self.excel.data.get_linked_entities or self.excel.data.get_linked_accessions
             bio_study_accession = study.attributes['bio_study_accession']
             if bio_study_accession in accessions:
                 submission = service.get_submission_by_accession(bio_study_accession).json
@@ -98,6 +93,11 @@ class CovidExcelUtils:
                 if self.excel.data.has_data():
                     json_file_path = input_file_name + '.json'
                     self.write_dict(json_file_path, self.excel.data.get_all_data())
+                    logging.info(f'JSON output written to: {json_file_path}')
+                all_accessions = self.excel.data.get_all_accessions()
+                if all_accessions:
+                    json_file_path = input_file_name + '_accessions.json'
+                    self.write_dict(json_file_path, all_accessions)
                     logging.info(f'JSON output written to: {json_file_path}')
                 # ToDo: Remove this when no longer useful for debugging
                 if self.ena_submission_files:
@@ -215,10 +215,7 @@ if __name__ == '__main__':
             logging.info(f"Attempting to Submit to BioSamples: {args['biosamples_url']}, AAP: {args['aap_url']}")
             aap_client = AapClient(url=args['aap_url'], username=os.environ['AAP_USERNAME'], password=os.environ['AAP_PASSWORD'])
             biosamples_service = BioSamples(aap_client, args['biosamples_url'], args['biosamples_domain'])
-            biosamples_accessions = excel_utils.submit_to_biosamples(biosamples_service)
-            if len(biosamples_accessions) > 0:
-                logging.info(f'Number of successfully submitted samples to BioSamples archive: {len(biosamples_accessions)}')
-                logging.info(f'Accession IDs from BioSamples: {biosamples_accessions}')
+            excel_utils.submit_to_biosamples(biosamples_service)
 
         biostudies_service = None
         biostudies_accessions = []
@@ -231,14 +228,11 @@ if __name__ == '__main__':
                 sys.exit(2)
             logging.info(f"Attempting to Submit to BioStudies: {args['biostudies_url']}")
             biostudies_service = BioStudies(args['biostudies_url'], os.environ['BIOSTUDIES_USERNAME'], os.environ['BIOSTUDIES_PASSWORD'])
-            biostudies_accessions = excel_utils.submit_to_biostudies(biostudies_service)
-            if len(biostudies_accessions) > 0:
-                logging.info(f'Number of successfully submitted studies to BioStudies archive: {len(biostudies_accessions)}')
-                logging.info(f'Accession IDs from BioStudies: {biostudies_accessions}')
+            excel_utils.submit_to_biostudies(biostudies_service)
 
         if args['ena']:
             excel_utils.submit_ena()
 
         # update archived entities with links
-        if biostudies_service:
-            excel_utils.update_biostudies_links(biostudies_service, biostudies_accessions)
+        # if biostudies_service:
+        #    excel_utils.update_biostudies_links(biostudies_service, biostudies_accessions)

@@ -17,9 +17,7 @@ class TestBioStudiesConverter(unittest.TestCase):
             "abstract": "test abstract",
             "release_date": "2020-08-21"
         }
-        bio_study_entity = Entity(entity_type="study",
-                                  index=bio_study_attributes["study_alias"],
-                                  accession="BST123",
+        bio_study_entity = Entity(entity_type="study", index=bio_study_attributes["study_alias"],
                                   attributes=bio_study_attributes)
 
         expected_payload = self.__get_expected_payload(bio_study_entity)

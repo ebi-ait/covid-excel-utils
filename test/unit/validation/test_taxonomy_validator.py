@@ -40,7 +40,7 @@ class TestTaxonomyValidator(unittest.TestCase):
         }
         self.taxonomy_validator.ena_taxonomy.validate_scientific_name = MagicMock(return_value=self.valid_sarscov2)
         self.taxonomy_validator.ena_taxonomy.validate_tax_id = MagicMock(return_value=self.valid_sarscov2)
-        sample = Entity('sample', 'sample1', '', sample_attributes)
+        sample = Entity('sample', 'sample1', sample_attributes)
 
         # When
         self.taxonomy_validator.validate_entity(sample)
@@ -55,7 +55,7 @@ class TestTaxonomyValidator(unittest.TestCase):
             'tax_id': '2697049'
         }
         self.taxonomy_validator.ena_taxonomy.validate_tax_id = MagicMock(return_value=self.valid_sarscov2)
-        sample = Entity('sample', 'sample1', '', sample_attributes)
+        sample = Entity('sample', 'sample1', sample_attributes)
 
         # When
         self.taxonomy_validator.validate_entity(sample)
@@ -70,7 +70,7 @@ class TestTaxonomyValidator(unittest.TestCase):
             'scientific_name': 'Severe acute respiratory syndrome coronavirus 2'
         }
         self.taxonomy_validator.ena_taxonomy.validate_scientific_name = MagicMock(return_value=self.valid_sarscov2)
-        sample = Entity('sample', 'sample1', '', sample_attributes)
+        sample = Entity('sample', 'sample1', sample_attributes)
 
         # When
         self.taxonomy_validator.validate_entity(sample)
@@ -93,7 +93,7 @@ class TestTaxonomyValidator(unittest.TestCase):
             'tax_id': [consistent_error]
         }
         
-        sample = Entity('sample', 'sample1', '', sample_attributes)
+        sample = Entity('sample', 'sample1', sample_attributes)
 
         # When
         self.taxonomy_validator.validate_entity(sample)
@@ -118,7 +118,7 @@ class TestTaxonomyValidator(unittest.TestCase):
         self.taxonomy_validator.ena_taxonomy.validate_scientific_name = MagicMock(return_value=self.valid_sarscov2)
         self.taxonomy_validator.ena_taxonomy.validate_tax_id = MagicMock(return_value={'error': error})
         
-        sample = Entity('sample', 'sample1', '', sample_attributes)
+        sample = Entity('sample', 'sample1', sample_attributes)
 
         # When
         self.taxonomy_validator.validate_entity(sample)
@@ -135,7 +135,7 @@ class TestTaxonomyValidator(unittest.TestCase):
             'tax_id': [error]
         }
         self.taxonomy_validator.ena_taxonomy.validate_tax_id = MagicMock(return_value={'error': error})
-        sample = Entity('sample', 'sample1', '', sample_attributes)
+        sample = Entity('sample', 'sample1', sample_attributes)
 
         # When
         self.taxonomy_validator.validate_entity(sample)
@@ -159,7 +159,7 @@ class TestTaxonomyValidator(unittest.TestCase):
         self.taxonomy_validator.ena_taxonomy.validate_scientific_name = MagicMock(return_value={'error': error})
         self.taxonomy_validator.ena_taxonomy.validate_tax_id = MagicMock(return_value=self.valid_sarscov2)
         
-        sample = Entity('sample', 'sample1', '', sample_attributes)
+        sample = Entity('sample', 'sample1', sample_attributes)
         
         # When
         self.taxonomy_validator.validate_entity(sample)
@@ -176,7 +176,7 @@ class TestTaxonomyValidator(unittest.TestCase):
         }
         self.taxonomy_validator.ena_taxonomy.validate_scientific_name = MagicMock(return_value={'error': error})
 
-        sample = Entity('sample', 'sample1', '', sample_attributes)
+        sample = Entity('sample', 'sample1', sample_attributes)
         
         # When
         self.taxonomy_validator.validate_entity(sample)

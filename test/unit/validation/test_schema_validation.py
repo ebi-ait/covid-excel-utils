@@ -17,7 +17,7 @@ class TestSchemaValidation(unittest.TestCase):
         self.schema_validation = SchemaValidator("")
         self.submission = Submission()
         for entity_type, attributes in test_data.items():
-            self.submission.map(entity_type, attributes["index"], attributes.get("accession", ""), attributes)
+            self.submission.map(entity_type, attributes["index"], attributes)
 
     @patch('validation.schema.requests.post')
     def test_when_entity_valid_should_return_no_errors(self, mock_post):
