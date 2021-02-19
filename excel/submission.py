@@ -10,13 +10,11 @@ class ExcelSubmission(Submission):
         self.__entity_rows = {}
         self.__row_entities = {}
 
-    def map_row(self, row: int, entity_type: str, index: str, accession: str, attributes: dict):
+    def map_row(self, row: int, entity_type: str, index: str, accession: str, attributes: dict) -> Entity:
         entity = super().map(entity_type, index, accession, attributes)
-        self.__map_row_entity(row, entity)
-
-    def map_row_entity(self, row: int, entity: Entity):
-        super().map_entity(entity)
-        self.__map_row_entity(row, entity)
+        self.__map_row_ids(row, entity.identifier)
+        self.__add_entity_links(row, entity)
+        return entity
 
     def get_rows_from_id(self, identifier: EntityIdentifier) -> List[str]:
         return self.get_rows(identifier.entity_type, identifier.index)
@@ -40,10 +38,6 @@ class ExcelSubmission(Submission):
                 for row in self.get_rows(entity_type, index):
                     errors.setdefault(row, {})[entity_type] = entity_errors
         return errors
-
-    def __map_row_entity(self, row, entity):
-        self.__map_row_ids(row, entity.identifier)
-        self.__add_entity_links(row, entity)
 
     def __map_row_ids(self, row: int, identifier: EntityIdentifier):
         self.__row_entities.setdefault(row, {})[identifier.entity_type] = identifier.index

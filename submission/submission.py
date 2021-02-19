@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List
 
-from submission.entity import Entity, EntityIdentifier
+from submission.entity import Entity
 
 
 class HandleCollision(Enum):
@@ -12,7 +12,7 @@ class HandleCollision(Enum):
 
 class Submission:
     def __init__(self, collider: HandleCollision = None):
-        self.collider = collider if collider else HandleCollision.UPDATE
+        self.__collider = collider if collider else HandleCollision.UPDATE
         self.__map = {}  # ToDo: Upgrade python to 3.9 for dict[str, dict[str, Entity]]
 
     def __len__(self):
@@ -21,15 +21,12 @@ class Submission:
             count = count + len(indexed_entities.values())
 
     def map(self, entity_type: str, index: str, accession: str, attributes: dict) -> Entity:
-        entity = Entity(entity_type, index, accession, attributes)
-        self.map_entity(entity)
-        return entity
-
-    def map_entity(self, entity: Entity):
-        if self.__is_collision(entity.identifier):
-            self.__handle_collision(entity)
+        if entity_type in self.__map and index in self.__map[entity_type]:
+            entity = self.__handle_collision(entity_type, index, attributes)
         else:
-            self.__map.setdefault(entity.identifier.entity_type, {})[entity.identifier.index] = entity
+            entity = Entity(entity_type, index, accession, attributes)
+            self.__map.setdefault(entity_type, {})[index] = entity
+        return entity
 
     def get_entity_types(self):
         return self.__map.keys()
@@ -81,17 +78,15 @@ class Submission:
                 type_errors[index] = entity.errors
         return type_errors
 
-    def __is_collision(self, identifier: EntityIdentifier) -> bool:
-        return identifier.entity_type in self.__map and identifier.index in self.__map[identifier.entity_type]
-
-    def __handle_collision(self, entity: Entity):
-        if self.collider == HandleCollision.ERROR:
-            raise IndexError(f'Index {entity.identifier.index} already exists.')
-        elif self.collider == HandleCollision.OVERWRITE:
-            self.__map[entity.identifier.entity_type][entity.identifier.index] = entity
+    def __handle_collision(self, entity_type: str, index: str, attributes: dict) -> Entity:
+        if self.__collider == HandleCollision.ERROR:
+            raise IndexError(f'Index {index} already exists.')
+        existing_entity: Entity = self.__map[entity_type][index]
+        if self.__collider == HandleCollision.OVERWRITE:
+            existing_entity.attributes = attributes
         else:  # Default is UPDATE
-            existing_entity: Entity = self.__map[entity.identifier.entity_type][entity.identifier.index]
-            existing_entity.attributes.update(entity.attributes)
+            existing_entity.attributes.update(attributes)
+        return existing_entity
 
     @staticmethod
     def link_entities(entity_a: Entity, entity_b: Entity):
