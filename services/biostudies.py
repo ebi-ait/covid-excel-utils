@@ -1,19 +1,24 @@
 import uuid
+from typing import List
 
 from biostudiesclient.api import Api
 from biostudiesclient.auth import Auth
 
 from submission.entity import Entity
+from submission.submission import Submission
 
-LINK_TYPE_MAP = {
+BIOSTUDIES_LINK_TYPES = {
+    'sample': 'biosample',
+    'study': 'ena',
+    'run_experiment': 'ena'
+}
+
+ENTITY_TYPE_SERVICE = {
     'sample': 'BioSamples',
-    'study': 'ENA',
     'run_experiment': 'ENA'
 }
 
-
 class BioStudies:
-
     def __init__(self, base_url=None, username=None, password=None):
         self.base_url = base_url
         self.auth = Auth(base_url)
@@ -42,34 +47,30 @@ class BioStudies:
     def get_submission_by_accession(self, accession_id):
         return self.api.get_submission(accession_id)
 
-    def update_links_in_submission(self, submission: dict, study: Entity):
-        links_section = self.__get_links_section_from_submission(submission)
-
-        self.__update_links_section(links_section, study)
+    def update_links_in_submission(self, submission: Submission, study: Entity) -> dict:
+        study_accession = study.get_accession('BioStudies')
+        biostudies_submission = self.get_submission_by_accession(study_accession).json
+        links_section = self.__get_links_section_from_submission(biostudies_submission)
+        self.__update_links_section(links_section, study, submission)
+        return biostudies_submission
 
     @staticmethod
-    def __get_links_section_from_submission(submission) -> dict:
+    def __get_links_section_from_submission(submission: dict) -> List:
         section = submission['section']
         return section.setdefault('links', [])
 
-    def __update_links_section(self, links_section, study: Entity):
-        for entity_type, entity_ids in study.links.items():
-            if entity_type not in LINK_TYPE_MAP:
-                continue
-            link_type = LINK_TYPE_MAP[entity_type]
-
-            for entity_id in entity_ids:
-
-                other_object_accession_id = entity_id.accession
-
-                if other_object_accession_id:
-                    link_to_add = self.__create_link_element(link_type, other_object_accession_id)
+    def __update_links_section(self, links_section: List, study: Entity, submission: Submission):
+        for entity_type, biostudies_type in BIOSTUDIES_LINK_TYPES.items():
+            for linked_entity in submission.get_linked_entities(study, entity_type):
+                accession = linked_entity.get_accession(ENTITY_TYPE_SERVICE[entity_type])
+                if accession and not self.__accession_in_list(links_section, accession):
+                    link_to_add = self.__create_link_element(biostudies_type, accession)
                     links_section.append(link_to_add)
 
     @staticmethod
-    def __create_link_element(link_type, other_object_accession_id):
+    def __create_link_element(link_type, accession):
         return {
-            'url': other_object_accession_id,
+            'url': accession,
             'attributes': [
                 {
                     'name': 'Type',
@@ -77,6 +78,14 @@ class BioStudies:
                 }
             ]
         }
+
+    @staticmethod
+    def __accession_in_list(links_section, accession):
+        for element in links_section:
+            element_accession = element.get('url', None)
+            if element_accession and element_accession == accession:
+                return True
+        return False
 
     def __get_session_id(self, username, password):
         return self.__get_auth_response(username, password).session_id

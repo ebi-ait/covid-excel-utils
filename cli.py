@@ -66,17 +66,12 @@ class CovidExcelUtils:
             study.add_accession('BioStudies', accession)
             study.attributes['bio_study_accession'] = accession
 
-    def update_biostudies_links(self, service: BioStudies, accessions: List[str]):
-        pass
+    def update_biostudies_links(self, service: BioStudies):
         for study in self.excel.data.get_entities('study'):
-            # ToDo: create BioStudies Update Converter that accepts a submission
-            # so that linked entity accessions can be retrieved
-            # using self.excel.data.get_linked_entities or self.excel.data.get_linked_accessions
-            bio_study_accession = study.attributes['bio_study_accession']
-            if bio_study_accession in accessions:
-                submission = service.get_submission_by_accession(bio_study_accession).json
-                service.update_links_in_submission(submission, study)
-                service.send_submission(submission)
+            biostudies_accession = study.get_accession('BioStudies')
+            if biostudies_accession:
+                biostudies_submission = service.update_links_in_submission(self.excel.data, study)
+                service.send_submission(biostudies_submission)
 
     def submit_ena(self):
         self.ena_submission_files = EnaSubmissionConverter().convert(self.excel.data)
@@ -233,6 +228,5 @@ if __name__ == '__main__':
         if args['ena']:
             excel_utils.submit_ena()
 
-        # update archived entities with links
-        # if biostudies_service:
-        #    excel_utils.update_biostudies_links(biostudies_service, biostudies_accessions)
+        if biostudies_service:
+            excel_utils.update_biostudies_links(biostudies_service)
