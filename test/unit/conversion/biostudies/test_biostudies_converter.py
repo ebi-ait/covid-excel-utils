@@ -60,17 +60,6 @@ class TestBioStudiesConverter(unittest.TestCase):
                         "value": bio_study_entity.attributes["abstract"]
                     }
                 ],
-                "links": [
-                    {
-                        "url": bio_study_entity.attributes["study_accession"],
-                        "attributes": [
-                            {
-                                "name": "Type",
-                                "value": "ENA"
-                            }
-                        ]
-                    }
-                ],
                 "subsection": [
                     {
                         "type": "Author",
