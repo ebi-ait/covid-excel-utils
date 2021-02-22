@@ -42,23 +42,6 @@ BIO_STUDY_SPEC = {
             ],
             True
         ],
-        'links': [
-            '$array', [
-                {
-                    'url': ['study_accession'],
-                    'attributes': [
-                        '$array', [
-                            {
-                                'name': ['', fixed_attribute, 'Type'],
-                                'value': ['', fixed_attribute, 'ENA']
-                            }
-                        ],
-                        True
-                    ]
-                }
-            ],
-            True
-        ],
         'subsection': [
             '$array', [
                 {
