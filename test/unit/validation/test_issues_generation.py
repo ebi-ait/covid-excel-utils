@@ -6,15 +6,23 @@ import requests
 from unittest.mock import patch
 
 from validation.schema import SchemaValidator
+from submission.submission import Submission
 
 
 class TestIssuesGeneration(unittest.TestCase):
-
     def setUp(self):
         self.schema_validation = SchemaValidator("")
+        self.maxDiff = None
+        current_folder = dirname(__file__)
+        with open(join(current_folder, "../../resources/data_for_test_issues.json")) as test_data_file:
+            test_data = json.load(test_data_file)
+        self.submission = Submission()
+        for entity_type, attributes in test_data.items():
+            self.submission.map(entity_type, attributes["index"], attributes)
 
     @patch('validation.schema.requests.post')
     def test_when_validate_invalid_entity_with_valid_schema_should_return_errors(self, mock_post):
+        # Given
         mock_post.return_value.json.side_effect = ([
                 {
                     'dataPath': '.assembly_type',
@@ -41,12 +49,26 @@ class TestIssuesGeneration(unittest.TestCase):
             []
         )
         mock_post.return_value.status = requests.codes['ok']
+        expected_issues = {
+            "isolate_genome_assembly_information": {
+                "P17157_1007": {
+                    "assembly_type": ["should be equal to one of the allowed values: ['covid-19 outbreak']"],
+                    "coverage": ["should have required property 'coverage'"]
+                }
+            },
+            "study": {
+                "PRJEB39632": {
+                    "email_address": ["should have required property 'email_address'"]
+                }
+            }
+        }
+        
+        # When
+        self.schema_validation.validate_data(self.submission)
+        
+        # Then
+        self.assertDictEqual(expected_issues, self.submission.get_all_errors())
 
-        current_folder = dirname(__file__)
-        with open(join(current_folder, "../resources/data_for_test_issues.json")) as test_data_file:
-            test_data = json.load(test_data_file)
-        with open(join(current_folder, "../resources/test_issues.json")) as test_issues_file:
-            expected_test_issues = json.load(test_issues_file)
 
-        actual_issues = self.schema_validation.validate_data(test_data)
-        self.assertEqual(expected_test_issues, actual_issues)
+if __name__ == '__main__':
+    unittest.main()

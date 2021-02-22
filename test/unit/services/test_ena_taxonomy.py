@@ -7,6 +7,7 @@ from services.ena_taxonomy import EnaTaxonomy
 
 class TestEnaTaxonomy(unittest.TestCase):
     def setUp(self):
+        self.maxDiff = None
         self.ena_taxonomy = EnaTaxonomy(ena_url='')
     
     @staticmethod
@@ -202,3 +203,7 @@ class TestEnaTaxonomy(unittest.TestCase):
         error_result = self.ena_taxonomy.validate_taxonomy(valid_scientific_name, valid_tax_id)
         self.assertIn('error', error_result)
         self.assertEqual(expected_error_message, error_result['error'])
+
+
+if __name__ == '__main__':
+    unittest.main()

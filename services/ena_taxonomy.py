@@ -2,26 +2,27 @@ from http import HTTPStatus
 import requests
 
 
-class EnaTaxonomy:
-    TAX_ID_KEY = 'tax_id'
-    SPECIES_KEY = 'scientific_name'
+TAX_ID_KEY = 'tax_id'
+SPECIES_KEY = 'scientific_name'
 
+
+class EnaTaxonomy:
     def __init__(self, ena_url='https://www.ebi.ac.uk/ena'):
         self.tax_id_url = f'{ena_url.rstrip("/")}/taxonomy/rest/tax-id/'
         self.species_url = f'{ena_url.rstrip("/")}/data/taxonomy/v1/taxon/scientific-name/'
 
     def validate_tax_id(self, tax_id: str):
-        return self.__validate(self.tax_id_url, self.TAX_ID_KEY, tax_id)
+        return self.__validate(self.tax_id_url, TAX_ID_KEY, tax_id)
 
     def validate_scientific_name(self, scientific_name: str):
-        return self.__validate(self.species_url, self.SPECIES_KEY, scientific_name)
+        return self.__validate(self.species_url, SPECIES_KEY, scientific_name)
 
     def validate_taxonomy(self, scientific_name: str, tax_id: str):
         species_response = self.validate_scientific_name(scientific_name)
         tax_id_response = self.validate_tax_id(tax_id)
         response = {
-            self.SPECIES_KEY: species_response,
-            self.TAX_ID_KEY: tax_id_response
+            SPECIES_KEY: species_response,
+            TAX_ID_KEY: tax_id_response
         }
         if 'taxId' not in species_response or 'scientificName' not in tax_id_response or \
                 species_response['taxId'] != tax_id or \

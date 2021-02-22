@@ -22,12 +22,13 @@ class ExcelMarkup(ValidatingExcel):
 
     def markup_with_errors(self):
         error_fill = PatternFill(fill_type='solid', start_color='FF0000')
-        for row_index, row_errors in self.errors.items():
+        for row_index, row_errors in self.data.get_all_errors().items():
             error_count = 0
             for entity_type, entity_errors in row_errors.items():
                 for attribute_name, attribute_errors in entity_errors.items():
                     error_count = error_count + len(attribute_errors)
                     human_errors = self.human_attribute_errors(entity_type, attribute_name, attribute_errors)
+                    # ToDo: Report ALL missing mandatory fields rather than just first
                     cell_index = self.lookup_cell_index(entity_type, attribute_name, row_index)
                     self.__sheet[cell_index].comment = self.__get_error_comment(human_errors)
                     self.__sheet[cell_index].fill = error_fill
@@ -37,15 +38,20 @@ class ExcelMarkup(ValidatingExcel):
                 self.__sheet[f'C{row_index}'] = f'{error_count} Errors'
                 self.__sheet[f'C{row_index}'].fill = error_fill
 
+    # ToDo: When Submission accession functionality is done, save all 'new' accessions for all types
     def add_biosample_accessions(self):
-        for row_index, row in self.data.items():
-            if 'sample' in row and 'biosample' in row['sample']:
-                cell_index = self.lookup_cell_index('sample', 'sample_accession', row_index)
-                self.__sheet[cell_index] = row['sample']['biosample']['accession']
+        for entity in self.data.get_entities('sample'):
+            if 'biosample' in entity.attributes:
+                for row_index in self.data.get_rows_from_id(entity.identifier):
+                    cell_index = self.lookup_cell_index('sample', 'sample_accession', row_index)
+                    self.__sheet[cell_index] = entity.attributes['biosample']['accession']
 
     def lookup_cell_index(self, entity_type, attribute, row):
         attribute_key = f'{entity_type}.{attribute}'
-        column_letter = self.attribute_map[attribute_key]
+        if attribute_key not in self.attribute_map:
+            column_letter = 'C'
+        else:
+            column_letter = self.attribute_map[attribute_key]
         return f'{column_letter}{row}'
 
     @staticmethod

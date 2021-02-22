@@ -1,7 +1,16 @@
 from contextlib import closing
-
 from openpyxl import load_workbook
+
 from .clean import clean_entity_name, clean_name, is_value_populated
+from .submission import ExcelSubmission
+
+
+POSSIBLE_KEYS = ['alias', 'index', 'name']
+LINK_TYPE_MAP = {
+    'sample': 'BioSamples',
+    'study': 'ENA',
+    'run_experiment': 'ENA'
+}
 
 
 class ExcelLoader:
@@ -38,8 +47,8 @@ class ExcelLoader:
         return column_map
 
     @staticmethod
-    def get_data(worksheet, column_map: dict):
-        data = {}
+    def get_data(worksheet, column_map: dict) -> ExcelSubmission:
+        data = ExcelSubmission()
         # Import cell values into data object
         # Uses .iter_rows for faster reads, requires workbook read_only=True
         row_index = 6
@@ -54,7 +63,34 @@ class ExcelLoader:
                     object_name = column_map[cell.column_letter]['object']
                     attribute_name = column_map[cell.column_letter]['attribute']
                     row_data.setdefault(object_name, {})[attribute_name] = value
-            if len(row_data) > 0:
-                data[row_index] = row_data
+            for entity_type, attributes in row_data.items():
+                accession = ExcelLoader.get_accession(entity_type, attributes)
+                if accession:
+                    index = accession
+                else:
+                    index = ExcelLoader.get_index(entity_type, row_index, attributes)
+                entity = data.map_row(row_index, entity_type, index, attributes)
+                if accession and entity_type in LINK_TYPE_MAP:
+                    entity.add_accession(LINK_TYPE_MAP[entity_type], accession)
             row_index = row_index + 1
         return data
+
+    @staticmethod
+    def get_index(entity_type: str, row: int, attributes: dict) -> str:
+        # Find index in the form 'study_alias', study_index, study_name, ect
+        for possible_key in POSSIBLE_KEYS:
+            typed_key = f'{entity_type}_{possible_key}'
+            if typed_key in attributes:
+                return attributes[typed_key]
+        # Else: no index found use entity_type:row
+        return f'{entity_type}:{row}'
+
+    @staticmethod
+    def get_accession(entity_type: str, attributes: dict) -> str:
+        possible_keys = [f'{entity_type}_accession', 'accession']
+        for possible_key in possible_keys:
+            if possible_key in attributes:
+                return attributes[possible_key]
+        for key, value in attributes.items():
+            if 'accession' in key:
+                return value

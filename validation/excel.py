@@ -5,6 +5,7 @@ from openpyxl.worksheet.datavalidation import DataValidationList
 from openpyxl.worksheet.worksheet import Worksheet
 from excel.clean import (entity_has_attribute, clean_validation, clean_entity_name, clean_key,
                          clean_name, clean_formula_list, clean_validation_list, is_valid_date)
+from submission.entity import Entity
 from .base import BaseValidator
 
 
@@ -13,30 +14,13 @@ class ExcelValidator(BaseValidator):
         self.validation_map = self.__get_validation(file_path, sheet_index)
         # ToDo: Accept param for number of header rows, columns / mapping of headers
 
-    def validate_data(self, data: dict) -> dict:
-        errors = {}
-        for row_index, entities in data.items():
-            row_errors = self.validate_row(self.validation_map, entities)
-            if row_errors:
-                errors[row_index] = row_errors
-        return errors
-    
-    @staticmethod
-    def validate_row(validation_map: dict, entities: dict) -> dict:
-        row_errors = {}
-        for entity_name, entity_validation in validation_map.items():
-            if entity_name in entities:
-                entity_errors = ExcelValidator.validate_entity(entity_validation, entities[entity_name])
-                if entity_errors:
-                    row_errors[entity_name] = entity_errors
-        return row_errors
-    
-    @staticmethod
-    def validate_entity(entity_validation: dict, entity: dict) -> dict:
-        entity_errors = {}
+    def validate_entity(self, entity: Entity):
+        if entity.identifier.entity_type not in self.validation_map:
+            return
+        entity_validation = self.validation_map[entity.identifier.entity_type]
         for attribute_name, attribute_validation in entity_validation.items():
             attribute_errors = []
-            if not entity_has_attribute(entity, attribute_name):
+            if not entity_has_attribute(entity.attributes, attribute_name):
                 if 'mandatory' in attribute_validation:
                     mandatory = attribute_validation['mandatory'].strip()
                     if mandatory == 'M':
@@ -46,11 +30,9 @@ class ExcelValidator(BaseValidator):
                     elif mandatory != 'O':
                         attribute_errors.append(f'may be required: {mandatory}')
             else:
-                attribute_errors.extend(ExcelValidator.validate_attribute(attribute_validation, entity[attribute_name]))
+                attribute_errors.extend(ExcelValidator.validate_attribute(attribute_validation, entity.attributes[attribute_name]))
             if attribute_errors:
-                entity_errors[attribute_name] = attribute_errors
-                entity.setdefault('errors', {}).setdefault(attribute_name, []).extend(attribute_errors)
-        return entity_errors
+                entity.add_errors(attribute_name, attribute_errors)
 
     @staticmethod
     def validate_attribute(attribute_validation: dict, value) -> List[str]:

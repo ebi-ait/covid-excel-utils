@@ -36,7 +36,7 @@ def fixup_sample(sample: dict) -> dict:
                    'sample_description', 'tax_id', 'scientific_name', 'domain']
     for key in remove_keys:
         if key in fixed_sample:
-            fixed_sample.pop(key)
+            del fixed_sample[key]
 
     if 'collecting_institution' not in fixed_sample and 'collecting_institute' in fixed_sample:
         fixed_sample['collecting_institution'] = fixed_sample.pop('collecting_institute')
@@ -63,6 +63,7 @@ class BioSamples:
         self.domain = domain
         self.encoder = SampleEncoder()
 
+    # ToDo: Move encoding the sample to conversion.biosamples.py
     def encode_sample(self, input_sample: dict) -> dict:
         sample = map_sample(input_sample)
         return self.encoder.default(sample)

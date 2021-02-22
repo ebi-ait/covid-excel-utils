@@ -4,6 +4,8 @@ from os import listdir
 from os.path import dirname, join, splitext
 
 import requests
+
+from submission.entity import Entity
 from .base import BaseValidator
 
 
@@ -14,29 +16,16 @@ class SchemaValidator(BaseValidator):
         self.validator_url = validator_url
         self.__load_schema_files()
 
-    def validate_data(self, data: dict) -> dict:
-        errors = {}
-        for row_index, entities in data.items():
-            row_issues = {}
-            for entity_type, entity in entities.items():
-                entity_errors = self.validate_entity(entity_type, entity)
-                if entity_errors:
-                    row_issues[entity_type] = entity_errors
-            if row_issues:
-                errors[row_index] = row_issues
-        return errors
+    def validate_entity(self, entity: Entity):
+        if entity.identifier.entity_type not in self.schema_by_type:
+            return
+        schema = self.schema_by_type[entity.identifier.entity_type]
+        schema_errors = self.__validate(schema, entity.attributes)
+        self.__add_errors_to_entity(entity, schema_errors)
 
-    def validate_entity(self, entity_type: str, entity: dict) -> dict:
-        schema = self.schema_by_type.get(entity_type, {})
-        schema_errors = self.__validate(schema, entity)
-        entity_errors = self.__translate_to_error(schema_errors)
-        for attribute, errors in entity_errors.items():
-            entity.setdefault('errors', {}).setdefault(attribute, []).extend(errors)
-        return entity_errors
-
-    def __validate(self, schema: dict, entity: dict):
+    def __validate(self, schema: dict, entity_attributes: dict):
         schema.pop('id', None)
-        payload = self.__create_validator_payload(schema, entity)
+        payload = self.__create_validator_payload(schema, entity_attributes)
         return requests.post(self.validator_url, json=payload).json()
 
     def __load_schema_files(self):
@@ -49,20 +38,18 @@ class SchemaValidator(BaseValidator):
                     self.schema_by_type[entity_type] = json.load(schema_file)
 
     @staticmethod
-    def __create_validator_payload(schema, entity):
-        entity = json.loads(json.dumps(entity).lower())
+    def __create_validator_payload(schema: dict, entity_attributes: dict):
+        entity = json.loads(json.dumps(entity_attributes).lower())
         return {
             "schema": schema,
             "object": entity
         }
 
     @staticmethod
-    def __translate_to_error(schema_errors: dict) -> dict:
-        errors = {}
+    def __add_errors_to_entity(entity: Entity, schema_errors: dict):
         for schema_error in schema_errors:
             attribute_name = str(schema_error['dataPath']).strip('.')
             stripped_errors = []
             for error in schema_error['errors']:
                 stripped_errors.append(error.replace('"', '\''))
-            errors.setdefault(attribute_name, []).extend(stripped_errors)
-        return errors
+            entity.add_errors(attribute_name, stripped_errors)
