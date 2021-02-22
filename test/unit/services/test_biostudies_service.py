@@ -1,7 +1,5 @@
 import unittest
 from http import HTTPStatus
-from unittest.case import SkipTest
-
 from biostudiesclient.auth import Auth, AuthResponse
 from biostudiesclient.exceptions import RestErrorException
 
@@ -11,6 +9,7 @@ from biostudiesclient.response_utils import ResponseObject
 
 from services.biostudies import BioStudies
 from submission.entity import Entity, EntityIdentifier
+from submission.submission import Submission
 
 
 class TestBioStudiesService(unittest.TestCase):
@@ -110,26 +109,38 @@ class TestBioStudiesService(unittest.TestCase):
         self.assertEqual(HTTPStatus.BAD_REQUEST, context.exception.status_code)
         self.assertEqual(expected_error_message, context.exception.message)
 
-    @unittest.skip('Need to rework biostudies update functionality')
     def test_when_study_contains_new_links_then_those_added_to_submission(self):
-        submission = self.__create_submission()
-        submission['section'].pop('links')
-
-        study = Entity('study', 'test alias', attributes={})
-        study.add_accession('test', 'PRJ1234')
-        study.links = self.__create_entity_links()
-
+        # Given
         test_session_id = "test.session.id"
         auth_response = AuthResponse(status=HTTPStatus(200))
         auth_response.session_id = test_session_id
         self.mock_auth.login = MagicMock(return_value=auth_response)
         biostudies = BioStudies("url", "username", "password")
 
-        biostudies.update_links_in_submission(submission, study)
+        response = ResponseObject()
+        response.json = self.__create_submission()
+        biostudies.get_submission_by_accession = MagicMock(return_value=response)
 
-        links_section = submission['section']['links']
+        submission = Submission()
+        study = submission.map('study', 'test alias', attributes={})
+        study.add_accession('test', 'PRJ1234')
+        self.__link_entity_accessions(submission, study)
+        expected_links = [
+            {'url': 'ABC1234', 'attributes': [{'name': 'Type', 'value': 'ena'}]},
+            {'url': 'SAME123', 'attributes': [{'name': 'Type', 'value': 'biosample'}]},
+            {'url': 'SAME456', 'attributes': [{'name': 'Type', 'value': 'biosample'}]},
+            {'url': 'SAME789', 'attributes': [{'name': 'Type', 'value': 'biosample'}]}
+        ]
+
+        # When
+        biostudies_submission = biostudies.update_links_in_submission(submission, study)
+
+        # Then
+        links_section = biostudies_submission.get('section', {}).get('links', [])
         self.assertTrue(links_section)
-        self.assertEqual(len(links_section), 3)
+        for expected_element in expected_links:
+            self.assertIn(expected_element, links_section)
+        self.assertCountEqual(expected_links, links_section)
 
     @staticmethod
     def __create_submission():
@@ -154,7 +165,7 @@ class TestBioStudiesService(unittest.TestCase):
                         'attributes': [
                             {
                                 'name': 'Type',
-                                'value': 'ENA'
+                                'value': 'ena'
                             }
                         ]
                     }
@@ -190,17 +201,14 @@ class TestBioStudiesService(unittest.TestCase):
 
         return submission
 
-    def __create_entity_links(self):
-        entity_links = {}
-        sample_links = entity_links.setdefault('sample', [])
-
+    @staticmethod
+    def __link_entity_accessions(submission: Submission, entity: Entity):
+        run = submission.map('experiment_run', 'ABC1234', {})
+        run.add_accession('ENA', 'ABC1234')
         for index in [123, 456, 789]:
-            sample_links.append(self.__create_entity_identifier(
-                entity_type='sample',
-                index=f'index_{index}'
-            ))
-
-        return entity_links
+            new_entity = submission.map('sample', str(index), {})
+            new_entity.add_accession('BioSamples', f'SAME{index}')
+            entity.add_link('sample', new_entity.identifier.index)
 
     @staticmethod
     def __create_entity_identifier(entity_type, index):
