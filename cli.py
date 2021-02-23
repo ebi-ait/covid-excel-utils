@@ -54,24 +54,30 @@ class CovidExcelUtils:
                 response = service.send_sample(request)
                 if 'accession' in response:
                     sample.add_accession('BioSamples', response['accession'])
-                    sample.attributes['sample_accession'] = response['accession']
             except Exception as error:
                 error_msg = f'BioSamples Error: {error}'
                 sample.add_error('sample_accession', error_msg)
 
     def submit_to_biostudies(self, service: BioStudies):
         for study in self.excel.data.get_entities("study"):
-            bio_study_submission = BioStudyConverter.convert_study(study)
-            accession = service.send_submission(bio_study_submission)
-            study.add_accession('BioStudies', accession)
-            study.attributes['bio_study_accession'] = accession
+            try:
+                bio_study_submission = BioStudyConverter.convert_study(study)
+                accession = service.send_submission(bio_study_submission)
+                study.add_accession('BioStudies', accession)
+            except Exception as error:
+                error_msg = f'BioStudies Error: {error}'
+                study.add_error('study_accession', error_msg)
 
     def update_biostudies_links(self, service: BioStudies):
         for study in self.excel.data.get_entities('study'):
             biostudies_accession = study.get_accession('BioStudies')
             if biostudies_accession:
-                biostudies_submission = service.update_links_in_submission(self.excel.data, study)
-                service.send_submission(biostudies_submission)
+                try:
+                    biostudies_submission = service.update_links_in_submission(self.excel.data, study)
+                    service.send_submission(biostudies_submission)
+                except Exception as error:
+                    error_msg = f'BioStudies Error: {error}'
+                    study.add_error('study_accession', error_msg)
 
     def submit_ena(self):
         self.ena_submission_files = EnaSubmissionConverter().convert(self.excel.data)
@@ -208,9 +214,13 @@ if __name__ == '__main__':
                 logging.error('No AAP_PASSWORD detected in os environment variables.')
                 sys.exit(2)
             logging.info(f"Attempting to Submit to BioSamples: {args['biosamples_url']}, AAP: {args['aap_url']}")
-            aap_client = AapClient(url=args['aap_url'], username=os.environ['AAP_USERNAME'], password=os.environ['AAP_PASSWORD'])
-            biosamples_service = BioSamples(aap_client, args['biosamples_url'], args['biosamples_domain'])
-            excel_utils.submit_to_biosamples(biosamples_service)
+            try:
+                aap_client = AapClient(url=args['aap_url'], username=os.environ['AAP_USERNAME'], password=os.environ['AAP_PASSWORD'])
+                biosamples_service = BioSamples(aap_client, args['biosamples_url'], args['biosamples_domain'])
+                excel_utils.submit_to_biosamples(biosamples_service)
+            except Exception as error:
+                logging.error(f'BioSamples Error: {error}')
+                sys.exit(2)
 
         biostudies_service = None
         biostudies_accessions = []
@@ -222,9 +232,13 @@ if __name__ == '__main__':
                 logging.error('No BIOSTUDIES_PASSWORD detected in os environment variables.')
                 sys.exit(2)
             logging.info(f"Attempting to Submit to BioStudies: {args['biostudies_url']}")
-            biostudies_service = BioStudies(args['biostudies_url'], os.environ['BIOSTUDIES_USERNAME'], os.environ['BIOSTUDIES_PASSWORD'])
-            excel_utils.submit_to_biostudies(biostudies_service)
-
+            try:
+                biostudies_service = BioStudies(args['biostudies_url'], os.environ['BIOSTUDIES_USERNAME'], os.environ['BIOSTUDIES_PASSWORD'])
+                excel_utils.submit_to_biostudies(biostudies_service)
+            except Exception as error:
+                logging.error(f'BioStudies Error: {error}')
+                sys.exit(2)
+        
         if args['ena']:
             excel_utils.submit_ena()
 
