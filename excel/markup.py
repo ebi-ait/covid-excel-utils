@@ -33,10 +33,8 @@ class ExcelMarkup(ValidatingExcel):
                     self.__sheet[cell_index].comment = self.__get_error_comment(human_errors)
                     self.__sheet[cell_index].fill = error_fill
             if error_count:
-                self.__sheet[f'B{row_index}'] = f'Errors'
-                self.__sheet[f'B{row_index}'].fill = error_fill
-                self.__sheet[f'C{row_index}'] = f'{error_count} Errors'
-                self.__sheet[f'C{row_index}'].fill = error_fill
+                self.__sheet[f'A{row_index}'] = f'{error_count} Errors'
+                self.__sheet[f'A{row_index}'].fill = error_fill
 
     # ToDo: When Submission accession functionality is done, save all 'new' accessions for all types
     def add_biosample_accessions(self):
@@ -66,14 +64,8 @@ class ExcelMarkup(ValidatingExcel):
     def __clear_markup(excel_path, sheet_index):
         with closing(load_workbook(filename=excel_path, keep_links=False)) as book:
             sheet = book.worksheets[sheet_index]
-
-            if sheet['B1'].value == 'validation':
-                sheet.delete_cols(2, 2)
-
-            sheet.insert_cols(2, 2)
-            sheet['B1'] = 'validation'
-            sheet['B2'] = 'summary'
-            sheet['C2'] = 'number_of_errors'
+            sheet.delete_cols(1, 1)
+            sheet.insert_cols(1, 1)
 
             for row in sheet.iter_rows():
                 for cell in row:
