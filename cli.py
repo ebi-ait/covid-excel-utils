@@ -85,7 +85,7 @@ class CovidExcelUtils:
     def close(self):
         if self.excel:
             if isinstance(self.excel, ExcelMarkup):
-                self.excel.add_biosample_accessions()
+                self.excel.add_accessions()
                 self.excel.markup_with_errors()
                 self.excel.close()
                 logging.info(f'Excel file updated: {self.__file_path}')

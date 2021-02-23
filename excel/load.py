@@ -1,15 +1,22 @@
 from contextlib import closing
+from typing import List
+
 from openpyxl import load_workbook
 
+from submission.entity import Entity
 from .clean import clean_entity_name, clean_name, is_value_populated
 from .submission import ExcelSubmission
 
-
 POSSIBLE_KEYS = ['alias', 'index', 'name']
-LINK_TYPE_MAP = {
+SERVICE_MAP = {
+    'study': 'BioStudies',
     'sample': 'BioSamples',
-    'study': 'ENA',
     'run_experiment': 'ENA'
+}
+SERVICE_NAMES = {
+    'BioStudies'.lower(): 'BioStudies',
+    'BioSamples'.lower(): 'BioSamples',
+    'ENA'.lower(): 'ENA'
 }
 
 
@@ -64,16 +71,39 @@ class ExcelLoader:
                     attribute_name = column_map[cell.column_letter]['attribute']
                     row_data.setdefault(object_name, {})[attribute_name] = value
             for entity_type, attributes in row_data.items():
-                accession = ExcelLoader.get_accession(entity_type, attributes)
-                if accession:
-                    index = accession
-                else:
-                    index = ExcelLoader.get_index(entity_type, row_index, attributes)
-                entity = data.map_row(row_index, entity_type, index, attributes)
-                if accession and entity_type in LINK_TYPE_MAP:
-                    entity.add_accession(LINK_TYPE_MAP[entity_type], accession)
+                ExcelLoader.map_row_entity(data, row_index, entity_type, attributes)
+
             row_index = row_index + 1
         return data
+
+    @staticmethod
+    def map_row_entity(submission: ExcelSubmission, row: int, entity_type: str, attributes: dict) -> Entity:
+        accession_attribute = ExcelLoader.default_accession_attribute(entity_type)
+        accession = attributes.get(accession_attribute, None)
+        if accession:
+            index = accession
+        else:
+            index = ExcelLoader.get_index(entity_type, row, attributes)
+        entity = submission.map_row(row, entity_type, index, attributes)
+        if accession:
+            entity.add_accession(SERVICE_MAP[entity_type], accession)
+        ExcelLoader.add_entity_accessions(entity, ignore=[accession_attribute])
+        return entity
+
+    @staticmethod
+    def get_accession_attribute(entity_type: str, service: str):
+        if entity_type in SERVICE_MAP:
+            return ExcelLoader.default_accession_attribute(entity_type)
+        else:
+            return ExcelLoader.service_accession_attribute(entity_type, service)
+
+    @staticmethod
+    def default_accession_attribute(entity_type: str) -> str:
+        return f'{entity_type}_accession'
+
+    @staticmethod
+    def service_accession_attribute(entity_type: str, service: str):
+        return f'{entity_type.lower()}_{service.lower()}_accession'
 
     @staticmethod
     def get_index(entity_type: str, row: int, attributes: dict) -> str:
@@ -86,11 +116,18 @@ class ExcelLoader:
         return f'{entity_type}:{row}'
 
     @staticmethod
-    def get_accession(entity_type: str, attributes: dict) -> str:
-        possible_keys = [f'{entity_type}_accession', 'accession']
-        for possible_key in possible_keys:
-            if possible_key in attributes:
-                return attributes[possible_key]
-        for key, value in attributes.items():
-            if 'accession' in key:
-                return value
+    def add_entity_accessions(entity: Entity, ignore: List[str]):
+        prefix = f'{entity.identifier.entity_type}_'
+        suffix = '_accession'
+        attribute: str
+        for attribute in entity.attributes.keys():
+            if (
+                    attribute not in ignore and
+                    attribute.startswith(prefix) and
+                    attribute.endswith(suffix)
+            ):
+                service_name = attribute[len(prefix):len(attribute)-len(suffix)]
+                if service_name in SERVICE_NAMES:
+                    service_name = SERVICE_NAMES[service_name]
+                if service_name and entity.attributes[attribute]:
+                    entity.add_accession(service_name, entity.attributes[attribute])

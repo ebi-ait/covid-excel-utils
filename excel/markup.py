@@ -3,6 +3,7 @@ from contextlib import closing
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from openpyxl.comments import Comment
+from openpyxl.utils import get_column_letter
 from .validate import ValidatingExcel
 
 
@@ -28,28 +29,50 @@ class ExcelMarkup(ValidatingExcel):
                 for attribute_name, attribute_errors in entity_errors.items():
                     error_count = error_count + len(attribute_errors)
                     human_errors = self.human_attribute_errors(entity_type, attribute_name, attribute_errors)
-                    cell_index = self.lookup_cell_index(entity_type, attribute_name, row_index)
+                    column_letter = self.get_column_letter(entity_type, attribute_name, 'A')
+                    cell_index = self.get_cell_index(column_letter, row_index)
                     self.__sheet[cell_index].comment = self.__get_error_comment(human_errors, self.__sheet[cell_index].comment)
                     self.__sheet[cell_index].fill = error_fill
             if error_count:
                 self.__sheet[f'A{row_index}'] = f'{error_count} Errors'
                 self.__sheet[f'A{row_index}'].fill = error_fill
 
-    # ToDo: When Submission accession functionality is done, save all 'new' accessions for all types
-    def add_biosample_accessions(self):
-        for entity in self.data.get_entities('sample'):
-            if 'biosample' in entity.attributes:
-                for row_index in self.data.get_rows_from_id(entity.identifier):
-                    cell_index = self.lookup_cell_index('sample', 'sample_accession', row_index)
-                    self.__sheet[cell_index] = entity.attributes['biosample']['accession']
+    def add_accessions(self):
+        for entity_type in self.data.get_entity_types():
+            for entity in self.data.get_entities(entity_type):
+                for service, accession in entity.get_accessions():
+                    self.add_accession(entity_type, entity.identifier.index, service, accession)
 
-    def lookup_cell_index(self, entity_type, attribute, row):
+    def add_accession(self, entity_type: str, index: str, service: str, accession: str):
+        attribute = self.get_accession_attribute(entity_type, service)
+        column_letter = self.get_column_letter(entity_type, attribute)
+        if not column_letter:
+            column_letter = self.add_column(entity_type, attribute)
+        for row_index in self.data.get_rows(entity_type, index):
+            cell_index = self.get_cell_index(column_letter, row_index)
+            self.__sheet[cell_index] = accession
+
+    def get_column_letter(self, entity_type, attribute, default_column=None):
         attribute_key = f'{entity_type}.{attribute}'
-        if attribute_key not in self.attribute_map:
-            column_letter = 'C'
-        else:
-            column_letter = self.attribute_map[attribute_key]
-        return f'{column_letter}{row}'
+        return self.attribute_map.get(attribute_key, default_column)
+
+    def add_column(self, entity_type: str, attribute: str) -> str:
+        column_letter = self.__get_next_column_letter()
+        self.__sheet[f'{column_letter}1'] = entity_type
+        self.__sheet[f'{column_letter}2'] = attribute
+        self.column_map[column_letter] = {
+            'object': entity_type,
+            'attribute': attribute
+        }
+        self.attribute_map[f'{entity_type}.{attribute}'] = column_letter
+        return column_letter
+
+    def __get_next_column_letter(self) -> str:
+        return get_column_letter(self.__sheet.max_column + 1)
+    
+    @staticmethod
+    def get_cell_index(column_letter, row_index):
+        return f'{column_letter}{row_index}'
 
     @staticmethod
     def reverse_column_map(column_map: dict) -> dict:
