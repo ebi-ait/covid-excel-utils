@@ -20,7 +20,7 @@
     "host_sex",
     "host_scientific_name",
     "collector_name",
-    "collecting_institute",
+    "collecting_institution",
     "isolate"
   ],
   "properties": {
@@ -120,7 +120,7 @@
         ]
       }
     },
-    "collecting_institute": {
+    "collecting_institution": {
       "description": "Name of the institution to which the person collecting the specimen belongs. Format: Institute Name, Institute Address",
       "type": "string"
     },
