@@ -28,9 +28,8 @@ class ExcelMarkup(ValidatingExcel):
                 for attribute_name, attribute_errors in entity_errors.items():
                     error_count = error_count + len(attribute_errors)
                     human_errors = self.human_attribute_errors(entity_type, attribute_name, attribute_errors)
-                    # ToDo: Report ALL missing mandatory fields rather than just first
                     cell_index = self.lookup_cell_index(entity_type, attribute_name, row_index)
-                    self.__sheet[cell_index].comment = self.__get_error_comment(human_errors)
+                    self.__sheet[cell_index].comment = self.__get_error_comment(human_errors, self.__sheet[cell_index].comment)
                     self.__sheet[cell_index].fill = error_fill
             if error_count:
                 self.__sheet[f'A{row_index}'] = f'{error_count} Errors'
@@ -74,9 +73,13 @@ class ExcelMarkup(ValidatingExcel):
             book.save(excel_path)
 
     @staticmethod
-    def __get_error_comment(human_errors):
-        human_error = '\r\n'.join(human_errors)
-        comment = Comment(human_error, f'Validation')
+    def __get_error_comment(human_errors, existing_comment: Comment = None):
+        stack = []
+        if existing_comment and existing_comment.text:
+            stack.append(existing_comment.text)
+        stack.extend(human_errors)
+        text = '\r\n'.join(stack)
+        comment = Comment(text, f'Validation')
         comment.width = 500
         comment.height = 100
         return comment
