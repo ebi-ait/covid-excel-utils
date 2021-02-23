@@ -38,8 +38,6 @@ def fixup_sample(sample: dict) -> dict:
         if key in fixed_sample:
             del fixed_sample[key]
 
-    if 'collecting_institution' not in fixed_sample and 'collecting_institute' in fixed_sample:
-        fixed_sample['collecting_institution'] = fixed_sample.pop('collecting_institute')
     return fixed_sample
 
 
