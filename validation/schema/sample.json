@@ -21,6 +21,7 @@
     "host_scientific_name",
     "collector_name",
     "collecting_institution",
+    "collection_date",
     "isolate"
   ],
   "properties": {
@@ -50,15 +51,7 @@
     },
     "sample_description": {
       "description": "Description of the sample.",
-      "type": "string",
-      "not": {
-        "enum": [
-          "not provided",
-          "not applicable",
-          "not collected",
-          "restricted access"
-        ]
-      }
+      "type": "string"
     },
     "gravidity": {
       "description": "Whether or not the subject is gravid. If so, report date due or date post-conception and specify which of these two dates is being reported.",
@@ -440,11 +433,6 @@
       "description": "Unique laboratory identifier assigned to the virus by the investigator. Strain name is not sufficient since it might not be unique due to various passsages of the same virus. Format: up to 50 alphanumeric characters",
       "type": "string"
     },
-    "collection_date": {
-      "description": "The date of sampling, either as an instance (single point in time) or interval. In case no exact time is available, the date/time can be right truncated i.e. all of these are valid ISO8601 compliant times: 2008-01-23T19:23:10+00:00; 2008-01-23T19:23:10; 2008-01-23; 2008-01; 2008.",
-      "type": "string",
-      "format": "date"
-    },
     "subject_exposure": {
       "description": "Exposure of the subject to infected human or animals, such as poultry, wild bird or swine. If multiple exposures are applicable, please state them separated by semicolon. Example: poultry; wild bird",
       "type": "string"
@@ -521,5 +509,29 @@
       "description": "The symptoms that have been reported in relation to the illness, such as cough, diarrhea, fever, headache, malaise, myalgia, nausea, runny_nose, shortness_of_breath, sore_throat. If multiple exposures are applicable, please state them separated by semicolon.",
       "type": "string"
     }
-  }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "collection_date": {
+          "description": "The date of sampling, either as an instance (single point in time) or interval. In case no exact time is available, the date/time can be right truncated i.e. all of these are valid ISO8601 compliant times: 2008-01-23T19:23:10+00:00; 2008-01-23T19:23:10; 2008-01-23; 2008-01; 2008.",
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    {
+      "properties": {
+        "collection_date": {
+          "description": "The date of sampling, either as an instance (single point in time) or interval. In case no exact time is available, the date/time can be right truncated i.e. all of these are valid ISO8601 compliant times: 2008-01-23T19:23:10+00:00; 2008-01-23T19:23:10; 2008-01-23; 2008-01; 2008.",
+          "type": "string",
+          "not": {
+            "enum": [
+              "not applicable"
+            ]
+          }
+        }
+      }
+    }
+  ]
 }
