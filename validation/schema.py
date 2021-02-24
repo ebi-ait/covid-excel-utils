@@ -51,5 +51,12 @@ class SchemaValidator(BaseValidator):
             attribute_name = str(schema_error['dataPath']).strip('.')
             stripped_errors = []
             for error in schema_error['errors']:
-                stripped_errors.append(error.replace('"', '\''))
+                error.replace('"', '\'')
+                if error == 'should NOT be valid':
+                    error = SchemaValidator.__improve_not_be_valid_error_message(entity.identifier.entity_type, attribute_name)
+                stripped_errors.append(error)
             entity.add_errors(attribute_name, stripped_errors)
+
+    @staticmethod
+    def __improve_not_be_valid_error_message(entity_type, attribute_name):
+        return f'{entity_type} should have required property: \'{attribute_name}\''
