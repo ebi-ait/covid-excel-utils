@@ -510,7 +510,7 @@
       "type": "string"
     }
   },
-  "oneOf": [
+  "anyOf": [
     {
       "properties": {
         "collection_date": {
