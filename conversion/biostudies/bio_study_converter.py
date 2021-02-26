@@ -79,5 +79,13 @@ class BioStudyConverter:
 
     @staticmethod
     def convert_study(entity: Entity):
+        submission_payload = JsonMapper(entity.attributes).map(BIO_STUDY_SPEC)
+        return BioStudyConverter.__add_accession(entity, submission_payload)
 
-        return JsonMapper(entity.attributes).map(BIO_STUDY_SPEC)
+    @staticmethod
+    def __add_accession(study: Entity, submission_payload: dict):
+        study_accession: str = study.get_accession('BioStudies')
+        if study_accession:
+            submission_payload['accno'] = study_accession
+
+        return submission_payload
