@@ -1,3 +1,4 @@
+from conversion.conversion_utils import fixed_attribute
 from .base import BaseEnaConverter
 
 
@@ -6,9 +7,9 @@ PROJECT_SPEC = {
     'NAME': ['study_name'],
     'TITLE': ['short_description'],
     'DESCRIPTION': ['abstract'],
-    'SUBMISSION_PROJECT': ['$object', {
-        'SEQUENCING_PROJECT': {}
-    }]  # $object keyword for JSON Literal
+    'SUBMISSION_PROJECT': {
+        'SEQUENCING_PROJECT': ['', fixed_attribute, '']
+    }
 }
 
 

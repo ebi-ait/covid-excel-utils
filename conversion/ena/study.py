@@ -18,7 +18,7 @@ STUDY_SPEC = {
         }
     }
 }
-
+STUDY_ACCESSION_PRIORITY = ['ENA', 'BioStudies']
 REMOVE_KEYS = ['study_accession', 'study_alias', 'center_name', 'study_name', 'short_description', 'abstract', 'study_name']
 
 

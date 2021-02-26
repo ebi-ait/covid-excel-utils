@@ -16,8 +16,7 @@ SAMPLE_SPEC = {
     },
     'DESCRIPTION': ['sample_description']
 }
-
-
+SAMPLE_ACCESSION_PRIORITY = ['ENA', 'BioSamples']
 REMOVE_KEYS = ['sample_accession', 'sample_alias', 'center_name', 'broker_name', 'sample_title',
                'sample_description', 'tax_id', 'scientific_name', 'common_name']
 

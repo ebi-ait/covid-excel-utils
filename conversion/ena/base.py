@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Iterable
 from xml.etree.ElementTree import Element
 
 from lxml import etree
@@ -22,7 +23,7 @@ class BaseEnaConverter:
         self.add_children(parent=root, children=xml_map)
         self.post_conversion(entity, root)
         return root
-    
+       
     @staticmethod
     def post_conversion(entity: Entity, xml_element: Element):
         pass
@@ -56,13 +57,13 @@ class BaseEnaConverter:
     @staticmethod
     def add_alias(spec: dict, entity: Entity):
         spec['@alias'] = ['', fixed_attribute, entity.identifier.index]
-        accession = entity.get_first_accession(['ENA', 'BioStudies', 'BioSamples'])
+        accession = entity.get_accession('ENA')
         if accession:
             spec['@accession'] = ['', fixed_attribute, accession]
 
     @staticmethod
-    def add_link(link: dict, entity: Entity):
+    def add_link(link: dict, entity: Entity, accession_services: Iterable[str]):
         link['@refname'] = ['', fixed_attribute, entity.identifier.index]
-        accession = entity.get_first_accession(['ENA', 'BioStudies', 'BioSamples'])
+        accession = entity.get_first_accession(accession_services)
         if accession:
             link['@accession'] = ['', fixed_attribute, accession]
