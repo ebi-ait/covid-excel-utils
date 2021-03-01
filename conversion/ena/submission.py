@@ -49,7 +49,8 @@ class EnaSubmissionConverter:
         sample_converter = EnaSampleConverter()
         samples_node = etree.XML('<SAMPLE_SET />')
         for sample in data.get_entities('sample'):
-            samples_node.append(sample_converter.convert(sample))
+            if not sample.get_accession('BioSamples'):
+                samples_node.append(sample_converter.convert(sample))
         return samples_node
 
     @staticmethod
