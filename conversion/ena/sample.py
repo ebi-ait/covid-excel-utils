@@ -16,14 +16,14 @@ SAMPLE_SPEC = {
     },
     'DESCRIPTION': ['sample_description']
 }
-SAMPLE_ACCESSION_PRIORITY = ['ENA', 'BioSamples']
+SAMPLE_ACCESSION_PRIORITY = ['BioSamples', 'ENA_Sample']
 REMOVE_KEYS = ['sample_accession', 'sample_alias', 'center_name', 'broker_name', 'sample_title',
                'sample_description', 'tax_id', 'scientific_name', 'common_name']
 
 
 class EnaSampleConverter(BaseEnaConverter):
     def __init__(self):
-        super().__init__(root_name='SAMPLE', xml_spec=SAMPLE_SPEC)
+        super().__init__(ena_type='Sample', xml_spec=SAMPLE_SPEC)
 
     @staticmethod
     def post_conversion(entity: Entity, xml_element: Element):

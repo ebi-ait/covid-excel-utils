@@ -15,4 +15,4 @@ PROJECT_SPEC = {
 
 class EnaProjectConverter(BaseEnaConverter):
     def __init__(self):
-        super().__init__(root_name='PROJECT', xml_spec=PROJECT_SPEC)
+        super().__init__(ena_type='Project', xml_spec=PROJECT_SPEC)

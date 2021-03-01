@@ -10,8 +10,8 @@ from submission.entity import Entity
 
 
 class BaseEnaConverter:
-    def __init__(self, root_name: str, xml_spec: dict):
-        self.root_name = root_name
+    def __init__(self, ena_type: str, xml_spec: dict):
+        self.ena_type = ena_type
         self.xml_spec = xml_spec
 
     def convert(self, entity: Entity, xml_spec: dict = None) -> Element:
@@ -19,10 +19,16 @@ class BaseEnaConverter:
             xml_spec = deepcopy(self.xml_spec)
         self.add_alias(xml_spec, entity)
         xml_map = JsonMapper(entity.attributes).map(xml_spec)
-        root = etree.Element(self.root_name)
+        root = etree.Element(self.ena_type.upper())
         self.add_children(parent=root, children=xml_map)
         self.post_conversion(entity, root)
         return root
+
+    def add_alias(self, spec: dict, entity: Entity):
+        spec['@alias'] = ['', fixed_attribute, entity.identifier.index]
+        accession = entity.get_accession(f'ENA_{self.ena_type}')
+        if accession:
+            spec['@accession'] = ['', fixed_attribute, accession]
        
     @staticmethod
     def post_conversion(entity: Entity, xml_element: Element):
@@ -53,13 +59,6 @@ class BaseEnaConverter:
             value_name = 'VALUE'
         attribute_value = etree.SubElement(attribute, value_name)
         attribute_value.text = value
-    
-    @staticmethod
-    def add_alias(spec: dict, entity: Entity):
-        spec['@alias'] = ['', fixed_attribute, entity.identifier.index]
-        accession = entity.get_accession('ENA')
-        if accession:
-            spec['@accession'] = ['', fixed_attribute, accession]
 
     @staticmethod
     def add_link(link: dict, entity: Entity, accession_services: Iterable[str]):

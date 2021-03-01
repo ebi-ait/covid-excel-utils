@@ -34,12 +34,13 @@ EXPERIMENT_SPEC = {
         }
     }
 }
+EXPERIMENT_ACCESSION_PRIORITY = ['ENA_Experiment']
 REMOVE_KEYS = ['experiment_accession', 'center_name', 'experiment_name', 'library_name', 'library_strategy', 'library_source', 'library_selection', 'insert_size', 'sequencing_platform', 'sequencing_instrument', 'uploaded_file_1', 'uploaded_file_2']
 
 
 class EnaExperimentConverter(BaseEnaConverter):
     def __init__(self):
-        super().__init__(root_name='EXPERIMENT', xml_spec=EXPERIMENT_SPEC)
+        super().__init__(ena_type='Experiment', xml_spec=EXPERIMENT_SPEC)
     
     def convert_experiment(self, experiment: Entity, sample: Entity, study: Entity) -> Element:
         spec = deepcopy(self.xml_spec)

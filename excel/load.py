@@ -11,12 +11,16 @@ POSSIBLE_KEYS = ['alias', 'index', 'name']
 SERVICE_MAP = {
     'study': 'BioStudies',
     'sample': 'BioSamples',
-    'run_experiment': 'ENA'
+    'run_experiment': 'ENA_Run'
 }
 SERVICE_NAMES = {
     'BioStudies'.lower(): 'BioStudies',
     'BioSamples'.lower(): 'BioSamples',
-    'ENA'.lower(): 'ENA'
+    'ENA_Project'.lower(): 'ENA_Project',
+    'ENA_Study'.lower(): 'ENA_Study',
+    'ENA_Sample'.lower(): 'ENA_Sample',
+    'ENA_Experiment'.lower(): 'ENA_Experiment',
+    'ENA_Run'.lower(): 'ENA_Run'
 }
 
 

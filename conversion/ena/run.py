@@ -4,6 +4,7 @@ from xml.etree.ElementTree import Element
 from lxml import etree
 from submission.entity import Entity
 from .base import BaseEnaConverter
+from .experiment import EXPERIMENT_ACCESSION_PRIORITY
 
 RUN_SPEC = {
     '@center_name': ['center_name'],
@@ -12,13 +13,14 @@ RUN_SPEC = {
 }
 REMOVE_KEYS = ['experiment_accession', 'center_name', 'experiment_name', 'library_name', 'library_strategy', 'library_source', 'library_selection', 'insert_size', 'sequencing_platform', 'sequencing_instrument', 'uploaded_file_1', 'uploaded_file_2']
 
+
 class EnaRunConverter(BaseEnaConverter):
     def __init__(self):
-        super().__init__(root_name='RUN', xml_spec=RUN_SPEC)
+        super().__init__(ena_type='Run', xml_spec=RUN_SPEC)
     
     def convert_run(self, run: Entity, experiment: Entity) -> Element:
         spec = deepcopy(self.xml_spec)
-        BaseEnaConverter.add_link(spec['EXPERIMENT_REF'], experiment, ['ENA'])
+        BaseEnaConverter.add_link(spec['EXPERIMENT_REF'], experiment, EXPERIMENT_ACCESSION_PRIORITY)
         return super().convert(run, xml_spec=spec)
 
     @staticmethod

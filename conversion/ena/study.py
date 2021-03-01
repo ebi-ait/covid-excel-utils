@@ -18,13 +18,13 @@ STUDY_SPEC = {
         }
     }
 }
-STUDY_ACCESSION_PRIORITY = ['ENA', 'BioStudies']
+STUDY_ACCESSION_PRIORITY = ['ENA_Project', 'ENA_Study']
 REMOVE_KEYS = ['study_accession', 'study_alias', 'center_name', 'study_name', 'short_description', 'abstract', 'study_name']
 
 
 class EnaStudyConverter(BaseEnaConverter):
     def __init__(self):
-        super().__init__(root_name='STUDY', xml_spec=STUDY_SPEC)
+        super().__init__(ena_type='Study', xml_spec=STUDY_SPEC)
     
     @staticmethod
     def post_conversion(entity: Entity, xml_element: Element):

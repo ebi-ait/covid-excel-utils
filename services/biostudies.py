@@ -15,8 +15,9 @@ BIOSTUDIES_LINK_TYPES = {
 
 ENTITY_TYPE_SERVICE = {
     'sample': 'BioSamples',
-    'run_experiment': 'ENA'
+    'run_experiment': 'ENA_Run'
 }
+
 
 class BioStudies:
     def __init__(self, base_url=None, username=None, password=None):
