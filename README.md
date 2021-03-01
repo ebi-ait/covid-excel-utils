@@ -53,16 +53,26 @@ INFO:root:Excel file updated: examples/blank_uploader_tool_metadata_v2_raw_reads
  - Set the `--output` parameter to `json` to create an output file with the same names and locations as the input excel file, with a `.json` extension. This will include the objects as loaded from the excel file, with any conversion, validation or subbmission errors listed in an `errors` attribute. If any errors are encountered they are also duplicated into an `_issues.json` for quick reference. This will not save to the original excel file.
  - Set the `--output` parameter to `all` to update the original excel file and output the json files.
 
-## Biosamples Submissions
- - Pass the `--biosamples` parameter to submit any converted samples to BioSamples, the response from BioSamples, including the accession, will be  stored in the output file.
+## BioStudies Submissions
+ - Pass the `--biostudies` parameter to submit any converted studies to BioStudies, the accession from BioStudies, will be  stored in the output file.
+ - You **will** need to export the following environment variables in your terminal before running the CLI:
+    - `export BIOSTUDIES_USERNAME='not_a_real_biostudies_user'`
+    - `export BIOSTUDIES_PASSWORD='My very secure password'`
+
+### BioStudies Test
+ - You *can* also override the default URLs of BioStudies, this is useful for targeting the test environments.
+    - `--biostudies_url http://biostudy-bia.ebi.ac.uk:8788`
+
+## BioSamples Submissions
+ - Pass the `--biosamples` parameter to submit any converted samples to BioSamples, the accession from BioSamples, will be  stored in the output file.
  - You **will** need to export the following environment variables in your terminal before running the CLI:
     - `export AAP_USERNAME='not_a_real_aap_user'`
     - `export AAP_PASSWORD='My very secure password'`
  - You *probably* need to set the `--biosamples_domain` if not present in the excel
  - `python3 ./cli.py ~/excel_file.xlsx --biosamples --biosamples_domain self.example-domain`
 
-## Biosamples Test
- - You *can* also override the default URLs of BioSamples or AAP APIs, this is useful for targeting the test/explore versions.
+### BioSamples Test
+ - You *can* also override the default URLs of BioSamples or AAP APIs, this is useful for targeting the test/explore environments.
     - `--biosamples_url https://wwwdev.ebi.ac.uk/biosamples`
     - `--aap_url https://explore.api.aai.ebi.ac.uk`
 
@@ -94,6 +104,8 @@ cd covid-excel-utils
 source venv/bin/activate
 export AAP_USERNAME='not_a_real_aap_user'
 export AAP_PASSWORD='My very secure password'
+export BIOSTUDIES_USERNAME='not_a_real_biostudies_user'
+export BIOSTUDIES_PASSWORD='My very secure password'
 ```
 ## Validation
 ```
@@ -105,31 +117,34 @@ python3 ./cli.py ~/excel_file.xlsx
 python3 ./cli.py ~/excel_file.xlsx --output json
 ```
 
+## Submit to BioStudies
+```
+python3 ./cli.py ~/excel_file.xlsx --biostudies 
+```
+
 ## Submit to BioSamples
 ```
 python3 ./cli.py ~/excel_file.xlsx \
  --biosamples \
  --biosamples_domain self.example-domain \
 ```
-## Submit to BioSamples Explore/Test
+
+## Submit to Test BioStudies & BioSamples 
 ```
 python3 ./cli.py ~/excel_file.xlsx \
  --output all \
- --biosamples \
- --biosamples_domain self.test-domain \
- --biosamples_url https://wwwdev.ebi.ac.uk/biosamples \
- --aap_url https://explore.api.aai.ebi.ac.uk`
+ --biostudies --biostudies_url http://biostudy-bia.ebi.ac.uk:8788 \
+ --biosamples --biosamples_domain self.test-domain --biosamples_url https://wwwdev.ebi.ac.uk/biosamples --aap_url https://explore.api.aai.ebi.ac.uk`
 ```
-## Example BioSamples Submission Console Output (Explore/Test)
+## Example BioStudies & BioSamples Submission Console Output (Explore/Test)
 ```
 INFO:root:Pulling image: dockerhub.ebi.ac.uk/ait/json-schema-validator
 INFO:root:Running Container: strange_gauss from image: dockerhub.ebi.ac.uk/ait/json-schema-validator
-INFO:root:Validating 5 rows.
 INFO:root:Removing container: strange_gauss
-Issues from 5 rows detected. Continue with BioSamples Submission? (y/N)?:y
+INFO:root:Issues detected. Continue with Brokering? (y/N)?:y
 INFO:root:Attempting to Submit to BioSamples: https://wwwdev.ebi.ac.uk/biosamples, AAP: https://explore.api.aai.ebi.ac.uk
-INFO:root:Successfully submitted 5 BioSamples
-INFO:root:Excel file updated: examples/excel_file.xlsx
+INFO:root:Attempting to Submit to BioStudies: http://biostudy-bia.ebi.ac.uk:8788
 INFO:root:JSON output written to: examples/excel_file.json
-INFO:root:JSON issues written to: examples/excel_file_issues.json
+INFO:root:JSON output written to: examples/excel_file_accessions.json
+INFO:root:JSON output written to: examples/excel_file_issues.json
 ```
