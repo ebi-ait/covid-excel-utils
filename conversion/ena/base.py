@@ -6,7 +6,7 @@ from lxml import etree
 from json_converter.json_mapper import JsonMapper
 from conversion.conversion_utils import fixed_attribute
 
-from submission.entity import Entity, EntityIdentifier
+from submission.entity import Entity
 
 
 class BaseEnaConverter:
@@ -63,7 +63,8 @@ class BaseEnaConverter:
 
     @staticmethod
     def add_link(link: dict, entity: Entity, accession_services: Iterable[str]):
-        link['@refname'] = ['', fixed_attribute, entity.identifier.index]
         accession = entity.get_first_accession(accession_services)
         if accession:
             link['@accession'] = ['', fixed_attribute, accession]
+        else:
+            link['@refname'] = ['', fixed_attribute, entity.identifier.index]
