@@ -62,15 +62,15 @@ class EnaSubmissionConverter:
 
             if len(samples) < 1 or len(studies) < 1:
                 if len(samples) < 1:
-                    experiment.add_error('experiment_accession', 'No Linked Sample')
+                    experiment.add_error('run_experiment_ena_experiment_accession', 'No Linked Sample')
                 if len(studies) < 1:
-                    experiment.add_error('experiment_accession', 'No Linked Study')
+                    experiment.add_error('run_experiment_ena_experiment_accession', 'No Linked Study')
             else:
                 # ENA Only supports linking one study & sample to an experiment
                 if len(samples) > 1:
-                    experiment.add_error(f'More than one Sample Linked, using first: {samples[0].identifier.index}')
+                    experiment.add_error('run_experiment_ena_experiment_accession', f'More than one Sample Linked, using first: {samples[0].identifier.index}')
                 if len(studies) > 1:
-                    experiment.add_error(f'More than one Study Linked, using first: {studies[0].identifier.index}')
+                    experiment.add_error('run_experiment_ena_experiment_accession', f'More than one Study Linked, using first: {studies[0].identifier.index}')
                 experiments_node.append(experiment_converter.convert_experiment(experiment, samples[0], studies[0]))
         return experiments_node
 
@@ -93,10 +93,12 @@ class EnaSubmissionConverter:
             study: Entity
             for study in data.get_entities('study'):
                 if 'release_date' in study.attributes:
-                    release_dates.add(study.attributes['release_date'])
+                    release_date = date.fromisoformat(study.attributes['release_date'])
+                    if release_date > date.today():
+                        release_dates.add(release_date)
             if len(release_dates) > 0:
                 # Use first study release date, possible that file includes many 
-                release_date = date.fromisoformat(release_dates.pop())
+                release_date = release_dates.pop()
                 action_hold = etree.SubElement(actions, 'ACTION')
                 hold = etree.SubElement(action_hold, 'HOLD')
                 hold.attrib['HoldUntilDate'] = release_date.isoformat()
