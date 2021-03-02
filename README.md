@@ -35,7 +35,7 @@ The goal of this project is to validate metadata obtained via excel spreadsheets
     - `cd covid-excel-utils`
     - `source venv/bin/activate`
 - Run the CLI:
-    - `python3 ./cli.py examples/blank_uploader_tool_metadata_v2_raw_reads.xlsx`
+    - `python3 ./cli.py examples/blank_v3_raw_reads.xlsx`
 
 ## Output:
 The cli will add any errors in validation or submission into the original excel file as notes, styling the cells red.
