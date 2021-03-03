@@ -4,18 +4,16 @@ import logging
 import os
 import sys
 from contextlib import closing
-from typing import List
 
 from lxml import etree
 from xml.etree.ElementTree import Element
 
-from conversion.biostudies.bio_study_converter import BioStudyConverter
+from conversion.biostudies import BioStudyConverter
 from excel.markup import ExcelMarkup
 from excel.validate import ValidatingExcel
 from conversion.ena.submission import EnaSubmissionConverter
 from services.biosamples import BioSamples, AapClient
 from services.biostudies import BioStudies
-from submission.entity import Entity
 from validation.docker import DockerValidator
 from validation.excel import ExcelValidator
 from validation.taxonomy import TaxonomyValidator
