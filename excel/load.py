@@ -41,6 +41,7 @@ class ExcelLoader:
         for column_index in range(0, len(header_rows[0])):
             object_cell = header_rows[0][column_index]
             attribute_cell = header_rows[1][column_index]
+            units_cell = header_rows[4][column_index]
             column_info = {}
 
             # Update Object Name otherwise use most recent Object found
@@ -48,6 +49,8 @@ class ExcelLoader:
                 object_name = clean_entity_name(object_cell.value)
             if object_name:
                 column_info['object'] = object_name
+            if units_cell.value is not None:
+                column_info['units'] = units_cell.value
             if attribute_cell.value is not None:
                 column_info['attribute'] = clean_name(attribute_cell.value)
                 column_map[attribute_cell.column_letter] = column_info
