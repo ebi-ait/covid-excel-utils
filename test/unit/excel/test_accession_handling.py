@@ -124,4 +124,4 @@ class TestExcelAccessionHandling(unittest.TestCase):
         lorem_entity = ExcelLoader.map_row_entity(submission, 1, 'lorem', attributes)
 
         self.assertEqual('ipsum', lorem_entity.identifier.index)
-        self.assertDictEqual({}, lorem_entity.__accessions)
+        self.assertFalse(lorem_entity.get_accessions())
