@@ -89,7 +89,7 @@ class ExcelLoader:
         else:
             index = ExcelLoader.get_index(entity_type, row, attributes)
         entity = submission.map_row(row, entity_type, index, attributes)
-        if accession:
+        if accession and entity_type in SERVICE_MAP:
             entity.add_accession(SERVICE_MAP[entity_type], accession)
         ExcelLoader.add_entity_accessions(entity, ignore=[accession_attribute])
         return entity
