@@ -11,9 +11,7 @@ RUN_SPEC = {
     'TITLE': ['experiment_name'],
     'EXPERIMENT_REF': {}
 }
-
-
-REMOVE_KEYS = ['experiment_accession', 'center_name', 'experiment_name', 'library_name', 'library_strategy', 'library_source', 'library_selection', 'insert_size', 'sequencing_platform', 'sequencing_instrument', 'uploaded_file_1', 'uploaded_file_2']
+REMOVE_KEYS = ['experiment_accession', 'center_name', 'experiment_name', 'library_name', 'library_strategy', 'library_source', 'library_selection', 'insert_size', 'sequencing_platform', 'sequencing_instrument', 'uploaded_file_1', 'uploaded_file_2', 'uploaded_file_1_checksum', 'uploaded_file_2_checksum']
 
 
 class EnaRunConverter(BaseEnaConverter):
