@@ -46,14 +46,14 @@ class UploadValidator(BaseValidator):
     def get_file_manifest(folder_uuid: str) -> Dict[str, str]:
         path = f'{folder_uuid}/'
         manifest = {}
-        for key in UploadValidator.__get_file_keys(path):
+        for key in UploadValidator.get_file_keys(path):
             if '.xlsx.' not in key.lower():
                 file_name_checksum = key.partition(path)[2].rpartition('.')
                 manifest[file_name_checksum[0]] = file_name_checksum[2]
         return manifest
 
     @staticmethod
-    def __get_file_keys(path: str) -> Set[str]:
+    def get_file_keys(path: str) -> Set[str]:
         keys = set()
         s3 = boto3.resource('s3', endpoint_url=ENDPOINT, region_name=REGION)
         bucket = s3.Bucket(BUCKET)
