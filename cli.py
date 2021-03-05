@@ -4,18 +4,17 @@ import logging
 import os
 import sys
 from contextlib import closing
-from typing import List
 
 from lxml import etree
 from xml.etree.ElementTree import Element
 
-from conversion.biostudies.bio_study_converter import BioStudyConverter
+from conversion.biosamples import BioSamplesConverter
+from conversion.biostudies import BioStudyConverter
+from conversion.ena.submission import EnaSubmissionConverter
 from excel.markup import ExcelMarkup
 from excel.validate import ValidatingExcel
-from conversion.ena.submission import EnaSubmissionConverter
 from services.biosamples import BioSamples, AapClient
 from services.biostudies import BioStudies
-from submission.entity import Entity
 from validation.docker import DockerValidator
 from validation.excel import ExcelValidator
 from validation.taxonomy import TaxonomyValidator
@@ -50,11 +49,11 @@ class CovidExcelUtils:
         if secure_key:
             self.excel.validate(UploadValidator(secure_key))
 
-    def submit_to_biosamples(self, service: BioSamples):
+    def submit_to_biosamples(self, converter: BioSamplesConverter, service: BioSamples):
         for sample in self.excel.data.get_entities('sample'):
             try:
-                request = service.encode_sample(sample.attributes)
-                response = service.send_sample(request)
+                converted_sample = converter.convert_sample(sample)
+                response = service.send_sample(converted_sample)
                 if 'accession' in response:
                     sample.add_accession('BioSamples', response['accession'])
             except Exception as error:
@@ -164,7 +163,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--biosamples_domain', type=str,
-        help='Override the BioSamples domain rather than detect the domain from the excel file.'
+        help='Set the default BioSamples domain to use when the domain is not found in the excel file.'
     )
     parser.add_argument(
         '--biosamples_url', type=str, default='https://www.ebi.ac.uk/biosamples',
@@ -223,8 +222,9 @@ if __name__ == '__main__':
             logging.info(f"Attempting to Submit to BioSamples: {args['biosamples_url']}, AAP: {args['aap_url']}")
             try:
                 aap_client = AapClient(url=args['aap_url'], username=os.environ['AAP_USERNAME'], password=os.environ['AAP_PASSWORD'])
-                biosamples_service = BioSamples(aap_client, args['biosamples_url'], args['biosamples_domain'])
-                excel_utils.submit_to_biosamples(biosamples_service)
+                biosamples_service = BioSamples(aap_client, args['biosamples_url'])
+                biosamples_converter = BioSamplesConverter(excel_utils.excel.column_map, args['biosamples_domain'])
+                excel_utils.submit_to_biosamples(biosamples_converter, biosamples_service)
             except Exception as error:
                 logging.error(f'BioSamples Error: {error}')
                 sys.exit(2)

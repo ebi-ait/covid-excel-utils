@@ -5,101 +5,123 @@ from excel.submission import ExcelSubmission
 
 
 class TestExcelAccessionHandling(unittest.TestCase):
-    def test_adding_mapped_or_default_service_accessions(self):
+    def test_default_accessions(self):
         expected_accessions = {
-            'BioStudies': ['PRJEB12345'],
-            'BioSamples': ['SAME123'],
-            'ENA': ['EXP123', 'EXP456']
+            'BioStudies': ['S-BSST1'],
+            'BioSamples': ['SAME1'],
+            'ENA_Run': ['ERR1', 'ERR2']
         }
         submission = ExcelSubmission()
         study = {
-            'study_accession': 'PRJEB12345'
+            'study_accession': 'S-BSST1',
         }
         sample = {
-            'sample_accession': 'SAME123'
+            'sample_accession': 'SAME1',
         }
         run_experiment1 = {
-            'run_experiment_accession': 'EXP123',
+            'run_experiment_accession': 'ERR1',
         }
         run_experiment2 = {
-            'run_experiment_ena_accession': 'EXP456',
+            'run_experiment_accession': 'ERR2',
         }
         study_entity1 = ExcelLoader.map_row_entity(submission, 1, 'study', study)
         sample_entity1 = ExcelLoader.map_row_entity(submission, 1, 'sample', sample)
         run_entity1 = ExcelLoader.map_row_entity(submission, 1, 'run_experiment', run_experiment1)
-
-        study_entity2 = ExcelLoader.map_row_entity(submission, 2, 'study', study)
-        sample_entity2 = ExcelLoader.map_row_entity(submission, 2, 'sample', sample)
         run_entity2 = ExcelLoader.map_row_entity(submission, 2, 'run_experiment', run_experiment2)
-
-        self.assertEqual(study_entity1, study_entity2)
-        self.assertEqual(sample_entity1, sample_entity2)
-        self.assertNotEqual(run_entity1, run_entity2)
         
         self.assertDictEqual(expected_accessions, submission.get_all_accessions())
-        self.assertEqual('PRJEB12345', study_entity1.identifier.index)
-        self.assertEqual('PRJEB12345', study_entity1.get_accession('BioStudies'))
+        self.assertEqual('S-BSST1', study_entity1.identifier.index)
+        self.assertEqual('S-BSST1', study_entity1.get_accession('BioStudies'))
 
-        self.assertEqual('SAME123', sample_entity1.identifier.index)
-        self.assertEqual('SAME123', sample_entity1.get_accession('BioSamples'))
+        self.assertEqual('SAME1', sample_entity1.identifier.index)
+        self.assertEqual('SAME1', sample_entity1.get_accession('BioSamples'))
 
-        self.assertEqual('EXP123', run_entity1.identifier.index)
-        self.assertEqual('EXP123', run_entity1.get_accession('ENA'))
+        self.assertEqual('ERR1', run_entity1.identifier.index)
+        self.assertEqual('ERR1', run_entity1.get_accession('ENA_Run'))
 
-        # only accessions in the format {entity_type}_accession can be used for indexes
-        self.assertEqual('run_experiment:2', run_entity2.identifier.index)
-        self.assertEqual('EXP456', run_entity2.get_accession('ENA'))
+        self.assertEqual('ERR2', run_entity2.identifier.index)
+        self.assertEqual('ERR2', run_entity2.get_accession('ENA_Run'))
     
+    def test_mapped_accessions(self):
+        expected_accessions = {
+            'BioStudies': ['S-BSST1'],
+            'BioSamples': ['SAME1'],
+            'ENA_Project': ['PRJEB1'],
+            'ENA_Study': ['ERP1'],
+            'ENA_Sample': ['ERS1'],
+            'ENA_Experiment': ['ERX1', 'ERX2'],
+            'ENA_Run': ['ERR1', 'ERR2']
+        }
+        submission = ExcelSubmission()
+        study = {
+            'study_biostudies_accession': 'S-BSST1',
+            'study_ena_project_accession': 'PRJEB1',
+            'study_ena_study_accession': 'ERP1'
+        }
+        sample = {
+            'sample_biosamples_accession': 'SAME1',
+            'sample_ena_sample_accession': 'ERS1'
+        }
+        run_experiment1 = {
+            'run_experiment_ena_experiment_accession': 'ERX1',
+            'run_experiment_ena_run_accession': 'ERR1',
+
+        }
+        run_experiment2 = {
+            'run_experiment_ena_experiment_accession': 'ERX2',
+            'run_experiment_ena_run_accession': 'ERR2',
+        }
+        study_entity1 = ExcelLoader.map_row_entity(submission, 1, 'study', study)
+        sample_entity1 = ExcelLoader.map_row_entity(submission, 1, 'sample', sample)
+        run_entity1 = ExcelLoader.map_row_entity(submission, 1, 'run_experiment', run_experiment1)
+        run_entity2 = ExcelLoader.map_row_entity(submission, 2, 'run_experiment', run_experiment2)
+        
+        self.assertDictEqual(expected_accessions, submission.get_all_accessions())
+        self.assertEqual('S-BSST1', study_entity1.get_accession('BioStudies'))
+        self.assertEqual('PRJEB1', study_entity1.get_accession('ENA_Project'))
+        self.assertEqual('ERP1', study_entity1.get_accession('ENA_Study'))
+
+        self.assertEqual('SAME1', sample_entity1.get_accession('BioSamples'))
+        self.assertEqual('ERS1', sample_entity1.get_accession('ENA_Sample'))
+
+        self.assertEqual('ERR1', run_entity1.get_accession('ENA_Run'))
+        self.assertEqual('ERX1', run_entity1.get_accession('ENA_Experiment'))
+
+        self.assertEqual('ERR2', run_entity2.get_accession('ENA_Run'))
+        self.assertEqual('ERX2', run_entity2.get_accession('ENA_Experiment'))
+
     def test_unmapped_service_accessions(self):
         expected_accessions = {
-            'BioSamples': ['SAME123'],
-            'BioStudies': ['PRJEB12345'],
-            'ENA': ['ENA-PROJECT-1', 'ENA-SAMPLE-1', 'EXP123', 'EXP456'],
+            'array_express': ['A1', 'A2'],
             'eva': ['EVA1', 'EVA2']
         }
         submission = ExcelSubmission()
-        study = {
-            'study_accession': 'PRJEB12345',
-            'study_ena_accession': 'ENA-PROJECT-1'
+        sequence1 = {
+            'sequence_array_express_accession': 'A1',
+            'sequence_eva_accession': 'EVA1',
         }
-        sample = {
-            'sample_accession': 'SAME123',
-            'sample_ena_accession': 'ENA-SAMPLE-1'
+        sequence2 = {
+            'sequence_array_express_accession': 'A2',
+            'sequence_eva_accession': 'EVA2',
         }
-        run_experiment1 = {
-            'run_experiment_accession': 'EXP123',
-            'run_experiment_eva_accession': 'EVA1'
-        }
-        run_experiment2 = {
-            'run_experiment_ena_accession': 'EXP456',
-            'run_experiment_eva_accession': 'EVA2'
-        }
-        study_entity1 = ExcelLoader.map_row_entity(submission, 1, 'study', study)
-        sample_entity1 = ExcelLoader.map_row_entity(submission, 1, 'sample', sample)
-        run_entity1 = ExcelLoader.map_row_entity(submission, 1, 'run_experiment', run_experiment1)
-
-        study_entity2 = ExcelLoader.map_row_entity(submission, 2, 'study', study)
-        sample_entity2 = ExcelLoader.map_row_entity(submission, 2, 'sample', sample)
-        run_entity2 = ExcelLoader.map_row_entity(submission, 2, 'run_experiment', run_experiment2)
-
-        self.assertEqual(study_entity1, study_entity2)
-        self.assertEqual(sample_entity1, sample_entity2)
-        self.assertNotEqual(run_entity1, run_entity2)
+        sequence_entity1 = ExcelLoader.map_row_entity(submission, 1, 'sequence', sequence1)
+        sequence_entity2 = ExcelLoader.map_row_entity(submission, 2, 'sequence', sequence2)
         
         self.assertDictEqual(expected_accessions, submission.get_all_accessions())
-        self.assertEqual('PRJEB12345', study_entity1.identifier.index)
-        self.assertEqual('PRJEB12345', study_entity1.get_accession('BioStudies'))
-        self.assertEqual('ENA-PROJECT-1', study_entity1.get_accession('ENA'))
+        self.assertEqual('A1', sequence_entity1.get_accession('array_express'))
+        self.assertEqual('EVA1', sequence_entity1.get_accession('eva'))
+        self.assertEqual('A2', sequence_entity2.get_accession('array_express'))
+        self.assertEqual('EVA2', sequence_entity2.get_accession('eva'))
+        
+    def test_umnapped_no_service_accession(self):
+        # In the case that {object}_accession is used in the excel for an object that isn't configured with a default service
+        # Use the accession as an index but do not add the accession to the entity.
+        attributes = {
+            'lorem_accession': 'ipsum'
+        }
 
-        self.assertEqual('SAME123', sample_entity1.identifier.index)
-        self.assertEqual('SAME123', sample_entity1.get_accession('BioSamples'))
-        self.assertEqual('ENA-SAMPLE-1', sample_entity1.get_accession('ENA'))
+        submission = ExcelSubmission()
+        lorem_entity = ExcelLoader.map_row_entity(submission, 1, 'lorem', attributes)
 
-        self.assertEqual('EXP123', run_entity1.identifier.index)
-        self.assertEqual('EXP123', run_entity1.get_accession('ENA'))
-        self.assertEqual('EVA1', run_entity1.get_accession('eva'))
-
-        # only accessions in the format {entity_type}_accession can be used for indexes
-        self.assertEqual('run_experiment:2', run_entity2.identifier.index)
-        self.assertEqual('EXP456', run_entity2.get_accession('ENA'))
-        self.assertEqual('EVA2', run_entity2.get_accession('eva'))
+        self.assertEqual('ipsum', lorem_entity.identifier.index)
+        self.assertFalse(lorem_entity.get_accessions())

@@ -11,12 +11,16 @@ POSSIBLE_KEYS = ['alias', 'index', 'name']
 SERVICE_MAP = {
     'study': 'BioStudies',
     'sample': 'BioSamples',
-    'run_experiment': 'ENA'
+    'run_experiment': 'ENA_Run'
 }
 SERVICE_NAMES = {
     'BioStudies'.lower(): 'BioStudies',
     'BioSamples'.lower(): 'BioSamples',
-    'ENA'.lower(): 'ENA'
+    'ENA_Project'.lower(): 'ENA_Project',
+    'ENA_Study'.lower(): 'ENA_Study',
+    'ENA_Sample'.lower(): 'ENA_Sample',
+    'ENA_Experiment'.lower(): 'ENA_Experiment',
+    'ENA_Run'.lower(): 'ENA_Run'
 }
 
 
@@ -41,6 +45,7 @@ class ExcelLoader:
         for column_index in range(0, len(header_rows[0])):
             object_cell = header_rows[0][column_index]
             attribute_cell = header_rows[1][column_index]
+            units_cell = header_rows[4][column_index]
             column_info = {}
 
             # Update Object Name otherwise use most recent Object found
@@ -48,6 +53,8 @@ class ExcelLoader:
                 object_name = clean_entity_name(object_cell.value)
             if object_name:
                 column_info['object'] = object_name
+            if units_cell.value is not None:
+                column_info['units'] = units_cell.value
             if attribute_cell.value is not None:
                 column_info['attribute'] = clean_name(attribute_cell.value)
                 column_map[attribute_cell.column_letter] = column_info
@@ -85,7 +92,7 @@ class ExcelLoader:
         else:
             index = ExcelLoader.get_index(entity_type, row, attributes)
         entity = submission.map_row(row, entity_type, index, attributes)
-        if accession:
+        if accession and entity_type in SERVICE_MAP:
             entity.add_accession(SERVICE_MAP[entity_type], accession)
         ExcelLoader.add_entity_accessions(entity, ignore=[accession_attribute])
         return entity

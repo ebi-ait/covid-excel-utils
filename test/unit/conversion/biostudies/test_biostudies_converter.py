@@ -1,6 +1,6 @@
 import unittest
 
-from conversion.biostudies.bio_study_converter import BioStudyConverter
+from conversion.biostudies import BioStudyConverter
 from submission.entity import Entity
 
 

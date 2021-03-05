@@ -2,9 +2,11 @@ from copy import deepcopy
 from xml.etree.ElementTree import Element
 
 from lxml import etree
+from conversion.conversion_utils import fixed_attribute
 from submission.entity import Entity
 from .base import BaseEnaConverter
-
+from .sample import SAMPLE_ACCESSION_PRIORITY
+from .study import STUDY_ACCESSION_PRIORITY
 
 EXPERIMENT_SPEC = {
     '@center_name': ['center_name'],
@@ -22,7 +24,7 @@ EXPERIMENT_SPEC = {
                 'PAIRED': {
                     'NOMINAL_LENGTH': ['insert_size']
                 },
-                'SINGLE': ['$object', {}]
+                'SINGLE': ['', fixed_attribute, '']
             }  # , 'LIBRARY_CONSTRUCTION_PROTOCOL': ''
         }
     },
@@ -32,20 +34,19 @@ EXPERIMENT_SPEC = {
         }
     }
 }
-
-
+EXPERIMENT_ACCESSION_PRIORITY = ['ENA_Experiment']
 REMOVE_KEYS = ['experiment_accession', 'center_name', 'experiment_name', 'library_name', 'library_strategy', 'library_source', 'library_selection', 'insert_size', 'sequencing_platform', 'sequencing_instrument', 'uploaded_file_1', 'uploaded_file_2']
 
 
 class EnaExperimentConverter(BaseEnaConverter):
     def __init__(self):
-        super().__init__(root_name='EXPERIMENT', xml_spec=EXPERIMENT_SPEC)
+        super().__init__(ena_type='Experiment', xml_spec=EXPERIMENT_SPEC)
     
     def convert_experiment(self, experiment: Entity, sample: Entity, study: Entity) -> Element:
         spec = deepcopy(self.xml_spec)
         
-        BaseEnaConverter.add_link(spec['DESIGN']['SAMPLE_DESCRIPTOR'], sample)
-        BaseEnaConverter.add_link(spec['STUDY_REF'], study)
+        BaseEnaConverter.add_link(spec['DESIGN']['SAMPLE_DESCRIPTOR'], sample, SAMPLE_ACCESSION_PRIORITY)
+        BaseEnaConverter.add_link(spec['STUDY_REF'], study, STUDY_ACCESSION_PRIORITY)
 
         if 'insert_size' in experiment.attributes and 'uploaded_file_2' in experiment.attributes:
             del spec['DESIGN']['LIBRARY_DESCRIPTOR']['LIBRARY_LAYOUT']['SINGLE']
