@@ -38,7 +38,7 @@ class Entity:
     def get_accession(self, service: str) -> str:
         return self.__accessions.get(service, None)
 
-    def get_first_accession(self, service_priority):
+    def get_first_accession(self, service_priority: Iterable[str]):
         for service in service_priority:
             accession = self.get_accession(service)
             if accession:
