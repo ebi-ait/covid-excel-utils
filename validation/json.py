@@ -19,7 +19,10 @@ class JsonSchemaValidator(BaseValidator):
         if entity.identifier.entity_type not in self.schema_by_type:
             return
         schema = self.schema_by_type[entity.identifier.entity_type]
-        schema_errors = self.__validate(schema, entity.attributes)
+        entity_string = json.dumps(entity.attributes)
+        if entity.identifier.entity_type != 'run_experiment':
+            entity_string = entity_string.lower()
+        schema_errors = self.__validate(schema, json.loads(entity_string))
         self.__add_errors_to_entity(entity, schema_errors)
 
     def __validate(self, schema: dict, entity_attributes: dict):
@@ -41,10 +44,9 @@ class JsonSchemaValidator(BaseValidator):
 
     @staticmethod
     def __create_validator_payload(schema: dict, entity_attributes: dict):
-        entity = json.loads(json.dumps(entity_attributes).lower())
         return {
             "schema": schema,
-            "object": entity
+            "object": entity_attributes
         }
 
     @staticmethod
