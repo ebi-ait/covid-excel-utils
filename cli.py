@@ -18,6 +18,7 @@ from services.biostudies import BioStudies
 from validation.docker import DockerValidator
 from validation.excel import ExcelValidator
 from validation.taxonomy import TaxonomyValidator
+from validation.upload import UploadValidator
 
 
 DOCKER_IMAGE = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
@@ -37,7 +38,7 @@ class CovidExcelUtils:
         else:
             self.excel = ValidatingExcel(self.__file_path)
 
-    def validate(self):
+    def validate(self, secure_key:str = None):
         try:
             with closing(DockerValidator(DOCKER_IMAGE, SCHEMA_VALIDATION_URL)) as validator:
                 self.excel.validate(validator)
@@ -45,6 +46,8 @@ class CovidExcelUtils:
             logging.warning(f'Error validating schema, using best guess validation. Detected Error: {error}')
             self.excel.validate(ExcelValidator(self.__file_path))
         self.excel.validate(TaxonomyValidator())
+        if secure_key:
+            self.excel.validate(UploadValidator(secure_key))
 
     def submit_to_biosamples(self, converter: BioSamplesConverter, service: BioSamples):
         for sample in self.excel.data.get_entities('sample'):
@@ -185,6 +188,10 @@ if __name__ == '__main__':
         help='Submit to ENA'
     )
     parser.add_argument(
+        '--secure_key', type=str,
+        help='The secure key used when uploading files to the drag-and-drop data submission tool, if this is present we will validate that all the files are accounted for. Format: xxxxx-xxx-xxxx-xxxxx'
+    )
+    parser.add_argument(
         '--log_level', '-l', type=str, default='INFO',
         help='Override the default logging level: INFO',
         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
@@ -196,7 +203,7 @@ if __name__ == '__main__':
         if not excel_utils.excel.data.has_data:
             logging.info(f"No Data imported from: {args['file_path']}")
             sys.exit(0)
-        excel_utils.validate()
+        excel_utils.validate(args['secure_key'])
         if (args['biosamples'] or args['biostudies'] or args['ena']) and excel_utils.excel.data.has_errors():
             user_text = input(f'Issues detected. Continue with Brokering? (y/N)?:')
             if not user_text.lower().startswith('y'):

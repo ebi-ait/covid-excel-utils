@@ -11,7 +11,7 @@ RUN_SPEC = {
     'TITLE': ['experiment_name'],
     'EXPERIMENT_REF': {}
 }
-REMOVE_KEYS = ['experiment_accession', 'center_name', 'experiment_name', 'library_name', 'library_strategy', 'library_source', 'library_selection', 'insert_size', 'sequencing_platform', 'sequencing_instrument', 'uploaded_file_1', 'uploaded_file_2']
+REMOVE_KEYS = ['experiment_accession', 'center_name', 'experiment_name', 'library_name', 'library_strategy', 'library_source', 'library_selection', 'insert_size', 'sequencing_platform', 'sequencing_instrument', 'uploaded_file_1', 'uploaded_file_2', 'uploaded_file_1_checksum', 'uploaded_file_2_checksum']
 
 
 class EnaRunConverter(BaseEnaConverter):
@@ -42,7 +42,9 @@ class EnaRunConverter(BaseEnaConverter):
             file.attrib['filename'] = entity.attributes[file_key]
             file.attrib['filetype'] = EnaRunConverter.get_file_type(entity.attributes[file_key])
             file.attrib['checksum_method'] = 'MD5'
-            file.attrib['checksum'] = '0'  # ToDo: get checksum from drag and drop?
+            checksum_key = file_key + '_checksum'
+            if checksum_key in entity.attributes:
+                file.attrib['checksum'] = entity.attributes[checksum_key]
 
             file_number = file_number + 1
             file_key = f'uploaded_file_{file_number}'
