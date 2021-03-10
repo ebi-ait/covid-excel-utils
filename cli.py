@@ -3,18 +3,18 @@ import json
 import logging
 import os
 import sys
+from datetime import date
 from contextlib import closing
-
-from lxml import etree
-from xml.etree.ElementTree import Element
 
 from conversion.biosamples import BioSamplesConverter
 from conversion.biostudies import BioStudyConverter
 from conversion.ena.submission import EnaSubmissionConverter
+from conversion.ena.response import EnaResponseConverter
 from excel.markup import ExcelMarkup
 from excel.validate import ValidatingExcel
 from services.biosamples import BioSamples, AapClient
 from services.biostudies import BioStudies
+from services.ena import EnaAction, Ena
 from validation.docker import DockerValidator
 from validation.excel import ExcelValidator
 from validation.taxonomy import TaxonomyValidator
@@ -30,7 +30,8 @@ class CovidExcelUtils:
         self.__file_path = file_path
         self.__output = output
         self.excel = None
-        self.ena_submission_files = {}
+        self.ena_files = {}
+        self.ena_response = None
 
     def load(self):
         if self.__output in ['all', 'excel']:
@@ -38,12 +39,12 @@ class CovidExcelUtils:
         else:
             self.excel = ValidatingExcel(self.__file_path)
 
-    def validate(self, secure_key:str = None):
+    def validate(self, secure_key: str = None):
         try:
             with closing(DockerValidator(DOCKER_IMAGE, SCHEMA_VALIDATION_URL)) as validator:
                 self.excel.validate(validator)
-        except Exception as error:
-            logging.warning(f'Error validating schema, using best guess validation. Detected Error: {error}')
+        except Exception as e:
+            logging.warning(f'Error validating schema, using best guess validation. Detected Error: {e}')
             self.excel.validate(ExcelValidator(self.__file_path))
         self.excel.validate(TaxonomyValidator())
         if secure_key:
@@ -56,8 +57,8 @@ class CovidExcelUtils:
                 response = service.send_sample(converted_sample)
                 if 'accession' in response:
                     sample.add_accession('BioSamples', response['accession'])
-            except Exception as error:
-                error_msg = f'BioSamples Error: {error}'
+            except Exception as e:
+                error_msg = f'BioSamples Error: {e}'
                 sample.add_error('sample_accession', error_msg)
 
     def submit_to_biostudies(self, service: BioStudies):
@@ -66,8 +67,8 @@ class CovidExcelUtils:
                 bio_study_submission = BioStudyConverter.convert_study(study)
                 accession = service.send_submission(bio_study_submission)
                 study.add_accession('BioStudies', accession)
-            except Exception as error:
-                error_msg = f'BioStudies Error: {error}'
+            except Exception as e:
+                error_msg = f'BioStudies Error: {e}'
                 study.add_error('study_accession', error_msg)
 
     def update_biostudies_links(self, service: BioStudies):
@@ -77,12 +78,14 @@ class CovidExcelUtils:
                 try:
                     biostudies_submission = service.update_links_in_submission(self.excel.data, study)
                     service.send_submission(biostudies_submission)
-                except Exception as error:
-                    error_msg = f'BioStudies Error: {error}'
+                except Exception as e:
+                    error_msg = f'BioStudies Error: {e}'
                     study.add_error('study_accession', error_msg)
 
-    def submit_ena(self):
-        self.ena_submission_files = EnaSubmissionConverter().convert(self.excel.data)
+    def submit_ena(self, service: Ena, action: EnaAction = None, hold_date: date = None, center: str = None):
+        self.ena_files = EnaSubmissionConverter().convert(self.excel.data)
+        self.ena_response = service.submit_files(self.ena_files, action, hold_date, center)
+        EnaResponseConverter().convert_response_file(self.excel.data, self.ena_response)
 
     def close(self):
         if self.excel:
@@ -102,16 +105,15 @@ class CovidExcelUtils:
                     json_file_path = input_file_name + '_accessions.json'
                     self.write_dict(json_file_path, all_accessions)
                     logging.info(f'JSON output written to: {json_file_path}')
-                # ToDo: Remove this when no longer useful for debugging
-                if self.ena_submission_files:
-                    curl = 'curl -u username:password'
-                    for ena_file_name, xml_element in self.ena_submission_files.items():
-                        ena_file_path = input_file_name + '_ena_' + ena_file_name + '.xml'
-                        self.write_xml(ena_file_path, xml_element)
-                        curl = curl + f' -F {ena_file_name}={ena_file_path}'
-                        logging.info(f'ENA Submission File written to: {ena_file_path}')  
-                    curl = curl + ' "https://wwwdev.ebi.ac.uk/ena/submit/drop-box/submit/"'
-                    print(curl)
+                if self.ena_files:
+                    for ena_file_name, xml_bytes in self.ena_files.values():
+                        ena_file_path = input_file_name + '_ena_' + ena_file_name
+                        self.write_bytes(ena_file_path, xml_bytes)
+                        logging.info(f'ENA Submission File written to: {ena_file_path}')
+                if self.ena_response:
+                    ena_file_path = input_file_name + '_ena_RESPONSE.xml'
+                    self.write_bytes(ena_file_path, self.ena_response)
+                    logging.info(f'ENA Response File written to: {ena_file_path}')
                 if self.excel.data.has_errors():
                     issues_file_path = input_file_name + '_issues.json'
                     self.write_dict(issues_file_path, self.excel.human_errors())
@@ -124,15 +126,14 @@ class CovidExcelUtils:
             os.remove(file_path)
         with open(file_path, "w") as open_file:
             json.dump(data, open_file, indent=2)
-    
+
     @staticmethod
-    def write_xml(file_path: str, xml_element: Element):
+    def write_bytes(file_path: str, data: bytes):
         file_path = os.path.abspath(file_path)
-        xml_bytes = etree.tostring(xml_element, xml_declaration=True, pretty_print=True, encoding="UTF-8")
         if os.path.exists(file_path):
             os.remove(file_path)
         with open(file_path, "wb") as open_file:
-            open_file.write(xml_bytes)
+            open_file.write(data)
 
 
 def set_logging_level(log_level):
@@ -178,14 +179,29 @@ if __name__ == '__main__':
         '--biostudies_url', type=str, default='http://biostudy-bia.ebi.ac.uk:8788',
         help='Override the default URL for BioStudies REST API: http://biostudy-bia.ebi.ac.uk:8788'
     )
-
     parser.add_argument(
         '--aap_url', type=str, default='https://api.aai.ebi.ac.uk',
         help='Override the default URL for AAP API: https://api.aai.ebi.ac.uk'
     )
     parser.add_argument(
         '--ena', action='store_true',
-        help='Submit to ENA'
+        help='Submit to ENA, requires environment variables ENA_USERNAME and ENA_PASSWORD'
+    )
+    parser.add_argument(
+        '--ena_url', type=str, default='https://www.ebi.ac.uk/ena',
+        help='Override the default URL for ENA REST API and ENA Taxonomy Validator: https://www.ebi.ac.uk/ena'
+    )
+    parser.add_argument(
+        '--ena_action', type=str, choices=['ADD', 'MODIFY', 'VALIDATE', 'VALIDATE,ADD', 'VALIDATE,MODIFY'],
+        help='Define an ENA action to use when submitting, default is ADD'
+    )
+    parser.add_argument(
+        '--ena_hold_date', type=date,
+        help='Define a Hold Date to use when submitting to ENA, overriding any hold date defined in the excel file.'
+    )
+    parser.add_argument(
+        '--ena_center_name', type=str,
+        help='Define a submitting center name to use when submitting to ENA'
     )
     parser.add_argument(
         '--secure_key', type=str,
@@ -247,7 +263,17 @@ if __name__ == '__main__':
                 sys.exit(2)
         
         if args['ena']:
-            excel_utils.submit_ena()
+            if 'ENA_USERNAME' not in os.environ:
+                logging.error('No ENA_USERNAME detected in os environment variables.')
+                sys.exit(2)
+            if 'ENA_PASSWORD' not in os.environ:
+                logging.error('No ENA_PASSWORD detected in os environment variables.')
+                sys.exit(2)
+            ena_action = None
+            if args['ena_action']:
+                ena_action = EnaAction(args['ena_action'])
+            ena_service = Ena(os.environ['ENA_USERNAME'], os.environ['ENA_PASSWORD'], args['ena_url'])
+            excel_utils.submit_ena(ena_service, ena_action, args['ena_hold_date'], args['ena_center_name'])
 
         if biostudies_service:
             excel_utils.update_biostudies_links(biostudies_service)

@@ -1,6 +1,8 @@
 from datetime import date
-from lxml import etree
+from typing import Dict, Tuple
 from xml.etree.ElementTree import Element
+
+from lxml import etree
 
 from submission.entity import Entity
 from submission.submission import Submission
@@ -22,13 +24,17 @@ class EnaSubmissionConverter:
             'SUBMISSION': self.submission_file
         }
 
-    def convert(self, data: Submission) -> dict:
+    def convert(self, data: Submission) -> Dict[str, Tuple[str, str]]:
         ena_files = {}
         for file_name, converter in self.conversions.items():
             file_node = converter(data)
-            if file_node:
-                ena_files[file_name] = file_node
+            if len(file_node) > 0:
+                ena_files[file_name] = (f'{file_name}.xml', self.convert_element(file_node))
         return ena_files
+    
+    @staticmethod
+    def convert_element(element: Element) -> str:
+        return etree.tostring(element, xml_declaration=True, pretty_print=True, encoding="UTF-8")
 
     @staticmethod
     def projects_file(data: Submission) -> Element:
@@ -36,8 +42,7 @@ class EnaSubmissionConverter:
         projects_node = etree.XML('<PROJECT_SET />')
         for study in data.get_entities('study'):
             projects_node.append(project_converter.convert(study))
-        if len(projects_node):
-            return projects_node
+        return projects_node
 
     @staticmethod
     def studies_file(data: Submission) -> Element:
@@ -45,8 +50,7 @@ class EnaSubmissionConverter:
         studies_node = etree.XML('<STUDY_SET />')
         for study in data.get_entities('study'):
             studies_node.append(study_converter.convert(study))
-        if len(studies_node):
-            return studies_node
+        return studies_node
 
     @staticmethod
     def samples_file(data: Submission) -> Element:
@@ -55,8 +59,7 @@ class EnaSubmissionConverter:
         for sample in data.get_entities('sample'):
             if not sample.get_accession('BioSamples'):
                 samples_node.append(sample_converter.convert(sample))
-        if len(samples_node):
-            return samples_node
+        return samples_node
 
     @staticmethod
     def experiments_file(data: Submission) -> Element:
@@ -78,8 +81,7 @@ class EnaSubmissionConverter:
                 if len(studies) > 1:
                     experiment.add_error('run_experiment_ena_experiment_accession', f'More than one Study Linked, using first: {studies[0].identifier.index}')
                 experiments_node.append(experiment_converter.convert_experiment(experiment, samples[0], studies[0]))
-        if len(experiments_node):
-            return experiments_node
+        return experiments_node
 
     @staticmethod
     def runs_file(data: Submission) -> Element:
@@ -87,8 +89,7 @@ class EnaSubmissionConverter:
         runs_node = etree.XML('<RUN_SET />')
         for run in data.get_entities('run_experiment'):
             runs_node.append(run_converter.convert_run(run, experiment=run))
-        if len(runs_node):
-            return runs_node
+        return runs_node
     
     @staticmethod
     def submission_file(data: Submission) -> Element:
