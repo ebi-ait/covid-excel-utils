@@ -19,6 +19,7 @@ from validation.docker import DockerValidator
 from validation.excel import ExcelValidator
 from validation.taxonomy import TaxonomyValidator
 from validation.upload import UploadValidator
+from validation.xsd import XMLSchemaValidator
 
 
 DOCKER_IMAGE = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
@@ -49,6 +50,7 @@ class CovidExcelUtils:
         self.excel.validate(TaxonomyValidator())
         if secure_key:
             self.excel.validate(UploadValidator(secure_key))
+        self.excel.validate(XMLSchemaValidator())
 
     def submit_to_biosamples(self, converter: BioSamplesConverter, service: BioSamples):
         for sample in self.excel.data.get_entities('sample'):
@@ -83,7 +85,12 @@ class CovidExcelUtils:
                     study.add_error('study_accession', error_msg)
 
     def submit_ena(self, service: Ena, action: EnaAction = None, hold_date: date = None, center: str = None):
-        self.ena_files = EnaSubmissionConverter().convert(self.excel.data)
+        submission_converter = EnaSubmissionConverter()
+        self.ena_files = submission_converter.get_ena_files(self.excel.data)
+        if not action:
+            action = EnaAction.ADD
+        if not hold_date:
+            hold_date = submission_converter.get_release_date(self.excel.data)
         self.ena_response = service.submit_files(self.ena_files, action, hold_date, center)
         EnaResponseConverter().convert_response_file(self.excel.data, self.ena_response)
 
