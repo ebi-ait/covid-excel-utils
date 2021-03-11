@@ -2,10 +2,10 @@ import logging
 import time
 
 import docker
-from .schema import SchemaValidator
+from .json import JsonSchemaValidator
 
 
-class DockerValidator(SchemaValidator):
+class DockerValidator(JsonSchemaValidator):
     def __init__(self, image_name, validator_url, port=3020):
         self.__client = docker.from_env()
         self.container = self.__launch(self.__client, image_name, port)
