@@ -3,20 +3,16 @@ from test.unit import validation
 import unittest
 from unittest.mock import patch, MagicMock
 
-from submission.submission import Submission
-from validation.upload import UploadValidator
+from validation.upload import UploadValidator, MANIFEST_FILE_NAME
 
 class TestUploadValidator(unittest.TestCase):
-    @patch.object(UploadValidator, 'get_file_keys')
-    def test_file_manifest_should_remove_xlsx(self, mock: MagicMock):
+    @patch.object(UploadValidator, 'get_manifest_file')
+    def test_file_manifest_should_be_called_with_params(self, mock: MagicMock):
         # Given
         secure_key = 'uuid'
-        file_name = 'file_name.extention1.ex2'
+        file_name = 'file_name.extension1.ex2'
         checksum = 'checksum'
-        mock.return_value = {
-            f'{secure_key}/{file_name}.{checksum}',
-            f'{secure_key}/meta_file.XLSX.date-time-stamp'
-        }
+        mock.return_value = f"{file_name},{checksum}"
         expected_manifest = {
             file_name: checksum
         }
@@ -25,21 +21,16 @@ class TestUploadValidator(unittest.TestCase):
         validator = UploadValidator(secure_key)
         
         # Then
-        mock.assert_called_once_with(f'{secure_key}/')
+        mock.assert_called_once_with(f'{secure_key}/{MANIFEST_FILE_NAME}')
         self.assertDictEqual(expected_manifest, validator.file_manifest)
     
-    @patch.object(UploadValidator, 'get_file_keys')
+    @patch.object(UploadValidator, 'get_manifest_file')
     def test_missing_file_should_log_error(self, mock: MagicMock):
         # Given
-        secure_key = 'uuid'
         entity_type = 'run_experiment'
         index = f'{entity_type}1'
-
-        mock.return_value = {
-            f'{secure_key}/file_name.extention1.ex2.checksum',
-            f'{secure_key}/meta_file.XLSX.date-time-stamp'
-        }
-        validator = UploadValidator(secure_key)
+        mock.return_value = f"file_name.extension1.ex2,checksum"
+        validator = UploadValidator('uuid')
         entity = Entity(entity_type, index, {'uploaded_file_1': 'missing.file'})
         expected_errors = {
             'uploaded_file_1': ['File has not been uploaded to drag-and-drop: missing.file']
@@ -50,20 +41,17 @@ class TestUploadValidator(unittest.TestCase):
         # Then
         self.assertDictEqual(expected_errors, entity.errors)
     
-    @patch.object(UploadValidator, 'get_file_keys')
+    @patch.object(UploadValidator, 'get_manifest_file')
     def test_missmatched_checksum_should_log_error(self, mock: MagicMock):
         # Given
         secure_key = 'uuid'
         entity_type = 'run_experiment'
         index = f'{entity_type}1'
-        file_name = 'file_name.extention1.ex2'
+        file_name = 'file_name.extension1.ex2'
         expected_checksum = 'checksum'
         wrong_checksum = 'not-checksum'
-        mock.return_value = {
-            f'{secure_key}/{file_name}.{expected_checksum}',
-            f'{secure_key}/meta_file.XLSX.date-time-stamp'
-        }
-        
+        mock.return_value = f"{file_name},{expected_checksum}"
+
         # When
         validator = UploadValidator(secure_key)
         attributes = {
@@ -79,19 +67,16 @@ class TestUploadValidator(unittest.TestCase):
         }
         self.assertDictEqual(expected_errors, entity.errors)
 
-    @patch.object(UploadValidator, 'get_file_keys')
-    def test_validation_should_add_checksum_to_attributes(self, mock: MagicMock):
+    @patch.object(UploadValidator, 'get_manifest_file')
+    def test_validation_should_edit_file_attributes(self, mock: MagicMock):
         # Given
         secure_key = 'uuid'
         entity_type = 'run_experiment'
         index = f'{entity_type}1'
-        file_name = 'file_name.extention1.ex2'
+        file_name = 'file_name.extension1.ex2'
         checksum = 'checksum'
-        mock.return_value = {
-            f'{secure_key}/{file_name}.{checksum}',
-            f'{secure_key}/meta_file.XLSX.date-time-stamp'
-        }
-        
+        mock.return_value = f"{file_name},{checksum}"
+
         # When
         validator = UploadValidator(secure_key)
         attributes = {
@@ -102,21 +87,18 @@ class TestUploadValidator(unittest.TestCase):
 
         # Then
         expected_attributes = {
-            'uploaded_file_1': file_name,
+            'uploaded_file_1': f'/{secure_key}/{file_name}',
             'uploaded_file_1_checksum': checksum,
         }
         self.assertDictEqual(expected_attributes, entity.attributes)
 
-    @patch.object(UploadValidator, 'get_file_keys')
+    @patch.object(UploadValidator, 'get_manifest_file')
     def test_validation_with_second_file_missing(self, mock: MagicMock):
         # Given
         secure_key = 'uuid'
         entity_type = 'run_experiment'
         index = f'{entity_type}1'
-        mock.return_value = {
-            f'{secure_key}/first-file.first-checksum',
-            f'{secure_key}/meta_file.XLSX.date-time-stamp'
-        }
+        mock.return_value = f"first-file,first-checksum"
         
         # When
         validator = UploadValidator(secure_key)
@@ -133,19 +115,14 @@ class TestUploadValidator(unittest.TestCase):
         }
         self.assertDictEqual(expected_errors, entity.errors)
 
-
-    @patch.object(UploadValidator, 'get_file_keys')
+    @patch.object(UploadValidator, 'get_manifest_file')
     def test_validation_with_second_file_present(self, mock: MagicMock):
         # Given
         secure_key = 'uuid'
         entity_type = 'run_experiment'
         index = f'{entity_type}1'
-        mock.return_value = {
-            f'{secure_key}/first-file.first-checksum',
-            f'{secure_key}/second-file.second-checksum',
-            f'{secure_key}/meta_file.XLSX.date-time-stamp'
-        }
-        
+        mock.return_value = f"first-file,first-checksum\n" \
+                            f"second-file,second-checksum"
         # When
         validator = UploadValidator(secure_key)
         attributes = {
