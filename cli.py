@@ -281,8 +281,12 @@ if __name__ == '__main__':
             ena_action = None
             if args['ena_action']:
                 ena_action = EnaAction(args['ena_action'])
-            ena_service = Ena(os.environ['ENA_USERNAME'], os.environ['ENA_PASSWORD'], args['ena_url'])
-            excel_utils.submit_ena(ena_service, ena_action, args['ena_hold_date'], args['ena_center_name'])
+            try:
+                ena_service = Ena(os.environ['ENA_USERNAME'], os.environ['ENA_PASSWORD'], args['ena_url'])
+                excel_utils.submit_ena(ena_service, ena_action, args['ena_hold_date'], args['ena_center_name'])
+            except Exception as error:
+                logging.error(f'ENA Error: {error}')
+                sys.exit(2)
 
         if biostudies_service:
             excel_utils.update_biostudies_links(biostudies_service)

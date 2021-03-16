@@ -8,6 +8,7 @@ from lxml import etree
 from excel.submission import ExcelSubmission
 from submission.entity import Entity
 from submission.submission import Submission
+from services.ena import EnaError
 
 
 class EnaResponseConverter:
@@ -58,11 +59,16 @@ class EnaResponseConverter:
                     submission.link_entities(submission_entity, entity)
 
     def __add_errors(self, submission: Submission, response: Element):
+        submission_errors = []
         for messages in response.iter('MESSAGES'):
             for error in messages.iter('ERROR'):
                 match = self.regex.match(error.text)
                 if match:
                     self.__add_error(submission, match)
+                else:
+                    submission_errors.append(error.text)
+        if submission_errors:
+            raise EnaError(' '.join(submission_errors))
 
     def __add_error(self, submission: Submission, match: Match):
         ena_name = match.group('name').upper()

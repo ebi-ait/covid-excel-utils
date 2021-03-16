@@ -36,6 +36,9 @@ class Ena:
             message = f'ENA Responded with: HTTP{response.status_code}'
             error = response.json()
             if error:
-                raise RuntimeError(f"{message} {error['error']} {error['message']}")
-            raise RuntimeError(message)
+                raise EnaError(f"{message} {error['error']} {error['message']}")
+            raise EnaError(message)
 
+
+class EnaError(Exception):
+    pass
