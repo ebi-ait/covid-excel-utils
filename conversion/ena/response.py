@@ -47,12 +47,15 @@ class EnaResponseConverter:
         ena_entity = list(response.iter('SUBMISSION')).pop()
         return submission.map('submission', ena_entity.attrib['alias'], {})
 
-    def __add_accessions(self, submission: Submission, response: Element):
-        for ena_name, entity_type, accession_type in self.map.items():
+    def __add_accessions(self, submission: Submission, response: Element, submission_entity: Entity):
+        for ena_name, (entity_type, accession_type) in self.map.items():
             for ena_entity in response.iter(ena_name):
-                if 'alias' in ena_entity.attrib and 'accession' in ena_entity.attrib:
-                    entity = submission.get_entity(entity_type, ena_entity.attrib['alias'])
-                    entity.add_accession(accession_type, ena_entity.attrib['accession'])
+                index = ena_entity.attrib.get('alias', None)
+                accession = ena_entity.attrib.get('accession', None)
+                if index and accession:
+                    entity = submission.get_entity(entity_type, index)
+                    entity.add_accession(accession_type, accession)
+                    submission.link_entities(submission_entity, entity)
 
     def __add_errors(self, submission: Submission, response: Element):
         for messages in response.iter('MESSAGES'):

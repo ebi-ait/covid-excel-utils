@@ -101,7 +101,7 @@ class ExcelLoader:
 
     @staticmethod
     def get_accession_attribute(entity_type: str, service: str):
-        if entity_type in SERVICE_MAP:
+        if entity_type in SERVICE_MAP and service == SERVICE_MAP[entity_type]:
             return ExcelLoader.default_accession_attribute(entity_type)
         else:
             return ExcelLoader.service_accession_attribute(entity_type, service)

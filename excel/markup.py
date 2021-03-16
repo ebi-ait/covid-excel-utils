@@ -47,8 +47,8 @@ class ExcelMarkup(ValidatingExcel):
                 self.__sheet[cell_index] = submission_entity.identifier.index
 
     def add_accessions(self):
-        for entity_type in self.data.get_entity_types():
-            for entity in self.data.get_entities(entity_type):
+        for entity_type, entities in self.data.get_all_entities().items():
+            for entity in entities:
                 for service, accession in entity.get_accessions():
                     self.add_accession(entity_type, entity.identifier.index, service, accession)
 
