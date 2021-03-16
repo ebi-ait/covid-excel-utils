@@ -10,7 +10,7 @@ from submission.entity import Entity
 from .base import BaseValidator
 
 
-class JsonSchemaValidator(BaseValidator):
+class JsonValidator(BaseValidator):
     def __init__(self, validator_url: str):
         self.validator_url = validator_url
         self.schema_by_type = self.__load_schema_files()
@@ -57,7 +57,7 @@ class JsonSchemaValidator(BaseValidator):
             for error in schema_error['errors']:
                 error.replace('"', '\'')
                 if error == 'should NOT be valid':
-                    error = JsonSchemaValidator.__improve_not_be_valid_error_message(entity.identifier.entity_type, attribute_name)
+                    error = JsonValidator.__improve_not_be_valid_error_message(entity.identifier.entity_type, attribute_name)
                 stripped_errors.append(error)
             entity.add_errors(attribute_name, stripped_errors)
 

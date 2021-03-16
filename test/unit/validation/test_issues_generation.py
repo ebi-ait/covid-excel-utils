@@ -5,13 +5,13 @@ from os.path import dirname, join
 import requests
 from unittest.mock import patch
 
-from validation.json import JsonSchemaValidator
+from validation.json import JsonValidator
 from submission.submission import Submission
 
 
 class TestIssuesGeneration(unittest.TestCase):
     def setUp(self):
-        self.schema_validation = JsonSchemaValidator("")
+        self.schema_validation = JsonValidator("")
         self.maxDiff = None
         current_folder = dirname(__file__)
         with open(join(current_folder, "../../resources/data_for_test_issues.json")) as test_data_file:

@@ -5,7 +5,7 @@ import requests
 from os.path import dirname, join
 from mock import patch
 
-from validation.json import JsonSchemaValidator
+from validation.json import JsonValidator
 from submission.submission import Submission
 
 
@@ -14,7 +14,7 @@ class TestSchemaValidation(unittest.TestCase):
         self.maxDiff = None
         with open(join(dirname(__file__), "../../resources/data_for_test_issues.json")) as test_data_file:
             test_data = json.load(test_data_file)
-        self.schema_validation = JsonSchemaValidator("")
+        self.schema_validation = JsonValidator("")
         self.submission = Submission()
         for entity_type, attributes in test_data.items():
             self.submission.map(entity_type, attributes["index"], attributes)
