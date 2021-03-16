@@ -39,7 +39,7 @@ class TestUploadValidator(unittest.TestCase):
         validator.validate_entity(entity)
 
         # Then
-        self.assertDictEqual(expected_errors, entity.errors)
+        self.assertDictEqual(expected_errors, entity.get_errors())
     
     @patch.object(UploadValidator, 'get_manifest_file')
     def test_missmatched_checksum_should_log_error(self, mock: MagicMock):
@@ -65,7 +65,7 @@ class TestUploadValidator(unittest.TestCase):
         expected_errors = {
             'uploaded_file_1_checksum': [f'The checksum found on drag-and-drop {expected_checksum} does not match: {wrong_checksum}']
         }
-        self.assertDictEqual(expected_errors, entity.errors)
+        self.assertDictEqual(expected_errors, entity.get_errors())
 
     @patch.object(UploadValidator, 'get_manifest_file')
     def test_validation_should_edit_file_attributes(self, mock: MagicMock):
@@ -113,7 +113,7 @@ class TestUploadValidator(unittest.TestCase):
         expected_errors = {
             'uploaded_file_2': ['File has not been uploaded to drag-and-drop: second-file']
         }
-        self.assertDictEqual(expected_errors, entity.errors)
+        self.assertDictEqual(expected_errors, entity.get_errors())
 
     @patch.object(UploadValidator, 'get_manifest_file')
     def test_validation_with_second_file_present(self, mock: MagicMock):
@@ -135,4 +135,4 @@ class TestUploadValidator(unittest.TestCase):
         validator.validate_entity(entity)
 
         # Then
-        self.assertDictEqual({}, entity.errors)
+        self.assertDictEqual({}, entity.get_errors())

@@ -7,9 +7,9 @@ from excel.submission import ExcelSubmission
 class TestExcelAccessionHandling(unittest.TestCase):
     def test_default_accessions(self):
         expected_accessions = {
-            'BioStudies': ['S-BSST1'],
-            'BioSamples': ['SAME1'],
-            'ENA_Run': ['ERR1', 'ERR2']
+            'BioStudies': {'S-BSST1'},
+            'BioSamples': {'SAME1'},
+            'ENA_Run': {'ERR1', 'ERR2'}
         }
         submission = ExcelSubmission()
         study = {
@@ -44,13 +44,13 @@ class TestExcelAccessionHandling(unittest.TestCase):
     
     def test_mapped_accessions(self):
         expected_accessions = {
-            'BioStudies': ['S-BSST1'],
-            'BioSamples': ['SAME1'],
-            'ENA_Project': ['PRJEB1'],
-            'ENA_Study': ['ERP1'],
-            'ENA_Sample': ['ERS1'],
-            'ENA_Experiment': ['ERX1', 'ERX2'],
-            'ENA_Run': ['ERR1', 'ERR2']
+            'BioStudies': {'S-BSST1'},
+            'BioSamples': {'SAME1'},
+            'ENA_Project': {'PRJEB1'},
+            'ENA_Study': {'ERP1'},
+            'ENA_Sample': {'ERS1'},
+            'ENA_Experiment': {'ERX1', 'ERX2'},
+            'ENA_Run': {'ERR1', 'ERR2'}
         }
         submission = ExcelSubmission()
         study = {
@@ -92,8 +92,8 @@ class TestExcelAccessionHandling(unittest.TestCase):
 
     def test_unmapped_service_accessions(self):
         expected_accessions = {
-            'array_express': ['A1', 'A2'],
-            'eva': ['EVA1', 'EVA2']
+            'array_express': {'A1', 'A2'},
+            'eva': {'EVA1', 'EVA2'}
         }
         submission = ExcelSubmission()
         sequence1 = {

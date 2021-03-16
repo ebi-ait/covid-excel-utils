@@ -71,9 +71,9 @@ class TestSchemaValidation(unittest.TestCase):
         self.schema_validation.validate_data(self.submission)
 
         # Then
-        self.assertTrue(study.errors)
+        self.assertTrue(study.has_errors())
         self.assertTrue(self.submission.has_errors())
-        self.assertDictEqual(expected_errors['study']['PRJEB39632'], study.errors)
+        self.assertDictEqual(expected_errors['study']['PRJEB39632'], study.get_errors())
         self.assertDictEqual(expected_errors['study'], self.submission.get_type_errors('study'))
         self.assertDictEqual(expected_errors, self.submission.get_all_errors())
 

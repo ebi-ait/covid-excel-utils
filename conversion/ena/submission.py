@@ -63,7 +63,9 @@ class EnaSubmissionConverter:
                 experiment.add_error('run_experiment_ena_experiment_accession', f'More than one Sample Linked, using first: {samples[0].identifier.index}')
             if len(studies) > 1:
                 experiment.add_error('run_experiment_ena_experiment_accession', f'More than one Study Linked, using first: {studies[0].identifier.index}')
-            return converter.convert_experiment(experiment, samples[0], studies[0])
+            sample = samples.pop()
+            study = studies.pop()
+            return converter.convert_experiment(experiment, sample, study)
 
     @staticmethod
     def get_release_date(data: Submission) -> date:

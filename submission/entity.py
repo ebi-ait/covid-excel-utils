@@ -1,4 +1,6 @@
-from typing import Iterable, ItemsView
+from copy import deepcopy
+from typing import Dict, Iterable, ItemsView, Set, List
+
 
 class EntityIdentifier:
     def __init__(self, entity_type: str, index: str):
@@ -13,24 +15,30 @@ class Entity:
     def __init__(self, entity_type: str, index: str, attributes: dict):
         self.identifier = EntityIdentifier(entity_type, index)
         self.attributes = attributes
-        self.__accessions = {}
-        self.errors = {}
-        self.links = {}
+        self.__accessions: Dict[str, str] = {}
+        self.__errors: Dict[str, List[str]] = {}
+        self.__links: Dict[str, Set[str]] = {}
 
     def add_error(self, attribute: str, error_msg: str):
-        self.errors.setdefault(attribute, []).append(error_msg)
+        self.__errors.setdefault(attribute, []).append(error_msg)
 
     def add_errors(self, attribute: str, error_msgs: Iterable[str]):
-        self.errors.setdefault(attribute, []).extend(error_msgs)
+        self.__errors.setdefault(attribute, []).extend(error_msgs)
+
+    def get_errors(self) -> Dict[str, List[str]]:
+        return deepcopy(self.__errors)
+
+    def has_errors(self) -> bool:
+        return len(self.__errors) > 0
 
     def add_link_id(self, identifier: EntityIdentifier):
-        self.add_link(identifier.entity_type, identifier.index)    
+        self.add_link(identifier.entity_type, identifier.index)
 
     def add_link(self, entity_type: str, index: str):
-        self.links.setdefault(entity_type, set()).add(index)
-    
-    def get_linked_indexes(self, entity_type):
-        return self.links.get(entity_type, set())
+        self.__links.setdefault(entity_type, set()).add(index)
+
+    def get_linked_indexes(self, entity_type) -> Set[str]:
+        return self.__links.get(entity_type, set())
 
     def add_accession(self, service: str, accession_value: str):
         self.__accessions[service] = accession_value

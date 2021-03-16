@@ -46,8 +46,8 @@ class TestTaxonomyValidator(unittest.TestCase):
         self.taxonomy_validator.validate_entity(sample)
 
         # Then
-        self.assertFalse(sample.errors)
-        self.assertDictEqual({}, sample.errors)
+        self.assertFalse(sample.has_errors())
+        self.assertDictEqual({}, sample.get_errors())
     
     def test_valid_sample_tax_id_should_not_return_error(self):
         # Given
@@ -61,8 +61,8 @@ class TestTaxonomyValidator(unittest.TestCase):
         self.taxonomy_validator.validate_entity(sample)
 
         # Then
-        self.assertFalse(sample.errors)
-        self.assertDictEqual({}, sample.errors)
+        self.assertFalse(sample.has_errors())
+        self.assertDictEqual({}, sample.get_errors())
     
     def test_valid_sample_name_should_not_return_error(self):
         # Given
@@ -76,8 +76,8 @@ class TestTaxonomyValidator(unittest.TestCase):
         self.taxonomy_validator.validate_entity(sample)
 
         # Then
-        self.assertFalse(sample.errors)
-        self.assertDictEqual({}, sample.errors)
+        self.assertFalse(sample.has_errors())
+        self.assertDictEqual({}, sample.get_errors())
     
     def test_inconsistent_sample_should_return_error(self):
         # Given
@@ -99,8 +99,8 @@ class TestTaxonomyValidator(unittest.TestCase):
         self.taxonomy_validator.validate_entity(sample)
 
         # Then
-        self.assertTrue(sample.errors)
-        self.assertDictEqual(expected_errors, sample.errors)
+        self.assertTrue(sample.has_errors())
+        self.assertDictEqual(expected_errors, sample.get_errors())
 
     def test_invalid_sample_tax_id_should_return_error(self):
         # Given
@@ -124,8 +124,8 @@ class TestTaxonomyValidator(unittest.TestCase):
         self.taxonomy_validator.validate_entity(sample)
 
         # Then
-        self.assertTrue(sample.errors)
-        self.assertDictEqual(expected_errors, sample.errors)
+        self.assertTrue(sample.has_errors())
+        self.assertDictEqual(expected_errors, sample.get_errors())
     
     def test_invalid_tax_id_should_return_error(self):
         # Given
@@ -141,8 +141,8 @@ class TestTaxonomyValidator(unittest.TestCase):
         self.taxonomy_validator.validate_entity(sample)
 
         # Then
-        self.assertTrue(sample.errors)
-        self.assertDictEqual(expected_error, sample.errors)
+        self.assertTrue(sample.has_errors())
+        self.assertDictEqual(expected_error, sample.get_errors())
 
     def test_invalid_sample_name_should_return_error(self):
         # Given
@@ -165,8 +165,8 @@ class TestTaxonomyValidator(unittest.TestCase):
         self.taxonomy_validator.validate_entity(sample)
 
         # Then
-        self.assertTrue(sample.errors)
-        self.assertDictEqual(expected_errors, sample.errors)
+        self.assertTrue(sample.has_errors())
+        self.assertDictEqual(expected_errors, sample.get_errors())
 
     def test_invalid_name_should_return_error(self):
         sample_attributes = {'scientific_name': 'Lorem Ipsum'}
@@ -182,8 +182,8 @@ class TestTaxonomyValidator(unittest.TestCase):
         self.taxonomy_validator.validate_entity(sample)
 
         # Then
-        self.assertTrue(sample.errors)
-        self.assertDictEqual(expected_error, sample.errors)
+        self.assertTrue(sample.has_errors())
+        self.assertDictEqual(expected_error, sample.get_errors())
 
 
 if __name__ == '__main__':

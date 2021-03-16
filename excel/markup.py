@@ -46,15 +46,16 @@ class ExcelMarkup(ValidatingExcel):
     def add_accession(self, entity_type: str, index: str, service: str, accession: str):
         attribute = self.get_accession_attribute(entity_type, service)
         column_letter = self.get_column_letter(entity_type, attribute)
-        if not column_letter:
-            column_letter = self.add_column(entity_type, attribute)
         for row_index in self.data.get_rows(entity_type, index):
             cell_index = self.get_cell_index(column_letter, row_index)
             self.__sheet[cell_index] = accession
 
     def get_column_letter(self, entity_type, attribute, default_column=None):
         attribute_key = f'{entity_type}.{attribute}'
-        return self.attribute_map.get(attribute_key, default_column)
+        letter = self.attribute_map.get(attribute_key, default_column)
+        if not letter:
+            letter = self.add_column(entity_type, attribute)
+        return letter
 
     def add_column(self, entity_type: str, attribute: str) -> str:
         column_letter = self.__get_next_column_letter()

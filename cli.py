@@ -103,15 +103,16 @@ class CovidExcelUtils:
                 logging.info(f'Excel file updated: {self.__file_path}')
             if self.__output in ['all', 'json']:
                 input_file_name = os.path.splitext(self.__file_path)[0]
-                if self.excel.data.has_data():
-                    json_file_path = input_file_name + '.json'
-                    self.write_dict(json_file_path, self.excel.data.get_all_data())
-                    logging.info(f'JSON output written to: {json_file_path}')
-                all_accessions = self.excel.data.get_all_accessions()
-                if all_accessions:
-                    json_file_path = input_file_name + '_accessions.json'
-                    self.write_dict(json_file_path, all_accessions)
-                    logging.info(f'JSON output written to: {json_file_path}')
+                # ToDo: Single JSON output file
+                # if self.excel.data.has_data():
+                #     json_file_path = input_file_name + '.json'
+                #     self.write_dict(json_file_path, self.excel.data.get_all_data())
+                #     logging.info(f'JSON output written to: {json_file_path}')
+                # all_accessions = self.excel.data.get_all_accessions()
+                # if all_accessions:
+                #     json_file_path = input_file_name + '_accessions.json'
+                #     self.write_dict(json_file_path, all_accessions)
+                #     logging.info(f'JSON output written to: {json_file_path}')
                 if self.ena_files:
                     for ena_file_name, xml_bytes in self.ena_files.values():
                         ena_file_path = input_file_name + '_ena_' + ena_file_name
@@ -121,10 +122,10 @@ class CovidExcelUtils:
                     ena_file_path = input_file_name + '_ena_RESPONSE.xml'
                     self.write_bytes(ena_file_path, self.ena_response)
                     logging.info(f'ENA Response File written to: {ena_file_path}')
-                if self.excel.data.has_errors():
-                    issues_file_path = input_file_name + '_issues.json'
-                    self.write_dict(issues_file_path, self.excel.human_errors())
-                    logging.info(f'JSON issues written to: {issues_file_path}')
+                # if self.excel.data.has_errors():
+                #     issues_file_path = input_file_name + '_issues.json'
+                #     self.write_dict(issues_file_path, self.excel.human_errors())
+                #     logging.info(f'JSON issues written to: {issues_file_path}')
 
     @staticmethod
     def write_dict(file_path: str, data: dict):

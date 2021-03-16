@@ -19,7 +19,7 @@ class TestSubmissionErrors(unittest.TestCase):
         study: Entity = self.submission.get_entity('study', 'PRJEB39632')
 
         # Then
-        self.assertFalse(study.errors)
+        self.assertFalse(study.has_errors())
         self.assertDictEqual({}, self.submission.get_type_errors('study'))
         self.assertFalse(self.submission.has_errors())
         self.assertDictEqual({}, self.submission.get_all_errors())
@@ -39,9 +39,9 @@ class TestSubmissionErrors(unittest.TestCase):
         study.add_error('release_date', "should have required property 'release_date'")
         
         # Then
-        self.assertTrue(study.errors)
+        self.assertTrue(study.has_errors())
         self.assertTrue(self.submission.has_errors())
-        self.assertDictEqual(expected_errors['study']['PRJEB39632'], study.errors)
+        self.assertDictEqual(expected_errors['study']['PRJEB39632'], study.get_errors())
         self.assertDictEqual(expected_errors['study'], self.submission.get_type_errors('study'))
         self.assertDictEqual(expected_errors, self.submission.get_all_errors())
     
