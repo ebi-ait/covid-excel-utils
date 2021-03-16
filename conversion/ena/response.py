@@ -5,6 +5,8 @@ from xml.etree.ElementTree import Element
 
 from lxml import etree
 
+from excel.submission import ExcelSubmission
+from submission.entity import Entity
 from submission.submission import Submission
 
 
@@ -23,8 +25,27 @@ class EnaResponseConverter:
     def convert_response_file(self, submission: Submission, ena_response_file: bytes):
         response = etree.parse(BytesIO(ena_response_file)).getroot()
         if 'success' in response.attrib and response.attrib['success'] == 'true':
-            self.__add_accessions(submission, response)
+            if isinstance(submission, ExcelSubmission):
+                submission_entity = self.__add_excel_submission(submission, response)
+            else:
+                submission_entity = self.__add_submission(submission, response)
+            self.__add_accessions(submission, response, submission_entity)
         self.__add_errors(submission, response)
+
+    @staticmethod
+    def __add_excel_submission(submission: ExcelSubmission, response: Element) -> Entity:
+        ena_entity = list(response.iter('SUBMISSION')).pop()
+        rows = submission.get_all_rows()
+        min_row = min(rows)
+        max_row = max(rows)
+        for row in range(min_row, max_row + 1):
+            entity = submission.map_row(row, 'submission', ena_entity.attrib['alias'], {})
+        return entity
+
+    @staticmethod
+    def __add_submission(submission: Submission, response: Element) -> Entity:
+        ena_entity = list(response.iter('SUBMISSION')).pop()
+        return submission.map('submission', ena_entity.attrib['alias'], {})
 
     def __add_accessions(self, submission: Submission, response: Element):
         for ena_name, entity_type, accession_type in self.map.items():

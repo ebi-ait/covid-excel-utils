@@ -36,6 +36,15 @@ class ExcelMarkup(ValidatingExcel):
             if error_count:
                 self.__sheet[f'A{row_index}'] = f'{error_count} Errors'
                 self.__sheet[f'A{row_index}'].fill = error_fill
+    
+    def add_ena_submission_index(self):
+        entity_type = 'submission'
+        index_attribute = 'submission_alias'
+        for submission_entity in self.data.get_entities(entity_type):
+            column_letter = self.get_column_letter(entity_type, index_attribute)
+            for row in self.data.get_rows_from_id(submission_entity.identifier):
+                cell_index = self.get_cell_index(column_letter, row)
+                self.__sheet[cell_index] = submission_entity.identifier.index
 
     def add_accessions(self):
         for entity_type in self.data.get_entity_types():

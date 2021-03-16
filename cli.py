@@ -97,6 +97,7 @@ class CovidExcelUtils:
     def close(self):
         if self.excel:
             if isinstance(self.excel, ExcelMarkup):
+                self.excel.add_ena_submission_index()
                 self.excel.add_accessions()
                 self.excel.markup_with_errors()
                 self.excel.close()
