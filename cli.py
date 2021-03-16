@@ -89,6 +89,10 @@ class CovidExcelUtils:
         self.ena_files = submission_converter.get_ena_files(self.excel.data)
         if not action:
             action = EnaAction.ADD
+            for key in self.excel.data.get_all_accessions().keys():
+                if key.startswith('ENA_'):
+                    action = EnaAction.MODIFY
+                    break
         if not hold_date:
             hold_date = submission_converter.get_release_date(self.excel.data)
         self.ena_response = service.submit_files(self.ena_files, action, hold_date, center)
