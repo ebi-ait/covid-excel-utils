@@ -17,7 +17,6 @@ from services.biosamples import BioSamples, AapClient
 from services.biostudies import BioStudies
 from services.ena import EnaAction, Ena
 from validation.docker import DockerValidator
-from validation.excel import ExcelValidator
 from validation.taxonomy import TaxonomyValidator
 from validation.upload import UploadValidator
 from validation.xsd import XMLSchemaValidator
@@ -42,16 +41,18 @@ class CovidExcelUtils:
             self.excel = ValidatingExcel(self.__file_path)
 
     def validate(self, secure_key: str = None):
+        docker_error = False
         try:
-            with closing(DockerValidator(DOCKER_IMAGE, SCHEMA_VALIDATION_URL)) as validator:
-                self.excel.validate(validator)
-        except Exception as e:
-            logging.warning(f'Error validating schema, using best guess validation. Detected Error: {e}')
-            self.excel.validate(ExcelValidator(self.__file_path))
+            with closing(DockerValidator(DOCKER_IMAGE, SCHEMA_VALIDATION_URL)) as docker:
+                self.excel.validate(docker)
+        except Exception:
+            logging.warning(f'Error validating using JSON Validator on Docker. Will validate using ENA XML schema instead.')
+            docker_error = True
         self.excel.validate(TaxonomyValidator())
         if secure_key:
             self.excel.validate(UploadValidator(secure_key))
-        self.excel.validate(XMLSchemaValidator())
+        if docker_error:
+            self.excel.validate(XMLSchemaValidator())
 
     def submit_to_biosamples(self, converter: BioSamplesConverter, service: BioSamples):
         for sample in self.excel.data.get_entities('sample'):
