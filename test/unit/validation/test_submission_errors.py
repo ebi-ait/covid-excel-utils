@@ -20,7 +20,7 @@ class TestSubmissionErrors(unittest.TestCase):
 
         # Then
         self.assertFalse(study.has_errors())
-        self.assertDictEqual({}, self.submission.get_type_errors('study'))
+        self.assertDictEqual({}, self.submission.get_errors('study'))
         self.assertFalse(self.submission.has_errors())
         self.assertDictEqual({}, self.submission.get_all_errors())
     
@@ -42,7 +42,7 @@ class TestSubmissionErrors(unittest.TestCase):
         self.assertTrue(study.has_errors())
         self.assertTrue(self.submission.has_errors())
         self.assertDictEqual(expected_errors['study']['PRJEB39632'], study.get_errors())
-        self.assertDictEqual(expected_errors['study'], self.submission.get_type_errors('study'))
+        self.assertDictEqual(expected_errors['study'], self.submission.get_errors('study'))
         self.assertDictEqual(expected_errors, self.submission.get_all_errors())
     
     def test_submission_entities_with_errors(self):
