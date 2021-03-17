@@ -236,11 +236,16 @@ if __name__ == '__main__':
             logging.info(f"No Data imported from: {args['file_path']}")
             sys.exit(0)
         excel_utils.validate(args['secure_key'])
-        if (args['biosamples'] or args['biostudies'] or args['ena']) and excel_utils.excel.data.has_errors():
-            user_text = input(f'Issues detected. Continue with Brokering? (y/N)?:')
-            if not user_text.lower().startswith('y'):
-                print('Exiting')
-                sys.exit(0)
+        if excel_utils.excel.data.has_errors():
+            message = 'Issues detected:'
+            for entity_type, indexed_entities in excel_utils.excel.data.get_all_errors().items():
+                message = f'{message} {len(indexed_entities)} {entity_type}(s)'
+            print(message)
+            if args['biosamples'] or args['biostudies'] or args['ena']:
+                user_text = input('Continue with Brokering? (y/N)?:')
+                if not user_text.lower().startswith('y'):
+                    print('Exiting')
+                    sys.exit(0)
 
         biosamples_service = None
         biosamples_accessions = []

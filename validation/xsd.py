@@ -1,6 +1,7 @@
 from fnmatch import fnmatch
 from os import listdir
 from os.path import dirname, join, splitext
+import re
 
 from lxml import etree
 
@@ -15,6 +16,7 @@ class XMLSchemaValidator(BaseValidator):
 
     def __init__(self):
         self.__load_schema_files()
+        self.regex = re.compile(r'^Element \'(?P<element>.+)\':( \[(?P<type>.+)\])? (?P<error>.*)$')
 
     def validate_data(self, data: Submission):
         for entity_type, converter in CONVERSION_MAP:
@@ -27,14 +29,14 @@ class XMLSchemaValidator(BaseValidator):
                 if not schema(ena_set):
                     self.add_errors(schema, ena_type, entity_type, entity)
 
-    @staticmethod
-    def add_errors(schema, ena_type: str, entity_type: str, entity: Entity):
+    def add_errors(self, schema, ena_type: str, entity_type: str, entity: Entity):
         for error in schema.error_log:
+            match = self.regex.match(error.message)
+            error_message = match.group('error') if match else error.message
             error_attribute = error.path.rpartition('/')[2].lower()
-            error_message = error.message
             if error_attribute not in entity.attributes:
                 error_attribute = f'{entity_type}_ena_{ena_type}_accession'.lower()
-                error_message = f'{error.path} {error.message}'
+                error_message = f'{error.path} {error_message}'
             entity.add_error(error_attribute, error_message)
 
     def __load_schema_files(self):

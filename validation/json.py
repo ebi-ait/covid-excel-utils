@@ -58,7 +58,8 @@ class JsonValidator(BaseValidator):
                 error.replace('"', '\'')
                 if error == 'should NOT be valid':
                     error = JsonValidator.__improve_not_be_valid_error_message(entity.identifier.entity_type, attribute_name)
-                stripped_errors.append(error)
+                if error != 'should match some schema in anyOf':
+                    stripped_errors.append(error)
             entity.add_errors(attribute_name, stripped_errors)
 
     @staticmethod
