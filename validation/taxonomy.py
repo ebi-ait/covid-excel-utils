@@ -1,3 +1,5 @@
+import logging
+
 from services.ena_taxonomy import EnaTaxonomy
 from submission.entity import Entity
 from submission.submission import Submission
@@ -9,7 +11,9 @@ class TaxonomyValidator(BaseValidator):
         self.ena_taxonomy = EnaTaxonomy()
 
     def validate_data(self, data: Submission):
-        for entity in data.get_entities('sample'):
+        entities = data.get_entities('sample')
+        logging.info(f'Validating taxonomy against scientific name in {len(entities)} sample(s)')
+        for entity in entities:
             self.validate_entity(entity)
 
     def validate_entity(self, entity: Entity):

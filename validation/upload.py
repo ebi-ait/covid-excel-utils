@@ -1,6 +1,7 @@
+import logging
 from contextlib import closing
 import io
-from typing import Dict, Set
+from typing import Dict
 
 import boto3
 
@@ -13,13 +14,16 @@ REGION = 'eu-west-2'
 BUCKET = 'covid-utils-ui-88560523'
 MANIFEST_FILE_NAME = 'data_file_manifest'
 
+
 class UploadValidator(BaseValidator):
     def __init__(self, folder_uuid: str):
         self.folder_uuid = folder_uuid
         self.file_manifest = self.get_manifest(folder_uuid)
 
     def validate_data(self, data: Submission):
-        for entity in data.get_entities('run_experiment'):
+        entities = data.get_entities('run_experiment')
+        logging.info(f'Validating file checksums for {len(entities)} run(s)')
+        for entity in entities:
             self.validate_entity(entity)
 
     def validate_entity(self, entity: Entity):

@@ -1,11 +1,14 @@
+import logging
+
 from submission.entity import Entity
 from submission.submission import Submission
 
 
 class BaseValidator:
     def validate_data(self, data: Submission):
-        for entity_type in data.get_entity_types():
-            for entity in data.get_entities(entity_type):
+        for entity_type, entities in data.get_all_entities().items():
+            logging.info(f'Validating {len(entities)} {entity_type}(s) with {self.__class__}')
+            for entity in entities:
                 self.validate_entity(entity)
 
     def validate_entity(self, entity: Entity):
