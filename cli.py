@@ -3,8 +3,9 @@ import json
 import logging
 import os
 import sys
-from datetime import date
+from copy import copy
 from contextlib import closing
+from datetime import date
 
 from conversion.biosamples import BioSamplesConverter
 from conversion.biostudies import BioStudyConverter
@@ -35,7 +36,7 @@ class CovidExcelUtils:
         self.ena_response = None
 
     def load(self):
-        if self.__output in ['all', 'excel']:
+        if 'excel' in self.__output:
             self.excel = ExcelMarkup(self.__file_path)
         else:
             self.excel = ValidatingExcel(self.__file_path)
@@ -164,13 +165,12 @@ if __name__ == '__main__':
         'file_path', type=str,
         help='path of excel file to load'
     )
+    accepted_outputs = ['all', 'excel', 'json', 'ena_xml']
     parser.add_argument(
         '--output', type=str,
-        choices=['all', 'excel', 'json'],
         default='excel',
-        help='Override the default output of "excel" which will update validation and submission errors into the passed excel file as notes, styling the cells red. "json" will create a .json of the parsed excel objects annotated with errors with an _issues.json file of errors by row. "all" will do both.'
+        help=' Comma separated list of outputs, accepts: all,excel,json,ena_xml. "excel" will update validation and submission errors into the passed excel file as notes, styling the cells red. "json" will create a .json of the parsed excel objects annotated with errors with an _issues.json file of errors. "ena_xml" will save the request XML files used to generate the ENA Submission and any received response'
     )
-
     parser.add_argument(
         '--biosamples', action='store_true',
         help='Submit to BioSamples, requires environment variables AAP_USERNAME and AAP_PASSWORD'
@@ -227,7 +227,15 @@ if __name__ == '__main__':
     )
     args = vars(parser.parse_args())
     set_logging_level(args['log_level'])
-    with closing(CovidExcelUtils(args['file_path'], args['output'])) as excel_utils:
+    outputs = args['output'].split(',')
+    for out in outputs:
+        if out not in accepted_outputs:
+            logging.error(f'Unaccepted output parameter detected, "{out}" is not in the list of accepted outputs.')
+            sys.exit(2)
+    if 'all' in outputs:
+        outputs = copy(accepted_outputs)
+        outputs.remove('all')
+    with closing(CovidExcelUtils(args['file_path'], outputs)) as excel_utils:
         excel_utils.load()
         if not excel_utils.excel.data.has_data:
             logging.info(f"No Data imported from: {args['file_path']}")
