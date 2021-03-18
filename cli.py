@@ -205,7 +205,7 @@ if __name__ == '__main__':
         help='Define an ENA action to use when submitting, default is ADD'
     )
     parser.add_argument(
-        '--ena_hold_date', type=date,
+        '--ena_hold_date', type=date.fromisoformat,
         help='Define a Hold Date to use when submitting to ENA, overriding any hold date defined in the excel file.'
     )
     parser.add_argument(
