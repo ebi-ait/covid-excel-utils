@@ -294,6 +294,7 @@ if __name__ == '__main__':
             ena_action = None
             if args['ena_action']:
                 ena_action = EnaAction(args['ena_action'])
+            logging.info(f"Attempting to Submit to ENA: {args['ena_url']}")
             try:
                 ena_service = Ena(os.environ['ENA_USERNAME'], os.environ['ENA_PASSWORD'], args['ena_url'])
                 excel_utils.submit_ena(ena_service, ena_action, args['ena_hold_date'], args['ena_center_name'])
@@ -302,4 +303,5 @@ if __name__ == '__main__':
                 sys.exit(2)
 
         if biostudies_service:
+            logging.info(f"Updating BioStudies Links: {args['biostudies_url']}")
             excel_utils.update_biostudies_links(biostudies_service)
