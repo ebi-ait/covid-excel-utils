@@ -55,7 +55,7 @@ class Entity:
     def get_accessions(self) -> ItemsView[str, str]:
         return self.__accessions.items()
 
-    def as_dict(self, with_id: bool = False) -> dict:
+    def as_dict(self, with_id: bool = False, string_lists: bool = False) -> dict:
         view = {}
         if with_id:
             view['id'] = f'{self.identifier.entity_type}:{self.identifier.index}'
@@ -64,13 +64,16 @@ class Entity:
         if len(self.__accessions) > 0:
             view['accessions'] = deepcopy(self.__accessions)
         if len(self.__links) > 0:
-            view['links'] = self.__links_as_dict()
+            view['links'] = self.__links_as_dict(string_lists)
         if self.has_errors():
             view['errors'] = self.get_errors()
         return view
 
-    def __links_as_dict(self) -> Dict[str, List[str]]:
+    def __links_as_dict(self, string_list: bool = False) -> dict:
         links = {}
         for entity_type, indexes in self.__links.items():
-            links[entity_type] = list(indexes)
+            if string_list:
+                links[entity_type] = str(list(indexes))
+            else:
+                links[entity_type] = list(indexes)
         return links

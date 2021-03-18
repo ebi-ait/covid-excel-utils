@@ -112,7 +112,7 @@ class CovidExcelUtils:
             if 'json' in self.__output:
                 json_file_path = input_file_name + '.json'
                 if self.excel.data.has_data():
-                    self.write_dict(json_file_path, self.excel.data.as_dict())
+                    self.write_dict(json_file_path, self.excel.data.as_dict(string_lists=True))
                     logging.info(f'JSON output written to: {json_file_path}')
                 if self.excel.data.has_errors():
                     issues_file_path = input_file_name + '_issues.json'

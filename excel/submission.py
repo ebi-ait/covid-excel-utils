@@ -41,11 +41,14 @@ class ExcelSubmission(Submission):
                 row_errors[entity.identifier.entity_type] = entity.get_errors()
         return row_errors
 
-    def as_dict(self) -> Dict[str, Dict[str, dict]]:
-        view = super().as_dict()
+    def as_dict(self, string_lists: bool = False) -> Dict[str, Dict[str, dict]]:
+        view = super().as_dict(string_lists)
         for entity_type, indexed_entities in view.items():
             for index, entity_dict in indexed_entities.items():
-                entity_dict['rows'] = list(self.get_rows(entity_type, index))
+                if string_lists:
+                    entity_dict['rows'] = str(list(self.get_rows(entity_type, index)))
+                else:
+                    entity_dict['rows'] = list(self.get_rows(entity_type, index))
         return view
 
     def get_all_errors(self) -> Dict[str, Dict[str, Dict[str, List[str]]]]:

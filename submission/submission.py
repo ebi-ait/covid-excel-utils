@@ -85,11 +85,11 @@ class Submission:
                 errors[entity_type] = type_errors
         return errors
 
-    def as_dict(self) -> Dict[str, Dict[str, dict]]:
+    def as_dict(self, string_lists: bool = False) -> Dict[str, Dict[str, dict]]:
         view = {}
         for entity_type, indexed_entities in self.__map.items():
             for index, entity in indexed_entities.items():
-                view.setdefault(entity_type, {})[index] = entity.as_dict()
+                view.setdefault(entity_type, {})[index] = entity.as_dict(string_lists=string_lists)
         return view
 
     @staticmethod
