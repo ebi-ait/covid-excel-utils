@@ -11,7 +11,8 @@ POSSIBLE_KEYS = ['alias', 'index', 'name']
 SERVICE_MAP = {
     'study': 'BioStudies',
     'sample': 'BioSamples',
-    'run_experiment': 'ENA_Run'
+    'run_experiment': 'ENA_Run',
+    'submission': 'ENA_Submission'
 }
 SERVICE_NAMES = {
     'BioStudies'.lower(): 'BioStudies',
@@ -20,7 +21,8 @@ SERVICE_NAMES = {
     'ENA_Study'.lower(): 'ENA_Study',
     'ENA_Sample'.lower(): 'ENA_Sample',
     'ENA_Experiment'.lower(): 'ENA_Experiment',
-    'ENA_Run'.lower(): 'ENA_Run'
+    'ENA_Run'.lower(): 'ENA_Run',
+    'ENA_Submission'.lower(): 'ENA_Submission'
 }
 
 
@@ -99,7 +101,7 @@ class ExcelLoader:
 
     @staticmethod
     def get_accession_attribute(entity_type: str, service: str):
-        if entity_type in SERVICE_MAP:
+        if entity_type in SERVICE_MAP and service == SERVICE_MAP[entity_type]:
             return ExcelLoader.default_accession_attribute(entity_type)
         else:
             return ExcelLoader.service_accession_attribute(entity_type, service)

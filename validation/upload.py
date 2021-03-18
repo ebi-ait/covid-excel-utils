@@ -1,4 +1,7 @@
-from typing import Dict, Set
+import logging
+from contextlib import closing
+import io
+from typing import Dict
 
 import boto3
 
@@ -9,14 +12,18 @@ from .base import BaseValidator
 ENDPOINT = 'https://s3.embassy.ebi.ac.uk'
 REGION = 'eu-west-2'
 BUCKET = 'covid-utils-ui-88560523'
+MANIFEST_FILE_NAME = 'data_file_manifest'
 
 
 class UploadValidator(BaseValidator):
-    def __init__(self, folder_uuid:str):
-        self.file_manifest = self.get_file_manifest(folder_uuid)
+    def __init__(self, folder_uuid: str):
+        self.folder_uuid = folder_uuid
+        self.file_manifest = self.get_manifest(folder_uuid)
 
     def validate_data(self, data: Submission):
-        for entity in data.get_entities('run_experiment'):
+        entities = data.get_entities('run_experiment')
+        logging.info(f'Validating file checksums for {len(entities)} run(s)')
+        for entity in entities:
             self.validate_entity(entity)
 
     def validate_entity(self, entity: Entity):
@@ -39,25 +46,22 @@ class UploadValidator(BaseValidator):
             stated_checksum = entity.attributes[check_attribute]
             if stated_checksum != upload_checksum:
                 entity.add_error(check_attribute, f'The checksum found on drag-and-drop {upload_checksum} does not match: {stated_checksum}')
+                return
         else:
             entity.attributes[check_attribute] = upload_checksum
-
+    
     @staticmethod
-    def get_file_manifest(folder_uuid: str) -> Dict[str, str]:
-        path = f'{folder_uuid}/'
+    def get_manifest(folder_uuid: str) -> Dict[str, str]:
+        manifest_text = UploadValidator.get_manifest_file(f'{folder_uuid}/{MANIFEST_FILE_NAME}')
         manifest = {}
-        for key in UploadValidator.get_file_keys(path):
-            if '.xlsx.' not in key.lower():
-                file_name_checksum = key.partition(path)[2].rpartition('.')
-                manifest[file_name_checksum[0]] = file_name_checksum[2]
+        for line in manifest_text.splitlines():
+            file_name, comma, file_checksum = line.strip().partition(',')
+            manifest[file_name] = file_checksum
         return manifest
-
+    
     @staticmethod
-    def get_file_keys(path: str) -> Set[str]:
-        keys = set()
-        s3 = boto3.resource('s3', endpoint_url=ENDPOINT, region_name=REGION)
-        bucket = s3.Bucket(BUCKET)
-        for obj in bucket.objects.filter(Prefix=path):
-            if obj.key != path:
-                keys.add(obj.key)
-        return keys
+    def get_manifest_file(file_key: str) -> str:
+        with closing(io.BytesIO()) as manifest_file:
+            s3 = boto3.client('s3', endpoint_url=ENDPOINT, region_name=REGION)
+            s3.download_fileobj(BUCKET, file_key, manifest_file)
+            return manifest_file.getvalue().decode("utf-8") 

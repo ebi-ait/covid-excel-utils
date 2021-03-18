@@ -25,10 +25,11 @@ class BaseEnaConverter:
         return root
 
     def add_alias(self, spec: dict, entity: Entity):
-        spec['@alias'] = ['', fixed_attribute, entity.identifier.index]
         accession = entity.get_accession(f'ENA_{self.ena_type}')
         if accession:
             spec['@accession'] = ['', fixed_attribute, accession]
+        else:
+            spec['@alias'] = ['', fixed_attribute, entity.identifier.index]
        
     @staticmethod
     def post_conversion(entity: Entity, xml_element: Element):

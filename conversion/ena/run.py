@@ -18,10 +18,12 @@ class EnaRunConverter(BaseEnaConverter):
     def __init__(self):
         super().__init__(ena_type='Run', xml_spec=RUN_SPEC)
     
-    def convert_run(self, run: Entity, experiment: Entity) -> Element:
-        spec = deepcopy(self.xml_spec)
-        BaseEnaConverter.add_link(spec['EXPERIMENT_REF'], experiment, EXPERIMENT_ACCESSION_PRIORITY)
-        return super().convert(run, xml_spec=spec)
+    def convert(self, entity: Entity, xml_spec: dict = None) -> Element:
+        if not xml_spec:
+            xml_spec = deepcopy(self.xml_spec)
+        if 'EXPERIMENT_REF' in xml_spec:
+            BaseEnaConverter.add_link(xml_spec['EXPERIMENT_REF'], entity, EXPERIMENT_ACCESSION_PRIORITY)
+        return super().convert(entity, xml_spec=xml_spec)
 
     @staticmethod
     def post_conversion(entity: Entity, xml_element: Element):

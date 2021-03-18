@@ -11,9 +11,9 @@ class TestSubmissionAccessions(unittest.TestCase):
 
     def test_when_entities_has_accessions_returns_them_by_type(self):
         expected_accession_by_type = {
-            'BioSamples': ['SAME123', 'SAME456', 'SAME789'],
-            'BioStudies': ["BST1"],
-            'ENA': ['EXP123']
+            'BioSamples': {'SAME123', 'SAME456', 'SAME789'},
+            'BioStudies': {"BST1"},
+            'ENA': {'EXP123'}
         }
         submission = Submission()
 

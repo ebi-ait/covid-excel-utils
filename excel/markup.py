@@ -1,4 +1,5 @@
 from contextlib import closing
+from typing import List
 
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
@@ -23,38 +24,47 @@ class ExcelMarkup(ValidatingExcel):
 
     def markup_with_errors(self):
         error_fill = PatternFill(fill_type='solid', start_color='FF0000')
-        for row_index, row_errors in self.data.get_all_errors().items():
-            error_count = 0
-            for entity_type, entity_errors in row_errors.items():
+        for row_index in self.data.get_all_rows():
+            row_error_count = 0
+            for entity_type, entity_errors in self.data.get_row_errors(row_index).items():
+                row_error_count = row_error_count + len(entity_errors)
                 for attribute_name, attribute_errors in entity_errors.items():
-                    error_count = error_count + len(attribute_errors)
-                    human_errors = self.human_attribute_errors(entity_type, attribute_name, attribute_errors)
                     column_letter = self.get_column_letter(entity_type, attribute_name, 'A')
                     cell_index = self.get_cell_index(column_letter, row_index)
-                    self.__sheet[cell_index].comment = self.__get_error_comment(human_errors, self.__sheet[cell_index].comment)
+                    self.__sheet[cell_index].comment = self.__get_error_comment(attribute_errors, self.__sheet[cell_index].comment)
                     self.__sheet[cell_index].fill = error_fill
-            if error_count:
-                self.__sheet[f'A{row_index}'] = f'{error_count} Errors'
+            if row_error_count:
+                self.__sheet[f'A{row_index}'] = f'{row_error_count} Errors'
                 self.__sheet[f'A{row_index}'].fill = error_fill
+    
+    def add_ena_submission_index(self):
+        entity_type = 'submission'
+        index_attribute = 'submission_alias'
+        for submission_entity in self.data.get_entities(entity_type):
+            column_letter = self.get_column_letter(entity_type, index_attribute)
+            for row in self.data.get_rows_from_id(submission_entity.identifier):
+                cell_index = self.get_cell_index(column_letter, row)
+                self.__sheet[cell_index] = submission_entity.identifier.index
 
     def add_accessions(self):
-        for entity_type in self.data.get_entity_types():
-            for entity in self.data.get_entities(entity_type):
+        for entity_type, entities in self.data.get_all_entities().items():
+            for entity in entities:
                 for service, accession in entity.get_accessions():
                     self.add_accession(entity_type, entity.identifier.index, service, accession)
 
     def add_accession(self, entity_type: str, index: str, service: str, accession: str):
         attribute = self.get_accession_attribute(entity_type, service)
         column_letter = self.get_column_letter(entity_type, attribute)
-        if not column_letter:
-            column_letter = self.add_column(entity_type, attribute)
         for row_index in self.data.get_rows(entity_type, index):
             cell_index = self.get_cell_index(column_letter, row_index)
             self.__sheet[cell_index] = accession
 
     def get_column_letter(self, entity_type, attribute, default_column=None):
         attribute_key = f'{entity_type}.{attribute}'
-        return self.attribute_map.get(attribute_key, default_column)
+        letter = self.attribute_map.get(attribute_key, default_column)
+        if not letter:
+            letter = self.add_column(entity_type, attribute)
+        return letter
 
     def add_column(self, entity_type: str, attribute: str) -> str:
         column_letter = self.__get_next_column_letter()
@@ -96,11 +106,11 @@ class ExcelMarkup(ValidatingExcel):
             book.save(excel_path)
 
     @staticmethod
-    def __get_error_comment(human_errors, existing_comment: Comment = None):
+    def __get_error_comment(errors: List[str], existing_comment: Comment = None):
         stack = []
         if existing_comment and existing_comment.text:
             stack.append(existing_comment.text)
-        stack.extend(human_errors)
+        stack.extend(errors)
         text = '\r\n'.join(stack)
         comment = Comment(text, f'Validation')
         comment.width = 500

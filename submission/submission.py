@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, ItemsView, ValuesView, KeysView, Dict
+from typing import List, Set, KeysView, Dict, ValuesView
 
 from submission.entity import Entity
 
@@ -30,10 +30,10 @@ class Submission:
         return self.__map.keys()
 
     def get_entities(self, entity_type: str) -> ValuesView[Entity]:
-        return self.__map[entity_type].values()
+        return self.__map.get(entity_type, {}).values()
 
     def get_entity(self, entity_type: str, index: str) -> Entity:
-        return self.__map[entity_type][index]
+        return self.__map.get(entity_type, {}).get(index, None)
 
     def get_all_entities(self) -> Dict[str, ValuesView[Entity]]:
         all_entities = {}
@@ -41,49 +41,61 @@ class Submission:
             all_entities[entity_type] = self.get_entities(entity_type)
         return all_entities
 
-    def get_linked_entities(self, entity: Entity, entity_type: str) -> List[Entity]:
-        entities = []
+    def get_linked_entities(self, entity: Entity, entity_type: str) -> Set[Entity]:
+        entities = set()
         for index in entity.get_linked_indexes(entity_type):
-            entities.append(self.get_entity(entity_type, index))
+            entities.add(self.get_entity(entity_type, index))
         return entities
 
-    def get_linked_accessions(self, entity: Entity) -> Dict[str, List[str]]:
-        accessions: Dict[str, List[str]] = {}
+    def get_linked_accessions(self, entity: Entity) -> Dict[str, Set[str]]:
+        accessions: Dict[str, Set[str]] = {}
         for entity_type in self.get_entity_types():
             for entity in self.get_linked_entities(entity, entity_type):
                 for service, accession in entity.get_accessions():
-                    accessions.setdefault(service, []).append(accession)
+                    accessions.setdefault(service, set()).add(accession)
         return accessions
     
-    def get_all_accessions(self) -> Dict[str, List[str]]:
-        all_accessions: Dict[str, List[str]] = {}
+    def get_all_accessions(self) -> Dict[str, Set[str]]:
+        all_accessions: Dict[str, Set[str]] = {}
         for entities in self.get_all_entities().values():
             for entity in entities:
                 for service, accession in entity.get_accessions():
-                    all_accessions.setdefault(service, []).append(accession)
+                    all_accessions.setdefault(service, set()).add(accession)
         return all_accessions
 
     def has_errors(self) -> bool:
-        for entities in self.__map.values():
-            for entity in entities.values():
-                if entity.errors:
+        for entities in self.get_all_entities().values():
+            for entity in entities:
+                if entity.has_errors():
                     return True
         return False
 
-    def get_all_errors(self) -> dict:
-        errors = {}
+    def get_errors(self, entity_type: str) -> Dict[str, Dict[str, List[str]]]:
+        type_errors: Dict[str, Dict[str, List[str]]] = {}
+        for index, entity in self.__map[entity_type].items():
+            if entity.has_errors():
+                type_errors[index] = entity.get_errors()
+        return type_errors
+
+    def get_all_errors(self) -> Dict[str, Dict[str, Dict[str, List[str]]]]:
+        errors: Dict[str, Dict[str, Dict[str, List[str]]]] = {}
         for entity_type in self.get_entity_types():
-            type_errors = self.get_type_errors(entity_type)
+            type_errors = self.get_errors(entity_type)
             if type_errors:
                 errors[entity_type] = type_errors
         return errors
-    
-    def get_type_errors(self, entity_type: str):
-        type_errors = {}
-        for index, entity in self.__map[entity_type].items():
-            if entity.errors:
-                type_errors[index] = entity.errors
-        return type_errors
+
+    def as_dict(self, string_lists: bool = False) -> Dict[str, Dict[str, dict]]:
+        view = {}
+        for entity_type, indexed_entities in self.__map.items():
+            for index, entity in indexed_entities.items():
+                view.setdefault(entity_type, {})[index] = entity.as_dict(string_lists=string_lists)
+        return view
+
+    @staticmethod
+    def link_entities(entity_a: Entity, entity_b: Entity):
+        entity_a.add_link_id(entity_b.identifier)
+        entity_b.add_link_id(entity_a.identifier)
 
     def __handle_collision(self, entity_type: str, index: str, attributes: dict) -> Entity:
         if self.__collider == HandleCollision.ERROR:
@@ -94,8 +106,3 @@ class Submission:
         else:  # Default is UPDATE
             existing_entity.attributes.update(attributes)
         return existing_entity
-
-    @staticmethod
-    def link_entities(entity_a: Entity, entity_b: Entity):
-        entity_a.add_link_id(entity_b.identifier)
-        entity_b.add_link_id(entity_a.identifier)
