@@ -1,3 +1,4 @@
+import logging
 import re
 from re import Match
 from io import BytesIO
@@ -55,6 +56,11 @@ class EnaResponseConverter:
                 accession = ena_entity.attrib.get('accession', None)
                 if index and accession:
                     entity = submission.get_entity(entity_type, index)
+                    if not entity:
+                        entity = submission.get_entity(entity_type, accession)
+                    if not entity:
+                        logging.warning(f'Cannot add find {entity_type}.{index} to add accession {accession}')
+                        continue
                     entity.add_accession(accession_type, accession)
                     submission.link_entities(submission_entity, entity)
 
