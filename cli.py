@@ -16,14 +16,14 @@ from excel.validate import ValidatingExcel
 from services.biosamples import BioSamples, AapClient
 from services.biostudies import BioStudies
 from services.ena import EnaAction, Ena
-from validation.docker import DockerValidator
+from validation.docker import JsonValidatorDocker
 from validation.taxonomy import TaxonomyValidator
 from validation.upload import UploadValidator
 from validation.xsd import XMLSchemaValidator
 
 
 DOCKER_IMAGE = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
-SCHEMA_VALIDATION_URL = "http://localhost:3020/validate"
+JSON_VALIDATOR_URL = "http://localhost:3020/validate"
 
 
 class CovidExcelUtils:
@@ -43,8 +43,8 @@ class CovidExcelUtils:
     def validate(self, secure_key: str = None):
         docker_error = False
         try:
-            with closing(DockerValidator(DOCKER_IMAGE, SCHEMA_VALIDATION_URL)) as docker:
-                self.excel.validate(docker)
+            with closing(JsonValidatorDocker(DOCKER_IMAGE, JSON_VALIDATOR_URL)) as json_validator:
+                self.excel.validate(json_validator)
         except Exception:
             logging.warning(f'Error validating using JSON Validator on Docker. Will validate using ENA XML schema instead.')
             docker_error = True

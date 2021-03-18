@@ -5,7 +5,7 @@ import docker
 from .json import JsonValidator
 
 
-class DockerValidator(JsonValidator):
+class JsonValidatorDocker(JsonValidator):
     def __init__(self, image_name, validator_url, port=3020):
         self.__client = docker.from_env()
         self.container = self.__launch(self.__client, image_name, port)
