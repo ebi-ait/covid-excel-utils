@@ -49,7 +49,6 @@ class UploadValidator(BaseValidator):
                 return
         else:
             entity.attributes[check_attribute] = upload_checksum
-        entity.attributes[file_attribute] = f'/{self.folder_uuid}/{file_name}'
     
     @staticmethod
     def get_manifest(folder_uuid: str) -> Dict[str, str]:
