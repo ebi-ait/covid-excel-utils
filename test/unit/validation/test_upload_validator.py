@@ -87,7 +87,7 @@ class TestUploadValidator(unittest.TestCase):
 
         # Then
         expected_attributes = {
-            'uploaded_file_1': f'/{secure_key}/{file_name}',
+            'uploaded_file_1': file_name,
             'uploaded_file_1_checksum': checksum,
         }
         self.assertDictEqual(expected_attributes, entity.attributes)
