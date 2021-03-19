@@ -3,17 +3,17 @@ from test.unit import validation
 import unittest
 from unittest.mock import patch, MagicMock
 
-from validation.upload import UploadValidator, MANIFEST_FILE_NAME
+from validation.upload import UploadValidator, CHECKSUMS_FILE_NAME
 
 class TestUploadValidator(unittest.TestCase):
-    @patch.object(UploadValidator, 'get_manifest_file')
-    def test_file_manifest_should_be_called_with_params(self, mock: MagicMock):
+    @patch.object(UploadValidator, 'get_checksums_file')
+    def test_get_checksums_file_should_be_called_with_params(self, mock: MagicMock):
         # Given
         secure_key = 'uuid'
         file_name = 'file_name.extension1.ex2'
         checksum = 'checksum'
         mock.return_value = f"{file_name},{checksum}"
-        expected_manifest = {
+        expected_checksums_file = {
             file_name: checksum
         }
 
@@ -21,10 +21,10 @@ class TestUploadValidator(unittest.TestCase):
         validator = UploadValidator(secure_key)
         
         # Then
-        mock.assert_called_once_with(f'{secure_key}/{MANIFEST_FILE_NAME}')
-        self.assertDictEqual(expected_manifest, validator.file_manifest)
+        mock.assert_called_once_with(f'{secure_key}/{CHECKSUMS_FILE_NAME}')
+        self.assertDictEqual(expected_checksums_file, validator.file_checksum_map)
     
-    @patch.object(UploadValidator, 'get_manifest_file')
+    @patch.object(UploadValidator, 'get_checksums_file')
     def test_missing_file_should_log_error(self, mock: MagicMock):
         # Given
         entity_type = 'run_experiment'
@@ -41,7 +41,7 @@ class TestUploadValidator(unittest.TestCase):
         # Then
         self.assertDictEqual(expected_errors, entity.get_errors())
     
-    @patch.object(UploadValidator, 'get_manifest_file')
+    @patch.object(UploadValidator, 'get_checksums_file')
     def test_missmatched_checksum_should_log_error(self, mock: MagicMock):
         # Given
         secure_key = 'uuid'
@@ -67,7 +67,7 @@ class TestUploadValidator(unittest.TestCase):
         }
         self.assertDictEqual(expected_errors, entity.get_errors())
 
-    @patch.object(UploadValidator, 'get_manifest_file')
+    @patch.object(UploadValidator, 'get_checksums_file')
     def test_validation_should_edit_file_attributes(self, mock: MagicMock):
         # Given
         secure_key = 'uuid'
@@ -92,7 +92,7 @@ class TestUploadValidator(unittest.TestCase):
         }
         self.assertDictEqual(expected_attributes, entity.attributes)
 
-    @patch.object(UploadValidator, 'get_manifest_file')
+    @patch.object(UploadValidator, 'get_checksums_file')
     def test_validation_with_second_file_missing(self, mock: MagicMock):
         # Given
         secure_key = 'uuid'
@@ -115,7 +115,7 @@ class TestUploadValidator(unittest.TestCase):
         }
         self.assertDictEqual(expected_errors, entity.get_errors())
 
-    @patch.object(UploadValidator, 'get_manifest_file')
+    @patch.object(UploadValidator, 'get_checksums_file')
     def test_validation_with_second_file_present(self, mock: MagicMock):
         # Given
         secure_key = 'uuid'
