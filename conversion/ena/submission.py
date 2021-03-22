@@ -58,13 +58,16 @@ class EnaSubmissionConverter:
             if len(studies) < 1:
                 experiment.add_error('run_experiment_ena_experiment_accession', 'No Linked Study')
         else:
-            # ENA Only supports linking one study & sample to an experiment
-            if len(samples) > 1:
-                experiment.add_error('run_experiment_ena_experiment_accession', f'More than one Sample Linked, using first: {samples[0].identifier.index}')
-            if len(studies) > 1:
-                experiment.add_error('run_experiment_ena_experiment_accession', f'More than one Study Linked, using first: {studies[0].identifier.index}')
+            len_samples = len(samples)
+            len_studies = len(studies)
             sample = samples.pop()
             study = studies.pop()
+
+            # ENA Only supports linking one study & sample to an experiment
+            if len_samples > 1:
+                experiment.add_error('run_experiment_ena_experiment_accession', f'More than one Sample Linked, using first: {sample.identifier.index}')
+            if len_studies > 1:
+                experiment.add_error('run_experiment_ena_experiment_accession', f'More than one Study Linked, using first: {study.identifier.index}')
             return converter.convert_experiment(experiment, sample, study)
 
     @staticmethod
