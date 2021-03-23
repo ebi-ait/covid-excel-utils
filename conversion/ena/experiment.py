@@ -48,7 +48,7 @@ class EnaExperimentConverter(BaseEnaConverter):
         BaseEnaConverter.add_link(spec['DESIGN']['SAMPLE_DESCRIPTOR'], sample, SAMPLE_ACCESSION_PRIORITY)
         BaseEnaConverter.add_link(spec['STUDY_REF'], study, STUDY_ACCESSION_PRIORITY)
 
-        if 'insert_size' in experiment.attributes and 'uploaded_file_2' in experiment.attributes:
+        if EnaExperimentConverter.is_paired_fastq(experiment):
             del spec['DESIGN']['LIBRARY_DESCRIPTOR']['LIBRARY_LAYOUT']['SINGLE']
         else:
             del spec['DESIGN']['LIBRARY_DESCRIPTOR']['LIBRARY_LAYOUT']['PAIRED']
@@ -59,6 +59,13 @@ class EnaExperimentConverter(BaseEnaConverter):
             del spec['PLATFORM']
         
         return super().convert(entity=experiment, xml_spec=spec)
+
+    @staticmethod
+    def is_paired_fastq(experiment: Entity) -> bool:
+        return 'insert_size' in experiment.attributes and \
+            'uploaded_file_2' in experiment.attributes and \
+            'fastq' in experiment.attributes['uploaded_file_1'].lower() and \
+            'fastq' in experiment.attributes['uploaded_file_2'].lower()
 
     @staticmethod
     def post_conversion(entity: Entity, xml_element: Element):

@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+from os.path import dirname, join
 import sys
 from copy import copy
 from contextlib import closing
@@ -11,11 +12,13 @@ from conversion.biosamples import BioSamplesConverter
 from conversion.biostudies import BioStudyConverter
 from conversion.ena.submission import EnaSubmissionConverter
 from conversion.ena.response import EnaResponseConverter
+from conversion.ena.manifest import EnaManifestConverter
 from excel.markup import ExcelMarkup
 from excel.validate import ValidatingExcel
 from services.biosamples import BioSamples, AapClient
 from services.biostudies import BioStudies
 from services.ena import EnaAction, Ena
+from validation.json import JsonValidator
 from validation.docker import JsonValidatorDocker
 from validation.taxonomy import TaxonomyValidator
 from validation.upload import UploadValidator
@@ -31,6 +34,7 @@ class CovidExcelUtils:
         self.__file_path = file_path
         self.__output = output
         self.excel = None
+        self.webin_manifests = {}
         self.ena_files = {}
         self.ena_response = None
 
@@ -53,6 +57,9 @@ class CovidExcelUtils:
             self.excel.validate(UploadValidator(secure_key))
         if docker_error:
             self.excel.validate(XMLSchemaValidator())
+    
+    def make_manifests(self, converter: EnaManifestConverter):
+        self.webin_manifests = converter.make_manifests(self.excel.data)
 
     def submit_to_biosamples(self, converter: BioSamplesConverter, service: BioSamples):
         for sample in self.excel.data.get_entities('sample'):
@@ -108,6 +115,12 @@ class CovidExcelUtils:
                 self.excel.markup_with_errors()
                 self.excel.close()
                 logging.info(f'Excel file updated: {self.__file_path}')
+            if self.webin_manifests:
+                dir = dirname(self.__file_path)
+                for file_name, content in self.webin_manifests.items():
+                    file_path = join(dir, file_name)
+                    self.write_str(file_path, content)
+                    logging.info(f'Webin Manifest file written to: {file_path}')
             input_file_name = os.path.splitext(self.__file_path)[0]
             if 'json' in self.__output:
                 json_file_path = input_file_name + '.json'
@@ -143,6 +156,14 @@ class CovidExcelUtils:
         if os.path.exists(file_path):
             os.remove(file_path)
         with open(file_path, "wb") as open_file:
+            open_file.write(data)
+
+    @staticmethod
+    def write_str(file_path: str, data: str):
+        file_path = os.path.abspath(file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "w") as open_file:
             open_file.write(data)
 
 
@@ -191,6 +212,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--aap_url', type=str, default='https://api.aai.ebi.ac.uk',
         help='Override the default URL for AAP API: https://api.aai.ebi.ac.uk'
+    )
+    parser.add_argument(
+        '--webin_manifests', action='store_true',
+        help='Generate manifest file(s) suitable for validation / submission to ENA using Webin-CLI'
     )
     parser.add_argument(
         '--ena', action='store_true',
@@ -284,6 +309,10 @@ if __name__ == '__main__':
                 logging.error(f'BioStudies Error: {error}')
                 sys.exit(2)
         
+        if args['webin_manifests']:
+            converter = EnaManifestConverter(JsonValidator('').schema_by_type['run_experiment'])
+            excel_utils.make_manifests(converter)
+
         if args['ena']:
             if 'ENA_USERNAME' not in os.environ:
                 logging.error('No ENA_USERNAME detected in os environment variables.')
