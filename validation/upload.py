@@ -4,6 +4,7 @@ import io
 from typing import Dict
 
 import boto3
+from botocore.exceptions import ClientError
 
 from submission.entity import Entity
 from submission.submission import Submission
@@ -52,7 +53,12 @@ class UploadValidator(BaseValidator):
     
     @staticmethod
     def get_file_checksum_map(folder_uuid: str) -> Dict[str, str]:
-        checksums_text = UploadValidator.get_checksums_file(f'{folder_uuid}/{CHECKSUMS_FILE_NAME}')
+        try:
+            checksums_text = UploadValidator.get_checksums_file(f'{folder_uuid}/{CHECKSUMS_FILE_NAME}')
+        except ClientError as error:
+            checksums_text = ''
+            error_info = error.response.get('Error', {})
+            logging.warning(f"Could not get checksums from drag-and-drop server: {error_info.get('Code', 'Unknown')} {error_info.get('Message', 'Unknown')}")
         file_checksum_map = {}
         for line in checksums_text.splitlines():
             file_name, _, file_checksum = line.strip().partition(',')
