@@ -1,5 +1,6 @@
+from conversion.ena.base import BaseEnaConverter
 from datetime import date
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 from xml.etree.ElementTree import Element
 
 from lxml import etree
@@ -12,19 +13,26 @@ from .sample import EnaSampleConverter
 from .experiment import EnaExperimentConverter
 from .run import EnaRunConverter
 
-CONVERSION_MAP = [
-    ('study', EnaProjectConverter()),
-    ('study', EnaStudyConverter()),
-    ('sample', EnaSampleConverter()),
-    ('run_experiment', EnaExperimentConverter()),
-    ('run_experiment', EnaRunConverter()),
-]
-
 
 class EnaSubmissionConverter:
+    def __init__(self, target_objects: List[str] = None):
+        if not target_objects:
+            target_objects = ['ENA_Project', 'ENA_Sample', 'ENA_Experiment', 'ENA_Run']
+        self.conversion_map = []
+        if 'ENA_Project' in target_objects:
+            self.conversion_map.append(('study', EnaProjectConverter()))
+        elif 'ENA_Study' in target_objects:
+            self.conversion_map.append(('study', EnaStudyConverter()))
+        if 'ENA_Sample' in target_objects:
+            self.conversion_map.append(('sample', EnaSampleConverter()))
+        if 'ENA_Experiment' in target_objects:
+            self.conversion_map.append(('run_experiment', EnaExperimentConverter()))
+        if 'ENA_Run' in target_objects:
+            self.conversion_map.append(('run_experiment', EnaRunConverter()))
+        
     def get_ena_files(self, data: Submission) -> Dict[str, Tuple[str, str]]:
         ena_files = {}
-        for entity_type, converter in CONVERSION_MAP:
+        for entity_type, converter in self.conversion_map:
             ena_type = converter.ena_type.upper()
             ena_set = etree.XML(f'<{ena_type}_SET />')
             for entity in data.get_entities(entity_type):
@@ -36,7 +44,7 @@ class EnaSubmissionConverter:
         return ena_files
 
     @staticmethod
-    def convert_entity(converter, data, entity):
+    def convert_entity(converter: BaseEnaConverter, data, entity):
         if isinstance(converter, EnaExperimentConverter):
             ena_conversion = EnaSubmissionConverter.convert_experiment(converter, data, entity)
         else:
