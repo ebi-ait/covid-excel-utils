@@ -26,10 +26,10 @@ class EnaManifestConverter:
                 sample = samples.pop()
                 study = studies.pop()
                 sample_accession = sample.get_first_accession(SAMPLE_ACCESSION_PRIORITY)
-                study_accession = study.get_first_accession('ENA_Study')
+                study_accession = study.get_accession('ENA_Study')
                 if sample_accession and study_accession:
                     file_name, content = self.make_manifest(run_experiment, sample_accession, study_accession)
-                manifests[file_name] = content
+                    manifests[file_name] = content
         return manifests
 
     def make_manifest(self, run_experiment: Entity, sample_accession: str, study_accession: str) -> Tuple[str, str]:
