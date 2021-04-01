@@ -7,8 +7,7 @@ from typing import Dict
 import requests
 
 from submission_broker.submission.entity import Entity
-
-from .base import BaseValidator
+from submission_broker.validation.base import BaseValidator
 
 
 class JsonValidator(BaseValidator):

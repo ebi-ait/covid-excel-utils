@@ -7,8 +7,7 @@ import boto3
 
 from submission_broker.submission.entity import Entity
 from submission_broker.submission.submission import Submission
-
-from .base import BaseValidator
+from submission_broker.validation.base import BaseValidator
 
 ENDPOINT = 'https://s3.embassy.ebi.ac.uk'
 REGION = 'eu-west-2'

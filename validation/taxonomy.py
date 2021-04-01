@@ -2,9 +2,9 @@ import logging
 
 from submission_broker.submission.entity import Entity
 from submission_broker.submission.submission import Submission
+from submission_broker.validation.base import BaseValidator
 
 from services.ena_taxonomy import EnaTaxonomy
-from validation.base import BaseValidator
 
 
 class TaxonomyValidator(BaseValidator):

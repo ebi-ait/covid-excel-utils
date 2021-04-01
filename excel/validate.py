@@ -1,6 +1,7 @@
 import logging
 
-from validation.base import BaseValidator
+from submission_broker.validation.base import BaseValidator
+
 from .load import ExcelLoader
 
 
