@@ -7,15 +7,16 @@ from copy import copy
 from contextlib import closing
 from datetime import date
 
+from submission_broker.services.biosamples import BioSamples, AapClient
+from submission_broker.services.biostudies import BioStudies
+from submission_broker.services.ena import Ena, EnaAction
+
 from conversion.biosamples import BioSamplesConverter
 from conversion.biostudies import BioStudyConverter
 from conversion.ena.submission import EnaSubmissionConverter
 from conversion.ena.response import EnaResponseConverter
 from excel.markup import ExcelMarkup
 from excel.validate import ValidatingExcel
-from services.biosamples import BioSamples, AapClient
-from services.biostudies import BioStudies
-from services.ena import EnaAction, Ena
 from validation.docker import JsonValidatorDocker
 from validation.taxonomy import TaxonomyValidator
 from validation.upload import UploadValidator
