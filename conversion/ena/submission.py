@@ -4,8 +4,9 @@ from xml.etree.ElementTree import Element
 
 from lxml import etree
 
-from submission.entity import Entity
-from submission.submission import Submission
+from submission_broker.submission.entity import Entity
+from submission_broker.submission.submission import Submission
+
 from .project import EnaProjectConverter
 from .study import EnaStudyConverter
 from .sample import EnaSampleConverter

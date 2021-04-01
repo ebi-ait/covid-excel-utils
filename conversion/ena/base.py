@@ -4,9 +4,9 @@ from xml.etree.ElementTree import Element
 
 from lxml import etree
 from json_converter.json_mapper import JsonMapper
-from conversion.conversion_utils import fixed_attribute
+from submission_broker.submission.entity import Entity
 
-from submission.entity import Entity
+from conversion.conversion_utils import fixed_attribute
 
 
 class BaseEnaConverter:

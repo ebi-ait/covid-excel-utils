@@ -1,7 +1,8 @@
 import unittest
 
+from submission_broker.submission.entity import Entity
+
 from conversion.biostudies import BioStudyConverter
-from submission.entity import Entity
 
 
 class TestBioStudiesConverter(unittest.TestCase):

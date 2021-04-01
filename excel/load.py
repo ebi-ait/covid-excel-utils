@@ -3,7 +3,8 @@ from typing import List
 
 from openpyxl import load_workbook
 
-from submission.entity import Entity
+from submission_broker.submission.entity import Entity
+
 from .clean import clean_entity_name, clean_name, is_value_populated
 from .submission import ExcelSubmission
 

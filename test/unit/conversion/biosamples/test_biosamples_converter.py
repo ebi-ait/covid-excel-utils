@@ -2,8 +2,10 @@ from typing import List
 import unittest
 
 from biosamples_v4.models import Attribute
-from submission.submission import Entity
+from submission_broker.submission.entity import Entity
+
 from conversion.biosamples import BioSamplesConverter
+
 
 class TestBioSamplesConverter(unittest.TestCase):
     def setUp(self):

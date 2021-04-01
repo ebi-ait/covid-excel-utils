@@ -6,7 +6,8 @@ from typing import Dict
 
 import requests
 
-from submission.entity import Entity
+from submission_broker.submission.entity import Entity
+
 from .base import BaseValidator
 
 

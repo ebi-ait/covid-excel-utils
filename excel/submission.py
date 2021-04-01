@@ -1,7 +1,7 @@
 from typing import Dict, List, Set
 
-from submission.entity import Entity, EntityIdentifier
-from submission.submission import Submission, HandleCollision
+from submission_broker.submission.entity import Entity, EntityIdentifier
+from submission_broker.submission.submission import Submission, HandleCollision
 
 
 class ExcelSubmission(Submission):

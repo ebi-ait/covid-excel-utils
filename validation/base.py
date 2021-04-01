@@ -1,7 +1,7 @@
 import logging
 
-from submission.entity import Entity
-from submission.submission import Submission
+from submission_broker.submission.entity import Entity
+from submission_broker.submission.submission import Submission
 
 
 class BaseValidator:

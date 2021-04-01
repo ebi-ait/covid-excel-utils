@@ -1,8 +1,9 @@
 from json_converter.json_mapper import JsonMapper
 from typing import List
 
+from submission_broker.submission.entity import Entity
+
 from conversion.conversion_utils import fixed_attribute
-from submission.entity import Entity
 
 
 BIO_STUDY_SPEC = {

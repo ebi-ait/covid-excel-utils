@@ -4,9 +4,9 @@ import requests
 
 from os.path import dirname, join
 from mock import patch
+from submission_broker.submission.submission import Submission
 
 from validation.json import JsonValidator
-from submission.submission import Submission
 
 
 class TestSchemaValidation(unittest.TestCase):

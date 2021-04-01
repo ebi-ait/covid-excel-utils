@@ -5,8 +5,9 @@ from typing import Dict
 
 import boto3
 
-from submission.entity import Entity
-from submission.submission import Submission
+from submission_broker.submission.entity import Entity
+from submission_broker.submission.submission import Submission
+
 from .base import BaseValidator
 
 ENDPOINT = 'https://s3.embassy.ebi.ac.uk'

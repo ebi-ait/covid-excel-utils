@@ -1,8 +1,9 @@
 import logging
 
+from submission_broker.submission.entity import Entity
+from submission_broker.submission.submission import Submission
+
 from services.ena_taxonomy import EnaTaxonomy
-from submission.entity import Entity
-from submission.submission import Submission
 from validation.base import BaseValidator
 
 

@@ -4,8 +4,8 @@ from typing import List
 from biostudiesclient.api import Api
 from biostudiesclient.auth import Auth
 
-from submission.entity import Entity
-from submission.submission import Submission
+from submission_broker.submission.entity import Entity
+from submission_broker.submission.submission import Submission
 
 BIOSTUDIES_LINK_TYPES = {
     'sample': 'biosample',

@@ -6,8 +6,9 @@ import re
 
 from lxml import etree
 
-from submission.submission import Submission
-from submission.entity import Entity
+from submission_broker.submission.entity import Entity
+from submission_broker.submission.submission import Submission
+
 from conversion.ena.submission import EnaSubmissionConverter, CONVERSION_MAP
 from .base import BaseValidator
 

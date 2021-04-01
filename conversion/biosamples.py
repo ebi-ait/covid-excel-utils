@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 from biosamples_v4.models import Attribute, Sample
-from submission.entity import Entity
+from submission_broker.submission.entity import Entity
 
 REMOVE_KEYS = ['sample_accession', 'sample_alias', 'sample_title', 'sample_description', 'tax_id', 'scientific_name', 'domain']
 

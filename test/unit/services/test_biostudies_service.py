@@ -6,10 +6,10 @@ from biostudiesclient.exceptions import RestErrorException
 from unittest.mock import MagicMock
 
 from biostudiesclient.response_utils import ResponseObject
+from submission_broker.submission.entity import Entity, EntityIdentifier
+from submission_broker.submission.submission import Submission
 
 from services.biostudies import BioStudies
-from submission.entity import Entity, EntityIdentifier
-from submission.submission import Submission
 
 
 class TestBioStudiesService(unittest.TestCase):

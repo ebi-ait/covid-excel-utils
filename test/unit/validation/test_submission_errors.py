@@ -2,7 +2,8 @@ import json
 import unittest
 from os.path import dirname, join
 
-from submission.submission import Entity, Submission
+from submission_broker.submission.entity import Entity
+from submission_broker.submission.submission import Submission
 
 
 class TestSubmissionErrors(unittest.TestCase):

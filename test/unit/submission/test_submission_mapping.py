@@ -1,5 +1,5 @@
 import unittest
-from submission.submission import Submission, HandleCollision
+from submission_broker.submission.submission import Submission, HandleCollision
 
 
 class TestSubmissionMapping(unittest.TestCase):
