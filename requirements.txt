@@ -8,3 +8,4 @@ json-converter
 biosamples-client
 biostudies-client
 submission-broker
+submission-validator
