@@ -2,8 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 
 from submission_broker.submission.entity import Entity
-
-from validation.upload import UploadValidator, CHECKSUMS_FILE_NAME
+from submission_validator.validation.upload import UploadValidator, CHECKSUMS_FILE_NAME
 
 
 class TestUploadValidator(unittest.TestCase):

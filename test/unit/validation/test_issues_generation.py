@@ -6,13 +6,15 @@ import requests
 from unittest.mock import patch
 
 from submission_broker.submission.submission import Submission
+from submission_validator.validation.json import JsonValidator
 
-from validation.json import JsonValidator
+from test.unit.validation.validation_utils import load_schema_files
 
 
 class TestIssuesGeneration(unittest.TestCase):
     def setUp(self):
         self.schema_validation = JsonValidator("")
+        load_schema_files(self.schema_validation)
         self.maxDiff = None
         current_folder = dirname(__file__)
         with open(join(current_folder, "../../resources/data_for_test_issues.json")) as test_data_file:
@@ -21,7 +23,7 @@ class TestIssuesGeneration(unittest.TestCase):
         for entity_type, attributes in test_data.items():
             self.submission.map(entity_type, attributes["index"], attributes)
 
-    @patch('validation.json.requests.post')
+    @patch('submission_validator.validation.json.requests.post')
     def test_when_validate_invalid_entity_with_valid_schema_should_return_errors(self, mock_post):
         # Given
         mock_post.return_value.json.side_effect = ([

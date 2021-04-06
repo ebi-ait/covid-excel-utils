@@ -2,8 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 
 from submission_broker.submission.entity import Entity
-
-from validation.taxonomy import TaxonomyValidator
+from submission_validator.validation.taxonomy import TaxonomyValidator
 
 
 class TestTaxonomyValidator(unittest.TestCase):
