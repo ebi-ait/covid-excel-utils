@@ -1,30 +1,37 @@
 import unittest
+from os.path import dirname, join
 
-from excel.load import ExcelLoader
-from excel.submission import ExcelSubmission
+from excel_submission_broker.load import ExcelLoader
+from excel_submission_broker.submission import ExcelSubmission
 
 
 class TestExcelLoading(unittest.TestCase):
+    def setUp(self) -> None:
+        services = ['BioStudies', 'BioSamples',
+                    'ENA_Project', 'ENA_Study', 'ENA_Sample', 'ENA_Experiment', 'ENA_Run', 'ENA_Submission']
+        resources_folder = dirname(__file__)
+        self.excel_loader = ExcelLoader(join(resources_folder, "../../resources/excel_test.xlsx"), {}, services)
+
     def test_loading_accession_equality(self):
         submission = ExcelSubmission()
-        study_entity1 = ExcelLoader.map_row_entity(submission, 1, 'study', {'study_accession': 'STUD1'})
-        sample_entity1 = ExcelLoader.map_row_entity(submission, 1, 'sample', {'sample_accession': 'SAME1'})
+        study_entity1 = self.excel_loader.map_row_entity(submission, 1, 'study', {'study_accession': 'STUD1'})
+        sample_entity1 = self.excel_loader.map_row_entity(submission, 1, 'sample', {'sample_accession': 'SAME1'})
 
-        study_entity2 = ExcelLoader.map_row_entity(submission, 2, 'study', {'study_accession': 'STUD1'})
-        sample_entity2 = ExcelLoader.map_row_entity(submission, 2, 'sample', {'sample_accession': 'SAME2'})
+        study_entity2 = self.excel_loader.map_row_entity(submission, 2, 'study', {'study_accession': 'STUD1'})
+        sample_entity2 = self.excel_loader.map_row_entity(submission, 2, 'sample', {'sample_accession': 'SAME2'})
 
         self.assertEqual(study_entity1, study_entity2)
         self.assertNotEqual(sample_entity1, sample_entity2)
 
     def test_loading_index_equality(self):
         submission = ExcelSubmission()
-        study_entity1 = ExcelLoader.map_row_entity(submission, 1, 'study', {'study_alias': 'STUD1'})
-        sample_entity1 = ExcelLoader.map_row_entity(submission, 1, 'sample', {'sample_index': 'SAME1'})
-        run_entity1 = ExcelLoader.map_row_entity(submission, 1, 'run', {'run_name': 'John'})
+        study_entity1 = self.excel_loader.map_row_entity(submission, 1, 'study', {'study_alias': 'STUD1'})
+        sample_entity1 = self.excel_loader.map_row_entity(submission, 1, 'sample', {'sample_index': 'SAME1'})
+        run_entity1 = self.excel_loader.map_row_entity(submission, 1, 'run', {'run_name': 'John'})
 
-        study_entity2 = ExcelLoader.map_row_entity(submission, 2, 'study', {'study_alias': 'STUD1'})
-        sample_entity2 = ExcelLoader.map_row_entity(submission, 2, 'sample', {'sample_index': 'SAME1'})
-        run_entity2 = ExcelLoader.map_row_entity(submission, 2, 'run', {'run_name': 'Jill'})
+        study_entity2 = self.excel_loader.map_row_entity(submission, 2, 'study', {'study_alias': 'STUD1'})
+        sample_entity2 = self.excel_loader.map_row_entity(submission, 2, 'sample', {'sample_index': 'SAME1'})
+        run_entity2 = self.excel_loader.map_row_entity(submission, 2, 'run', {'run_name': 'Jill'})
 
         self.assertEqual(study_entity1, study_entity2)
         self.assertEqual(sample_entity1, sample_entity2)
@@ -32,8 +39,8 @@ class TestExcelLoading(unittest.TestCase):
     
     def test_loading_without_index(self):
         submission = ExcelSubmission()
-        entity1 = ExcelLoader.map_row_entity(submission, 1, 'lorem', {})
-        entity2 = ExcelLoader.map_row_entity(submission, 2, 'ipsum', {})
+        entity1 = self.excel_loader.map_row_entity(submission, 1, 'lorem', {})
+        entity2 = self.excel_loader.map_row_entity(submission, 2, 'ipsum', {})
 
         self.assertNotEqual(entity1, entity2)
         self.assertEqual('lorem:1', entity1.identifier.index)
@@ -41,12 +48,12 @@ class TestExcelLoading(unittest.TestCase):
     
     def test_links(self):
         submission = ExcelSubmission()
-        study_entity1 = ExcelLoader.map_row_entity(submission, 1, 'study', {'study_accession': 'STUD1'})
-        sample_entity1 = ExcelLoader.map_row_entity(submission, 1, 'sample', {'sample_accession': 'SAME1'})
-        run_entity1 = ExcelLoader.map_row_entity(submission, 1, 'run_experiment', {'run_experiment_accession': 'RUN1'})
-        ExcelLoader.map_row_entity(submission, 2, 'study', {'study_accession': 'STUD1'})
-        ExcelLoader.map_row_entity(submission, 2, 'sample', {'sample_accession': 'SAME1'})
-        run_entity2 = ExcelLoader.map_row_entity(submission, 2, 'run_experiment', {'run_experiment_accession': 'RUN2'})
+        study_entity1 = self.excel_loader.map_row_entity(submission, 1, 'study', {'study_accession': 'STUD1'})
+        sample_entity1 = self.excel_loader.map_row_entity(submission, 1, 'sample', {'sample_accession': 'SAME1'})
+        run_entity1 = self.excel_loader.map_row_entity(submission, 1, 'run_experiment', {'run_experiment_accession': 'RUN1'})
+        self.excel_loader.map_row_entity(submission, 2, 'study', {'study_accession': 'STUD1'})
+        self.excel_loader.map_row_entity(submission, 2, 'sample', {'sample_accession': 'SAME1'})
+        run_entity2 = self.excel_loader.map_row_entity(submission, 2, 'run_experiment', {'run_experiment_accession': 'RUN2'})
         
         self.assertSetEqual({'SAME1'}, study_entity1.get_linked_indexes('sample'))
         self.assertSetEqual({'RUN1', 'RUN2'}, study_entity1.get_linked_indexes('run_experiment'))
@@ -81,9 +88,9 @@ class TestExcelLoading(unittest.TestCase):
             's_name': 'STUD'
         }
         submission = ExcelSubmission()
-        s_entity1 = ExcelLoader.map_row_entity(submission, 1, 's', s_1)
-        s_entity2 = ExcelLoader.map_row_entity(submission, 2, 's', s_2)
-        s_entity3 = ExcelLoader.map_row_entity(submission, 3, 's', s_3)
+        s_entity1 = self.excel_loader.map_row_entity(submission, 1, 's', s_1)
+        s_entity2 = self.excel_loader.map_row_entity(submission, 2, 's', s_2)
+        s_entity3 = self.excel_loader.map_row_entity(submission, 3, 's', s_3)
 
         self.assertEqual(s_entity1, s_entity2)
         self.assertEqual(s_entity1, s_entity3)        

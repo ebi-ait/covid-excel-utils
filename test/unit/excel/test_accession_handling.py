@@ -1,10 +1,24 @@
 import unittest
+from os.path import dirname, join
 
-from excel.load import ExcelLoader
-from excel.submission import ExcelSubmission
+from excel_submission_broker.load import ExcelLoader
+from excel_submission_broker.submission import ExcelSubmission
 
 
 class TestExcelAccessionHandling(unittest.TestCase):
+    def setUp(self) -> None:
+        services = ['BioStudies', 'BioSamples',
+                    'ENA_Project', 'ENA_Study', 'ENA_Sample', 'ENA_Experiment', 'ENA_Run', 'ENA_Submission']
+        service_map = {
+            'study': 'BioStudies',
+            'sample': 'BioSamples',
+            'run_experiment': 'ENA_Run',
+            'submission': 'ENA_Submission'
+        }
+        resources_folder = dirname(__file__)
+        self.excel_loader = \
+            ExcelLoader(join(resources_folder, "../../resources/excel_test.xlsx"), service_map, services)
+
     def test_default_accessions(self):
         expected_accessions = {
             'BioStudies': {'S-BSST1'},
@@ -24,10 +38,10 @@ class TestExcelAccessionHandling(unittest.TestCase):
         run_experiment2 = {
             'run_experiment_accession': 'ERR2',
         }
-        study_entity1 = ExcelLoader.map_row_entity(submission, 1, 'study', study)
-        sample_entity1 = ExcelLoader.map_row_entity(submission, 1, 'sample', sample)
-        run_entity1 = ExcelLoader.map_row_entity(submission, 1, 'run_experiment', run_experiment1)
-        run_entity2 = ExcelLoader.map_row_entity(submission, 2, 'run_experiment', run_experiment2)
+        study_entity1 = self.excel_loader.map_row_entity(submission, 1, 'study', study)
+        sample_entity1 = self.excel_loader.map_row_entity(submission, 1, 'sample', sample)
+        run_entity1 = self.excel_loader.map_row_entity(submission, 1, 'run_experiment', run_experiment1)
+        run_entity2 = self.excel_loader.map_row_entity(submission, 2, 'run_experiment', run_experiment2)
         
         self.assertDictEqual(expected_accessions, submission.get_all_accessions())
         self.assertEqual('S-BSST1', study_entity1.identifier.index)
@@ -71,10 +85,10 @@ class TestExcelAccessionHandling(unittest.TestCase):
             'run_experiment_ena_experiment_accession': 'ERX2',
             'run_experiment_ena_run_accession': 'ERR2',
         }
-        study_entity1 = ExcelLoader.map_row_entity(submission, 1, 'study', study)
-        sample_entity1 = ExcelLoader.map_row_entity(submission, 1, 'sample', sample)
-        run_entity1 = ExcelLoader.map_row_entity(submission, 1, 'run_experiment', run_experiment1)
-        run_entity2 = ExcelLoader.map_row_entity(submission, 2, 'run_experiment', run_experiment2)
+        study_entity1 = self.excel_loader.map_row_entity(submission, 1, 'study', study)
+        sample_entity1 = self.excel_loader.map_row_entity(submission, 1, 'sample', sample)
+        run_entity1 = self.excel_loader.map_row_entity(submission, 1, 'run_experiment', run_experiment1)
+        run_entity2 = self.excel_loader.map_row_entity(submission, 2, 'run_experiment', run_experiment2)
         
         self.assertDictEqual(expected_accessions, submission.get_all_accessions())
         self.assertEqual('S-BSST1', study_entity1.get_accession('BioStudies'))
@@ -104,8 +118,8 @@ class TestExcelAccessionHandling(unittest.TestCase):
             'sequence_array_express_accession': 'A2',
             'sequence_eva_accession': 'EVA2',
         }
-        sequence_entity1 = ExcelLoader.map_row_entity(submission, 1, 'sequence', sequence1)
-        sequence_entity2 = ExcelLoader.map_row_entity(submission, 2, 'sequence', sequence2)
+        sequence_entity1 = self.excel_loader.map_row_entity(submission, 1, 'sequence', sequence1)
+        sequence_entity2 = self.excel_loader.map_row_entity(submission, 2, 'sequence', sequence2)
         
         self.assertDictEqual(expected_accessions, submission.get_all_accessions())
         self.assertEqual('A1', sequence_entity1.get_accession('array_express'))
@@ -121,7 +135,7 @@ class TestExcelAccessionHandling(unittest.TestCase):
         }
 
         submission = ExcelSubmission()
-        lorem_entity = ExcelLoader.map_row_entity(submission, 1, 'lorem', attributes)
+        lorem_entity = self.excel_loader.map_row_entity(submission, 1, 'lorem', attributes)
 
         self.assertEqual('ipsum', lorem_entity.identifier.index)
         self.assertFalse(lorem_entity.get_accessions())

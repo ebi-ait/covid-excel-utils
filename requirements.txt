@@ -9,3 +9,4 @@ biosamples-client
 biostudies-client
 submission-broker
 submission-validator
+excel-submission-broker

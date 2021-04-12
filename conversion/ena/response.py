@@ -9,8 +9,7 @@ from submission_broker.services.ena import EnaError
 from submission_broker.submission.entity import Entity
 from submission_broker.submission.submission import Submission
 
-from excel.submission import ExcelSubmission
-
+from excel_submission_broker.submission import ExcelSubmission
 
 
 class EnaResponseConverter:

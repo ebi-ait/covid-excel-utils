@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 from biosamples_v4.models import Attribute, Sample
 from submission_broker.submission.entity import Entity
