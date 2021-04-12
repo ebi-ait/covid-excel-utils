@@ -17,9 +17,11 @@ from conversion.ena.submission import EnaSubmissionConverter
 from conversion.ena.response import EnaResponseConverter
 from excel.markup import ExcelMarkup
 from excel.validate import ValidatingExcel
-from validation.docker import JsonValidatorDocker
-from validation.taxonomy import TaxonomyValidator
-from validation.upload import UploadValidator
+from submission_validator.validation.docker import JsonValidatorDocker
+from submission_validator.validation.taxonomy import TaxonomyValidator
+from submission_validator.validation.upload import UploadValidator
+
+from validation.validation_setup import load_schema_files
 from validation.xsd import XMLSchemaValidator
 
 
@@ -45,6 +47,7 @@ class CovidExcelUtils:
         docker_error = False
         try:
             with closing(JsonValidatorDocker(DOCKER_IMAGE, JSON_VALIDATOR_URL)) as json_validator:
+                load_schema_files(json_validator)
                 self.excel.validate(json_validator)
         except Exception:
             logging.warning(f'Error validating using JSON Validator on Docker. Will validate using ENA XML schema instead.')
