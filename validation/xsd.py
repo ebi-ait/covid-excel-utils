@@ -10,7 +10,7 @@ from submission_broker.submission.entity import Entity
 from submission_broker.submission.submission import Submission
 from submission_broker.validation.base import BaseValidator
 
-from conversion.ena.submission import EnaSubmissionConverter, CONVERSION_MAP
+from conversion.ena.submission import EnaSubmissionConverter
 
 
 class XMLSchemaValidator(BaseValidator):
