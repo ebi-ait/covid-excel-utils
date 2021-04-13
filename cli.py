@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+from os.path import dirname, join
 import sys
 from copy import copy
 from contextlib import closing
@@ -10,11 +11,13 @@ from datetime import date
 from submission_broker.services.biosamples import BioSamples, AapClient
 from submission_broker.services.biostudies import BioStudies
 from submission_broker.services.ena import Ena, EnaAction
+from submission_validator.validation.json import JsonValidator
 
 from conversion.biosamples import BioSamplesConverter
 from conversion.biostudies import BioStudyConverter
 from conversion.ena.submission import EnaSubmissionConverter
 from conversion.ena.response import EnaResponseConverter
+
 from excel_submission_broker.markup import ExcelMarkup
 from excel_submission_broker.validate import ValidatingExcel
 from submission_validator.validation.docker import JsonValidatorDocker
@@ -22,6 +25,8 @@ from submission_validator.validation.taxonomy import TaxonomyValidator
 from submission_validator.validation.upload import UploadValidator
 
 from validation.validation_setup import load_schema_files
+
+from conversion.ena.manifest import EnaManifestConverter
 from validation.xsd import XMLSchemaValidator
 
 
@@ -50,6 +55,7 @@ class CovidExcelUtils:
         self.__file_path = file_path
         self.__output = output
         self.excel = None
+        self.webin_manifests = {}
         self.ena_files = {}
         self.ena_response = None
 
@@ -59,7 +65,7 @@ class CovidExcelUtils:
         else:
             self.excel = ValidatingExcel(self.__file_path, SERVICE_MAP, SERVICE_NAMES)
 
-    def validate(self, secure_key: str = None):
+    def validate(self, submission_converter: EnaSubmissionConverter = None, secure_key: str = None):
         docker_error = False
         try:
             with closing(JsonValidatorDocker(DOCKER_IMAGE, JSON_VALIDATOR_URL)) as json_validator:
@@ -71,8 +77,11 @@ class CovidExcelUtils:
         self.excel.validate(TaxonomyValidator())
         if secure_key:
             self.excel.validate(UploadValidator(secure_key))
-        if docker_error:
-            self.excel.validate(XMLSchemaValidator())
+        if docker_error and submission_converter:
+            self.excel.validate(XMLSchemaValidator(submission_converter))
+    
+    def make_manifests(self, converter: EnaManifestConverter):
+        self.webin_manifests = converter.make_manifests(self.excel.data)
 
     def submit_to_biosamples(self, converter: BioSamplesConverter, service: BioSamples):
         for sample in self.excel.data.get_entities('sample'):
@@ -106,9 +115,8 @@ class CovidExcelUtils:
                     error_msg = f'BioStudies Error: {e}'
                     study.add_error('study_accession', error_msg)
 
-    def submit_ena(self, service: Ena, action: EnaAction = None, hold_date: date = None, center: str = None):
-        submission_converter = EnaSubmissionConverter()
-        self.ena_files = submission_converter.get_ena_files(self.excel.data)
+    def submit_ena(self, converter: EnaSubmissionConverter, service: Ena, action: EnaAction = None, hold_date: date = None, center: str = None):
+        self.ena_files = converter.get_ena_files(self.excel.data)
         if not action:
             action = EnaAction.ADD
             for key in self.excel.data.get_all_accessions().keys():
@@ -116,7 +124,7 @@ class CovidExcelUtils:
                     action = EnaAction.MODIFY
                     break
         if not hold_date:
-            hold_date = submission_converter.get_release_date(self.excel.data)
+            hold_date = converter.get_release_date(self.excel.data)
         self.ena_response = service.submit_files(self.ena_files, action, hold_date, center)
         EnaResponseConverter().convert_response_file(self.excel.data, self.ena_response)
 
@@ -128,6 +136,12 @@ class CovidExcelUtils:
                 self.excel.markup_with_errors()
                 self.excel.close()
                 logging.info(f'Excel file updated: {self.__file_path}')
+            if self.webin_manifests:
+                dir = dirname(self.__file_path)
+                for file_name, content in self.webin_manifests.items():
+                    file_path = join(dir, file_name)
+                    self.write_str(file_path, content)
+                    logging.info(f'Webin Manifest file written to: {file_path}')
             input_file_name = os.path.splitext(self.__file_path)[0]
             if 'json' in self.__output:
                 json_file_path = input_file_name + '.json'
@@ -163,6 +177,14 @@ class CovidExcelUtils:
         if os.path.exists(file_path):
             os.remove(file_path)
         with open(file_path, "wb") as open_file:
+            open_file.write(data)
+
+    @staticmethod
+    def write_str(file_path: str, data: str):
+        file_path = os.path.abspath(file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, "w") as open_file:
             open_file.write(data)
 
 
@@ -213,6 +235,10 @@ if __name__ == '__main__':
         help='Override the default URL for AAP API: https://api.aai.ebi.ac.uk'
     )
     parser.add_argument(
+        '--webin_manifests', action='store_true',
+        help='Generate manifest file(s) suitable for validation / submission to ENA using Webin-CLI'
+    )
+    parser.add_argument(
         '--ena', action='store_true',
         help='Submit to ENA, requires environment variables ENA_USERNAME and ENA_PASSWORD'
     )
@@ -253,10 +279,14 @@ if __name__ == '__main__':
         outputs.remove('all')
     with closing(CovidExcelUtils(args['file_path'], outputs)) as excel_utils:
         excel_utils.load()
+        if args['webin_manifests']:
+            ena_converter = EnaSubmissionConverter(['ENA_Study','ENA_Sample'])
+        else:
+            ena_converter = EnaSubmissionConverter()
         if not excel_utils.excel.data.has_data:
             logging.info(f"No Data imported from: {args['file_path']}")
             sys.exit(0)
-        excel_utils.validate(args['secure_key'])
+        excel_utils.validate(ena_converter, args['secure_key'])
         if excel_utils.excel.data.has_errors():
             message = 'Issues detected:'
             for entity_type, indexed_entities in excel_utils.excel.data.get_all_errors().items():
@@ -303,7 +333,7 @@ if __name__ == '__main__':
             except Exception as error:
                 logging.error(f'BioStudies Error: {error}')
                 sys.exit(2)
-        
+
         if args['ena']:
             if 'ENA_USERNAME' not in os.environ:
                 logging.error('No ENA_USERNAME detected in os environment variables.')
@@ -317,10 +347,14 @@ if __name__ == '__main__':
             logging.info(f"Attempting to Submit to ENA: {args['ena_url']}")
             try:
                 ena_service = Ena(os.environ['ENA_USERNAME'], os.environ['ENA_PASSWORD'], args['ena_url'])
-                excel_utils.submit_ena(ena_service, ena_action, args['ena_hold_date'], args['ena_center_name'])
+                excel_utils.submit_ena(ena_converter, ena_service, ena_action, args['ena_hold_date'], args['ena_center_name'])
             except Exception as error:
                 logging.error(f'ENA Error: {error}')
                 sys.exit(2)
+        
+        if args['webin_manifests']:
+            manifest_converter = EnaManifestConverter(JsonValidator('').schema_by_type['run_experiment'])
+            excel_utils.make_manifests(manifest_converter)
 
         if biostudies_service:
             logging.info(f"Updating BioStudies Links: {args['biostudies_url']}")

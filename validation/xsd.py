@@ -1,8 +1,8 @@
 import logging
+import re
 from fnmatch import fnmatch
 from os import listdir
 from os.path import dirname, join, splitext
-import re
 
 from lxml import etree
 
@@ -16,19 +16,20 @@ from conversion.ena.submission import EnaSubmissionConverter, CONVERSION_MAP
 class XMLSchemaValidator(BaseValidator):
     ena_schema = {}
 
-    def __init__(self):
+    def __init__(self, ena_converter: EnaSubmissionConverter):
         self.__load_schema_files()
+        self.converter = ena_converter
         self.regex = re.compile(r'^Element \'(?P<element>.+)\':( \[(?P<type>.+)\])? (?P<error>.*)$')
 
     def validate_data(self, data: Submission):
-        for entity_type, converter in CONVERSION_MAP:
+        for entity_type, converter in self.converter.conversion_map:
             ena_type = converter.ena_type.upper()
             entities = data.get_entities(entity_type)
             logging.info(f'Validating {len(entities)} {entity_type}(s) against ENA {ena_type} schema')
             for entity in entities:
                 schema = self.ena_schema[ena_type]
                 ena_set = etree.XML(f'<{ena_type}_SET />')
-                ena_set.append(EnaSubmissionConverter.convert_entity(converter, data, entity))
+                ena_set.append(self.converter.convert_entity(converter, data, entity))
 
                 if not schema(ena_set):
                     self.add_errors(schema, ena_type, entity_type, entity)
