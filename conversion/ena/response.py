@@ -5,11 +5,11 @@ from io import BytesIO
 from xml.etree.ElementTree import Element
 
 from lxml import etree
+from submission_broker.services.ena import EnaError
+from submission_broker.submission.entity import Entity
+from submission_broker.submission.submission import Submission
 
-from excel.submission import ExcelSubmission
-from submission.entity import Entity
-from submission.submission import Submission
-from services.ena import EnaError
+from excel_submission_broker.submission import ExcelSubmission
 
 
 class EnaResponseConverter:

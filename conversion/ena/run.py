@@ -2,7 +2,8 @@ from copy import deepcopy
 from xml.etree.ElementTree import Element
 
 from lxml import etree
-from submission.entity import Entity
+from submission_broker.submission.entity import Entity
+
 from .base import BaseEnaConverter
 from .experiment import EXPERIMENT_ACCESSION_PRIORITY
 

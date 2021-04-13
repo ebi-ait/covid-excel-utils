@@ -6,10 +6,11 @@ from os.path import dirname, join, splitext
 
 from lxml import etree
 
-from submission.submission import Submission
-from submission.entity import Entity
+from submission_broker.submission.entity import Entity
+from submission_broker.submission.submission import Submission
+from submission_broker.validation.base import BaseValidator
+
 from conversion.ena.submission import EnaSubmissionConverter
-from .base import BaseValidator
 
 
 class XMLSchemaValidator(BaseValidator):

@@ -1,6 +1,6 @@
 import unittest
 
-from submission.submission import Submission
+from submission_broker.submission.submission import Submission
 
 
 class TestSubmissionAccessions(unittest.TestCase):

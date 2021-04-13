@@ -1,7 +1,7 @@
 from typing import Dict, Tuple
 
-from submission.entity import Entity
-from submission.submission import Submission
+from submission_broker.submission.entity import Entity
+from submission_broker.submission.submission import Submission
 from .sample import SAMPLE_ACCESSION_PRIORITY
 from .experiment import EnaExperimentConverter
 from .run import EnaRunConverter

@@ -3,10 +3,10 @@ from typing import List
 from openpyxl import load_workbook
 from openpyxl.worksheet.datavalidation import DataValidationList
 from openpyxl.worksheet.worksheet import Worksheet
-from excel.clean import (entity_has_attribute, clean_validation, clean_entity_name, clean_key,
+from excel_submission_broker.clean import (entity_has_attribute, clean_validation, clean_entity_name, clean_key,
                          clean_name, clean_formula_list, clean_validation_list, is_valid_date)
-from submission.entity import Entity
-from .base import BaseValidator
+from submission_broker.submission.entity import Entity
+from submission_broker.validation.base import BaseValidator
 
 
 class ExcelValidator(BaseValidator):

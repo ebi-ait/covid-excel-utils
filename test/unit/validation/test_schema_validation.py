@@ -4,9 +4,10 @@ import requests
 
 from os.path import dirname, join
 from mock import patch
+from submission_broker.submission.submission import Submission
+from submission_validator.validation.json import JsonValidator
 
-from validation.json import JsonValidator
-from submission.submission import Submission
+from test.unit.validation.validation_utils import load_schema_files
 
 
 class TestSchemaValidation(unittest.TestCase):
@@ -15,11 +16,12 @@ class TestSchemaValidation(unittest.TestCase):
         with open(join(dirname(__file__), "../../resources/data_for_test_issues.json")) as test_data_file:
             test_data = json.load(test_data_file)
         self.schema_validation = JsonValidator("")
+        load_schema_files(self.schema_validation)
         self.submission = Submission()
         for entity_type, attributes in test_data.items():
             self.submission.map(entity_type, attributes["index"], attributes)
 
-    @patch('validation.json.requests.post')
+    @patch('submission_validator.validation.json.requests.post')
     def test_when_entity_valid_should_return_no_errors(self, mock_post):
         # Given
         mock_post.return_value.json.return_value = []
@@ -32,7 +34,7 @@ class TestSchemaValidation(unittest.TestCase):
         self.assertFalse(self.submission.has_errors())
         self.assertDictEqual({}, self.submission.get_all_errors())
 
-    @patch('validation.json.requests.post')
+    @patch('submission_validator.validation.json.requests.post')
     def test_when_entity_invalid_entity_with_valid_schema_should_return_errors(self, mock_post):
         # Given
         mock_post.return_value.json.return_value = [

@@ -8,25 +8,46 @@ from copy import copy
 from contextlib import closing
 from datetime import date
 
+from submission_broker.services.biosamples import BioSamples, AapClient
+from submission_broker.services.biostudies import BioStudies
+from submission_broker.services.ena import Ena, EnaAction
+from submission_validator.validation.json import JsonValidator
+
 from conversion.biosamples import BioSamplesConverter
 from conversion.biostudies import BioStudyConverter
 from conversion.ena.submission import EnaSubmissionConverter
 from conversion.ena.response import EnaResponseConverter
+
+from excel_submission_broker.markup import ExcelMarkup
+from excel_submission_broker.validate import ValidatingExcel
+from submission_validator.validation.docker import JsonValidatorDocker
+from submission_validator.validation.taxonomy import TaxonomyValidator
+from submission_validator.validation.upload import UploadValidator
+
+from validation.validation_setup import load_schema_files
+
 from conversion.ena.manifest import EnaManifestConverter
-from excel.markup import ExcelMarkup
-from excel.validate import ValidatingExcel
-from services.biosamples import BioSamples, AapClient
-from services.biostudies import BioStudies
-from services.ena import EnaAction, Ena
-from validation.json import JsonValidator
-from validation.docker import JsonValidatorDocker
-from validation.taxonomy import TaxonomyValidator
-from validation.upload import UploadValidator
 from validation.xsd import XMLSchemaValidator
 
 
 DOCKER_IMAGE = "dockerhub.ebi.ac.uk/ait/json-schema-validator"
 JSON_VALIDATOR_URL = "http://localhost:3020/validate"
+SERVICE_MAP = {
+    'study': 'BioStudies',
+    'sample': 'BioSamples',
+    'run_experiment': 'ENA_Run',
+    'submission': 'ENA_Submission'
+}
+SERVICE_NAMES = [
+    'BioStudies',
+    'BioSamples',
+    'ENA_Project',
+    'ENA_Study',
+    'ENA_Sample',
+    'ENA_Experiment',
+    'ENA_Run',
+    'ENA_Submission'
+]
 
 
 class CovidExcelUtils:
@@ -40,14 +61,15 @@ class CovidExcelUtils:
 
     def load(self):
         if 'excel' in self.__output:
-            self.excel = ExcelMarkup(self.__file_path)
+            self.excel = ExcelMarkup(self.__file_path, SERVICE_MAP, SERVICE_NAMES)
         else:
-            self.excel = ValidatingExcel(self.__file_path)
+            self.excel = ValidatingExcel(self.__file_path, SERVICE_MAP, SERVICE_NAMES)
 
     def validate(self, submission_converter: EnaSubmissionConverter = None, secure_key: str = None):
         docker_error = False
         try:
             with closing(JsonValidatorDocker(DOCKER_IMAGE, JSON_VALIDATOR_URL)) as json_validator:
+                load_schema_files(json_validator)
                 self.excel.validate(json_validator)
         except Exception:
             logging.warning(f'Error validating using JSON Validator on Docker. Will validate using ENA XML schema instead.')

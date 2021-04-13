@@ -2,7 +2,7 @@ import unittest
 from http import HTTPStatus
 from unittest.mock import patch, MagicMock
 
-from services.ena_taxonomy import EnaTaxonomy
+from submission_validator.services.ena_taxonomy import EnaTaxonomy
 
 
 class TestEnaTaxonomy(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestEnaTaxonomy(unittest.TestCase):
             filler = ' '
         return f'Not valid {key}: {value}.{filler}{details}'
 
-    @patch('services.ena_taxonomy.requests.get')
+    @patch('submission_validator.services.ena_taxonomy.requests.get')
     def test_when_tax_id_not_numeric_should_return_error(self, mock_get):
         non_existing_tax_id = "NOT_NUMERIC_TAX_ID"
         response_message = 'Taxon Id must be numeric.'
@@ -30,7 +30,7 @@ class TestEnaTaxonomy(unittest.TestCase):
         self.assertIn('error', result)
         self.assertEqual(expected_error, result['error'])
 
-    @patch('services.ena_taxonomy.requests.get')
+    @patch('submission_validator.services.ena_taxonomy.requests.get')
     def test_when_invalid_tax_id_given_should_return_error(self, mock_get):
         non_existing_tax_id = "999999999999"
         no_results_message = 'No results.'
@@ -43,7 +43,7 @@ class TestEnaTaxonomy(unittest.TestCase):
         self.assertIn('error', result)
         self.assertEqual(expected_error, result['error'])
 
-    @patch('services.ena_taxonomy.requests.get')
+    @patch('submission_validator.services.ena_taxonomy.requests.get')
     def test_when_valid_but_not_submittable_tax_id_given_should_return_error(self, mock_get):
         valid_tax_id = "1234"
         results_message = {
@@ -65,7 +65,7 @@ class TestEnaTaxonomy(unittest.TestCase):
         self.assertIn('error', result)
         self.assertEqual(expected_error, result['error'])
 
-    @patch('services.ena_taxonomy.requests.get')
+    @patch('submission_validator.services.ena_taxonomy.requests.get')
     def test_when_valid_and_submittable_tax_id_given_should_not_return_error(self, mock_get):
         valid_tax_id = "5678"
         results_message = {
@@ -88,7 +88,7 @@ class TestEnaTaxonomy(unittest.TestCase):
         self.assertNotIn('error', result)
         self.assertIn('taxId', result)
 
-    @patch('services.ena_taxonomy.requests.get')
+    @patch('submission_validator.services.ena_taxonomy.requests.get')
     def test_when_invalid_scientific_name_given_should_return_error(self, mock_get):
         non_existing_scientific_name = "NOT VALID SCIENTIFIC NAME"
         no_results_message = 'No results.'
@@ -101,7 +101,7 @@ class TestEnaTaxonomy(unittest.TestCase):
         self.assertIn('error', result)
         self.assertEqual(expected_error, result['error'])
 
-    @patch('services.ena_taxonomy.requests.get')
+    @patch('submission_validator.services.ena_taxonomy.requests.get')
     def test_when_not_suitable_parameter_given_should_return_error(self, mock_get):
         invalid_param = "?"
         response_message = ''
@@ -114,7 +114,7 @@ class TestEnaTaxonomy(unittest.TestCase):
         self.assertIn('error', result)
         self.assertEqual(expected_error, result['error'])
 
-    @patch('services.ena_taxonomy.requests.get')
+    @patch('submission_validator.services.ena_taxonomy.requests.get')
     def test_when_valid_but_not_submittable_scientific_name_given_should_return_error(self, mock_get):
         valid_scientific_name = "primates"
         results_message = [
@@ -139,7 +139,7 @@ class TestEnaTaxonomy(unittest.TestCase):
         self.assertIn('error', error_result)
         self.assertEqual(expected_error, error_result['error'])
 
-    @patch('services.ena_taxonomy.requests.get')
+    @patch('submission_validator.services.ena_taxonomy.requests.get')
     def test_when_valid_and_submittable_scientific_name_given_should_not_return_error(self, mock_get):
         valid_scientific_name = "homo sapiens"
         results_message = [
